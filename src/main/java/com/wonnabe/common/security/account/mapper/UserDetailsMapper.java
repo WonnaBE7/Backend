@@ -1,4 +1,9 @@
 package com.wonnabe.common.security.account.mapper;
 
-public class UserDetailsMapper {
+import com.wonnabe.common.security.account.domain.MemberVO;
+
+public interface UserDetailsMapper {
+
+    public MemberVO get(String username);
+
 }

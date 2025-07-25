@@ -1,4 +1,14 @@
 package com.wonnabe.common.security.account.domain;
 
-public class AuthVO {
+import lombok.Data;
+import org.springframework.security.core.GrantedAuthority;
+
+@Data
+public class AuthVO implements GrantedAuthority {
+    private String username;
+    private String auth;
+    @Override
+    public String getAuthority() {
+        return auth;
+    }
 }
