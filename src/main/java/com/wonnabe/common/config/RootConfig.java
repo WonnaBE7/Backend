@@ -16,9 +16,11 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-//@MapperScan(basePackages = {"org.scoula.mapper"})
-@MapperScan(basePackages = {"org.scoula.board.mapper"})
-//@ComponentScan(basePackages={ "org.scoula.board.service" })
+// 내가 수정함
+@MapperScan(basePackages = {"com.wonnabe.asset.mapper"})
+
+//내가 추가함
+@ComponentScan(basePackages = {"com.wonnabe"})
 public class RootConfig {
 
     @Value("${jdbc.driver}") String driver;

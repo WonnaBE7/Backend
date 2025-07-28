@@ -10,6 +10,8 @@ import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
 @ComponentScan(basePackages = {
+        "com.wonnabe.controller",
+        "com.wonnabe.asset.controller",
         "org.scoula.exception",
         "org.scoula.controller",
         "org.scoula.board.controller"
