@@ -1,8 +1,10 @@
 package com.wonnabe.common.security.filter;
 
+import com.wonnabe.common.security.service.CustomUserDetailsService;
 import com.wonnabe.common.security.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,10 +23,14 @@ import java.io.IOException;
 @Log4j2
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer "; // 끝에 공백 있음
     private final JwtProcessor jwtProcessor;
     private final UserDetailsService userDetailsService;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     /**
      * 전달받은 JWT 토큰을 기반으로 사용자 정보를 조회하고
@@ -34,8 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      * @return UsernamePasswordAuthenticationToken (사용자 인증 정보 포함)
      */
     private Authentication getAuthentication(String token) {
-        String username = jwtProcessor.getUserIdFromToken(token);
-        UserDetails princiapl = userDetailsService.loadUserByUsername(username);
+        String UUID = jwtProcessor.getUserIdFromToken(token);
+        UserDetails princiapl = customUserDetailsService.loadUserByUserUUID(UUID);
         return new UsernamePasswordAuthenticationToken(princiapl, null, princiapl.getAuthorities());
     }
 
