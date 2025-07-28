@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.goal.mapper.GoalMapper">
+    <resultMap id="goalSummaryResultMap" type="com.wonnabe.goal.dto.GoalSummaryResponseDTO">
+        <id property="id" column="goal_id"/>
+        <result property="goalName" column="goal_name"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="nowmeName" column="nowme_name"/>
+        <result property="progressRate" column="progress_rate"/>
+        <result property="targetAmount" column="target_amount"/>
+        <result property="currentAmount" column="current_amount"/>
+        <result property="goalDurationMonths" column="goal_duration_months"/>
+        <result property="startDate" column="start_date"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="getGoalList" resultMap="goalSummaryResultMap">
+        SELECT
+            g.id AS goal_id,
+            g.goal_name,
+            c.name AS category_name,
+            ftt.name AS nowme_name,
+            g.target_amount,
+            g.current_amount,
+            g.goal_duration_months,
+            g.start_date,
+            g.status,
+            ROUND((g.current_amount * 100 / g.target_amount), 0) AS progress_rate
+        FROM
+            user_goal g
+        LEFT JOIN
+            common_category c ON g.category_id = c.id
+        LEFT JOIN
+            financial_tendency_type ftt ON g.nowme_id = ftt.id
+        WHERE
+            g.user_id = #{userId, jdbcType=VARCHAR}
+            AND g.status = 'PUBLISHED'
+        ORDER BY
+            g.id DESC
+    </select>
+
+    <resultMap id="goalDetailResultMap" type="com.wonnabe.goal.dto.GoalDetailResponseDTO">
+        <id property="id" column="goal_id"/>
+        <result property="goalName" column="goal_name"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="nowmeName" column="nowme_name"/>
+        <result property="progressRate" column="progress_name" />
+        <result property="targetAmount" column="target_amount"/>
+        <result property="currentAmount" column="current_amount"/>
+        <result property="goalDurationMonths" column="goal_duration_months"/>
+        <result property="remainingMonths" column="remaining_months" />
+        <result property="monthlySaveAmount" column="monthly_save_amount"/>
+        <result property="futureMeMessage" column="result_summary"/>
+        <result property="selectedProductId" column="selected_products_id"/>
+    </resultMap>
+
+    <select id="getGoal" resultMap="goalDetailResultMap">
+        SELECT
+            g.id,
+            g.goal_name,
+            c.name AS category_name,
+            ftt.name AS nowme_name,
+            g.target_amount,
+            g.current_amount,
+            g.goal_duration_months,
+            g.monthly_save_amount,
+            g.result_summary,
+            g.selected_products_id,
+            TIMESTAMPDIFF(MONTH, NOW(), g.target_date) AS remaining_months,
+            ROUND((g.current_amount * 100 / g.target_amount), 0) AS progress_rate
+        FROM user_goal g
+        JOIN common_category c ON g.category_id = c.id
+        JOIN financial_tendency_type ftt ON g.nowme_id = ftt.id
+        WHERE g.user_id = #{userId} AND g.id = #{goalId}
+    </select>
+</mapper>

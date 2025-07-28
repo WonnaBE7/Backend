@@ -17,8 +17,8 @@ ext {
     springSecurityVersion='5.8.13'
 }
 
-sourceCompatibility = '1.17'
-targetCompatibility = '1.17'
+sourceCompatibility = '17'
+targetCompatibility = '17'
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
@@ -73,6 +73,9 @@ dependencies {
 
     // Jackson - Json 처리
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+
+    // Java 8 Date and Time API(LocalDate 등) 지원
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.4'
 
     // 테스트
     testImplementation "org.springframework:spring-test:${springVersion}"
