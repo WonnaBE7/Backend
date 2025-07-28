@@ -26,19 +26,4 @@ public class GoalSummaryResponseDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private LocalDate startDate;
     private String status;
-
-    public static GoalSummaryResponseDTO of(GoalVO vo) {
-        return vo == null ? null : GoalSummaryResponseDTO.builder()
-                .id(vo.getId())
-                .goalName(vo.getGoalName())
-                .categoryName("") // TODO: common_category DB랑 계산 필요
-                .nowmeName("") // TODO: financial_tendency_type DB랑 계산 필요
-                .progressRate(vo.getProgressRate() != null ? Math.round(vo.getProgressRate()) : null)
-                .targetAmount(vo.getTargetAmount())
-                .currentAmount(vo.getCurrentAmount())
-                .goalDurationMonths(vo.getGoalDurationMonths())
-                .startDate(vo.getStartDate())
-                .status(vo.getStatus())
-                .build();
-    }
 }
