@@ -8,6 +8,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -22,4 +26,24 @@ public class AuthController {
                 ? JsonResponse.ok("회원가입 성공")
                 : JsonResponse.error(HttpStatus.CONFLICT, "이미 가입된 이메일입니다");
     }
+
+//    @PostMapping("/refresh")
+//    public ResponseEntity<Object> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+//        return authService.refreshAccessToken(request, response);
+//    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<Object> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                System.out.println("[쿠키 확인] Name: " + cookie.getName() + ", Value: " + cookie.getValue());
+            }
+        } else {
+            System.out.println("[쿠키 확인] 요청에 쿠키가 없습니다.");
+        }
+
+        return authService.refreshAccessToken(request, response);
+    }
+
 }

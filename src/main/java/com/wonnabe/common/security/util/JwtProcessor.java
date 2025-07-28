@@ -1,38 +1,55 @@
 package com.wonnabe.common.security.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
+@Log4j2
 @Component
 public class JwtProcessor {
 
-    static private final long TOKEN_VALID_MILISECOND = 1000L * 60 * 5; // 5 분
+    @Value("${jwt.secret}")
+    private String secretKey;
+    private Key key;
 
-    private String secretKey = "충분히 긴 임의의(랜덤한) 비밀키 문자열 배정 ";
+    // 토큰 유효시간 설정 (ms)
+    private final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 15;      // 15분
+    private final long REFRESH_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7일
 
-    private Key key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    @PostConstruct
+    public void init() {
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
+    }
 
-    // private Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256); -- 운영시 사용
-    // JWT 생성
-    public String generateToken(String subject) {
+    /** ✅ Access Token 생성 */
+    public String generateAccessToken(String userId) {
         return Jwts.builder()
-                .setSubject(subject)
+                .setSubject(userId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + TOKEN_VALID_MILISECOND))
-                .signWith(key)
+                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // JWT Subject(username) 추출 - 해석 불가인 경우 예외 발생
-    // 예외 ExpiredJwtException, UnsupportedJwtException, MalformedJwtException, SignatureException,
-    // IllegalArgumentException
-    public String getUsername(String token) {
+    /** ✅ Refresh Token 생성 */
+    public String generateRefreshToken(String userId) {
+        return Jwts.builder()
+                .setSubject(userId)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    /** ✅ 토큰에서 userId(subject) 추출 */
+    public String getUserIdFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
@@ -41,12 +58,29 @@ public class JwtProcessor {
                 .getSubject();
     }
 
-    // JWT 검증(유효 기간 검증) - 해석 불가인 경우 예외 발생
+    /** ✅ 토큰 유효성 검증 */
     public boolean validateToken(String token) {
-        Jws<Claims> claims = Jwts.parserBuilder()
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT 만료됨: {}", e.getMessage());
+        } catch (JwtException | IllegalArgumentException e) {
+            log.warn("JWT 유효하지 않음: {}", e.getMessage());
+        }
+        return false;
+    }
+
+    /** ✅ Access Token 만료 시간 확인용 (옵션) */
+    public Date getExpirationDate(String token) {
+        return Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
-                .parseClaimsJws(token);
-        return true;
+                .parseClaimsJws(token)
+                .getBody()
+                .getExpiration();
     }
 }

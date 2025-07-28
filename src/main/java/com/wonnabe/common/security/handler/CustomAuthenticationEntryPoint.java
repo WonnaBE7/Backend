@@ -19,6 +19,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
             throws IOException, ServletException {
         log.error("========== 인증 에러 ============");
-//        JsonResponse.sendError(response, HttpStatus.UNAUTHORIZED, authException.getMessage());
+        JsonResponse.sendError(response, HttpStatus.UNAUTHORIZED, authException.getMessage());
     }
 }

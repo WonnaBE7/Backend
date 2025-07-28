@@ -12,15 +12,16 @@ import javax.servlet.http.HttpServletRequest;
 @AllArgsConstructor
 @Data
 public class LoginDTO {
-    private String username;
+    private String email;
     private String password;
+
     public static LoginDTO of(HttpServletRequest request) {
         ObjectMapper om = new ObjectMapper();
         try {
             return om.readValue(request.getInputStream(), LoginDTO.class);
         }catch (Exception e) {
             e.printStackTrace();
-            throw new BadCredentialsException("username 또는 password가 없습니다.");
+            throw new BadCredentialsException("email 또는 password가 없습니다.");
         }
     }
 }

@@ -1,24 +1,19 @@
+// com.wonnabe.common.security.account.domain.CustomUser.java
 package com.wonnabe.common.security.account.domain;
 
+import com.wonnabe.common.security.account.domain.UserVO;
 import lombok.Getter;
-import lombok.Setter;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-import java.util.Collection;
+import java.util.Collections;
 
 @Getter
-@Setter
 public class CustomUser extends User {
 
-    private MemberVO member; // 실질적인 사용자 데이터
+    private final UserVO user;
 
-    public CustomUser(String username, String password, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, authorities);
-    }
-
-    public CustomUser(MemberVO vo) {
-        super(vo.getUsername(), vo.getPassword(), vo.getAuthList());
-        this.member = vo;
+    public CustomUser(UserVO user) {
+        super(user.getEmail(), user.getPasswordHash(), Collections.emptyList());
+        this.user = user;
     }
 }

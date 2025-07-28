@@ -19,7 +19,6 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-//@MapperScan(basePackages = {"com.wonnabe.common.security.account.mapper"})
 @MapperScan(basePackages = {"com.wonnabe"})
 @ComponentScan(basePackages = {"com.wonnabe"})
 @Log4j2

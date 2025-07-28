@@ -85,7 +85,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         );
     }
 
-    // 문자셋 필터
+    // 문자셋 필터(요청/응답 인코딩 처리)
     public CharacterEncodingFilter encodingFilter() {
         CharacterEncodingFilter encodingFilter = new CharacterEncodingFilter();
         encodingFilter.setEncoding("UTF-8");
@@ -98,11 +98,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // 한글 인코딩 필터 설정
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
-                // 인증 에러 필터
+                // JWT 예외 감지 후 JSON 에러 응답
                 .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
-                // Jwt 인증 필터
+                // 모든 요청 헤더에서 AccessToken 검사
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // 로그인 인증 필터
+                // 로그인 시도 처리
                 .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 예외 처리 설정

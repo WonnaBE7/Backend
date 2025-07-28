@@ -57,4 +57,27 @@ public class JsonResponse {
         body.put("message", message);
         return ResponseEntity.status(status).body(body);
     }
+
+    /**
+     * HttpServletResponse로 JSON 에러 응답을 직접 전송합니다.
+     *
+     * @param response HttpServletResponse
+     * @param status   HTTP 상태 코드
+     * @param message  에러 메시지
+     */
+    public static void sendError(HttpServletResponse response, HttpStatus status, String message) {
+        response.setStatus(status.value());
+        response.setContentType("application/json;charset=UTF-8");
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("code", status.value());
+        body.put("message", message);
+
+        try (Writer writer = response.getWriter()) {
+            om.writeValue(writer, body);
+        } catch (IOException e) {
+            e.printStackTrace(); // 혹은 log 처리
+        }
+    }
+
 }

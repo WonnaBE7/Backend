@@ -1,14 +1,14 @@
 package com.wonnabe.common.security.account.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
-@NoArgsConstructor
+@Getter
+@Setter
 @AllArgsConstructor
 public class AuthResultDTO {
-    String token;
-    UserInfoDTO user;
+
+    private String accessToken;
+    private UserInfoDTO user;
 }

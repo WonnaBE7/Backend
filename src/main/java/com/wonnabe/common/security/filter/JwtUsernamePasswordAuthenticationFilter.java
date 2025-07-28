@@ -34,8 +34,12 @@ public class JwtUsernamePasswordAuthenticationFilter extends UsernamePasswordAut
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         // 요청 BODY의 JSON에서 username, password  LoginDTO
         LoginDTO login = LoginDTO.of(request);
+
+        // 👉 확인용 로그 출력
+        log.info("📩 로그인 요청 데이터 - email: {}, password: {}", login.getEmail(), login.getPassword());
+
         // 인증 토큰(UsernamePasswordAuthenticationToken) 구성
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(login.getUsername(), login.getPassword());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword());
         // AuthenticationManager에게 인증 요청
         return getAuthenticationManager().authenticate(authenticationToken);
     }
