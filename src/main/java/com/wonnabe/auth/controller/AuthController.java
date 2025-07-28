@@ -42,8 +42,6 @@ public class AuthController {
         } else {
             System.out.println("[쿠키 확인] 요청에 쿠키가 없습니다.");
         }
-
         return authService.refreshAccessToken(request, response);
     }
-
 }

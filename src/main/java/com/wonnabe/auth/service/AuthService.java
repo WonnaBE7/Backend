@@ -6,6 +6,7 @@ import com.wonnabe.auth.repository.RefreshTokenRedisRepository;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.dto.AuthResultDTO;
 import com.wonnabe.common.security.account.dto.UserInfoDTO;
+import com.wonnabe.common.security.service.CustomUserDetailsService;
 import com.wonnabe.common.util.JsonResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,9 @@ public class AuthService {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     @Autowired
     private RefreshTokenRedisRepository refreshTokenRedisRepository;
@@ -84,7 +88,7 @@ public class AuthService {
         }
 
         // 5. 새로운 Access Token 생성
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
+        UserDetails userDetails = customUserDetailsService.loadUserByUserUUID(userId);
         String newAccessToken = jwtProcessor.generateAccessToken(userId);
         UserInfoDTO userInfo = UserInfoDTO.of(((CustomUser) userDetails).getUser());
 
