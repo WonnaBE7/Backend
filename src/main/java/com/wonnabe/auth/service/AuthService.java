@@ -96,5 +96,41 @@ public class AuthService {
         return JsonResponse.ok("Access Token 재발급 완료", result);
     }
 
+    public ResponseEntity<Object> logout(HttpServletRequest request, HttpServletResponse response) {
+        // 1. 쿠키에서 refresh_token 추출
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, "로그아웃 실패: 쿠키가 존재하지 않습니다.");
+        }
+
+        String refreshToken = null;
+        for (Cookie cookie : cookies) {
+            if ("refresh_token".equals(cookie.getName())) {
+                refreshToken = cookie.getValue();
+                break;
+            }
+        }
+
+        if (refreshToken == null) {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, "로그아웃 실패: Refresh Token이 존재하지 않습니다.");
+        }
+
+        // 2. JwtProcessor로부터 userId 추출
+        String userId = jwtProcessor.getUserIdFromToken(refreshToken);
+
+        // 3. Redis에서 해당 userId로 저장된 refresh token 제거
+        refreshTokenRedisRepository.delete(userId);
+
+        // 4. 클라이언트에 있는 refresh_token 쿠키 삭제 (Max-Age: 0)
+        Cookie deleteCookie = new Cookie("refresh_token", null);
+        deleteCookie.setPath("/");
+        deleteCookie.setMaxAge(0);
+        deleteCookie.setHttpOnly(true); // 보안을 위해 동일 옵션 설정
+        deleteCookie.setSecure(true);   // HTTPS 환경이라면 true
+        response.addCookie(deleteCookie);
+
+        // 5. 성공 응답 반환
+        return JsonResponse.ok("로그아웃이 완료되었습니다.");
+    }
 
 }

@@ -44,4 +44,9 @@ public class AuthController {
         }
         return authService.refreshAccessToken(request, response);
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Object> logout(HttpServletRequest request, HttpServletResponse response) {
+        return authService.logout(request, response);
+    }
 }
