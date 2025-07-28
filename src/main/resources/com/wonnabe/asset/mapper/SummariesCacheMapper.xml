@@ -2,10 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
 <mapper namespace="com.wonnabe.asset.mapper.SummariesCacheMapper">
 
-    <!-- 특정 연월의 총 소비 금액 (캐시 테이블에서 합산) -->
+    <!-- 월별 총 소비금액 -->
     <select id="getMonthlyTotalConsumption" resultType="double">
         SELECT IFNULL(SUM(amount), 0)
         FROM Summaries_Cache
@@ -14,4 +13,15 @@
           AND user_id = #{userId}
     </select>
 
+    <!-- 카테고리별 월별 소비 합계 -->
+    <select id="getMonthlyCategorySummary" parameterType="map" resultType="com.wonnabe.asset.dto.CategorySummaryDTO">
+        SELECT
+            consumption_category AS consumptionCategory,
+            SUM(amount) AS amount
+        FROM Summaries_Cache
+        WHERE period_type = 'monthly'
+          AND yearMonth = #{yearMonth}
+          AND user_id = #{userId}
+        GROUP BY consumption_category
+    </select>
 </mapper>
