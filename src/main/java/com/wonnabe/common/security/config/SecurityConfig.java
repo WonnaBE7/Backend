@@ -46,17 +46,35 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final CustomAccessDeniedHandler accessDeniedHandler;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
-    @Bean // AuthenticationManager 빈 등록
+    /**
+     * Spring Security의 AuthenticationManager를 Bean으로 등록합니다.
+     *
+     * @return AuthenticationManager 객체
+     * @throws Exception 예외 발생 시
+     */
+    @Bean
     public AuthenticationManager authenticationManager() throws Exception {
         return super.authenticationManager();
     }
 
-    @Bean // 비밀번호 인코더 빈 등록
+    /**
+     * 비밀번호 암호화를 위한 PasswordEncoder Bean을 등록합니다.
+     * BCrypt 알고리즘을 사용합니다.
+     *
+     * @return BCryptPasswordEncoder 객체
+     */
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // Authentication Manger 구성
+    /**
+     * 사용자 인증 처리를 위한 AuthenticationManagerBuilder 구성
+     * - UserDetailsService와 PasswordEncoder를 설정합니다.
+     *
+     * @param auth AuthenticationManagerBuilder
+     * @throws Exception 예외 발생 시
+     */
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth
@@ -64,7 +82,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder());
     }
 
-    @Bean // cross origin 접근 허용
+    /**
+     * CORS(Cross-Origin Resource Sharing) 설정을 위한 CorsFilter Bean을 등록합니다.
+     * - 모든 origin, header, method 허용
+     *
+     * @return CorsFilter 객체
+     */
+    @Bean
     public CorsFilter corsFilter() {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
@@ -76,7 +100,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new CorsFilter(source);
     }
 
-    // 접근 제한 무시 경로 설정 – resource
+    /**
+     * 정적 리소스 및 Swagger 관련 URL을 보안 필터링에서 제외합니다.
+     *
+     * @param web WebSecurity
+     * @throws Exception 예외 발생 시
+     */
     @Override
     public void configure(WebSecurity web) throws Exception {
         web.ignoring().antMatchers("/assets/**", "/*", "/api/member/**",
@@ -85,7 +114,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         );
     }
 
-    // 문자셋 필터(요청/응답 인코딩 처리)
+    /**
+     * 문자 인코딩을 UTF-8로 강제하는 필터를 생성합니다.
+     *
+     * @return CharacterEncodingFilter 객체
+     */
     public CharacterEncodingFilter encodingFilter() {
         CharacterEncodingFilter encodingFilter = new CharacterEncodingFilter();
         encodingFilter.setEncoding("UTF-8");
@@ -93,32 +126,37 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return encodingFilter;
     }
 
+    /**
+     * 전체 보안 설정을 구성합니다.
+     * - 필터 체인 구성: 인코딩 필터 → 에러 필터 → JWT 필터 → 로그인 필터
+     * - 예외 처리 핸들러 등록
+     * - 세션 비활성화 및 폼 로그인/기본 로그인 해제
+     *
+     * @param http HttpSecurity
+     * @throws Exception 예외 발생 시
+     */
     @Override
     public void configure(HttpSecurity http) throws Exception {
 
         // 한글 인코딩 필터 설정
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
-                // JWT 예외 감지 후 JSON 에러 응답
-                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
-                // 모든 요청 헤더에서 AccessToken 검사
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // 로그인 시도 처리
-                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class) // JWT 예외 감지 후 JSON 에러 응답
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // 모든 요청 헤더에서 AccessToken 검사
+            .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 로그인 시도 처리
 
-        // 예외 처리 설정
-        http
-                .exceptionHandling()
-                .authenticationEntryPoint(authenticationEntryPoint)
-                .accessDeniedHandler(accessDeniedHandler);
-        http
-                .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS).permitAll()
-                // 일단 모든 접근 허용
-                .anyRequest().permitAll();
+        // 인증 및 권한 실패 시 처리 핸들러 설정
+        http.exceptionHandling()
+            .authenticationEntryPoint(authenticationEntryPoint)
+            .accessDeniedHandler(accessDeniedHandler);
+
+        // 인가 정책 설정
+        http.authorizeRequests()
+            .antMatchers(HttpMethod.OPTIONS).permitAll()
+            .anyRequest().permitAll();
 
         http.httpBasic().disable() // 기본 HTTP 인증 비활성화
-                .csrf().disable() // CSRF 비활성화
-                .formLogin().disable() // formLogin 비활성화  관련 필터 해제
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 세션 생성 모드 설정
+            .csrf().disable() // CSRF 비활성화
+            .formLogin().disable() // formLogin 비활성화  관련 필터 해제
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 세션 생성 모드 설정
     }
 }

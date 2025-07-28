@@ -14,7 +14,6 @@ public class JsonResponse {
 
     private static final ObjectMapper om = new ObjectMapper();
 
-
     /**
      * 메시지만 포함된 성공 응답을 반환합니다.
      *
@@ -27,7 +26,6 @@ public class JsonResponse {
         body.put("message", message);
         return ResponseEntity.ok(body);
     }
-
 
     /**
      * 메시지와 데이터가 포함된 성공 응답을 반환합니다.

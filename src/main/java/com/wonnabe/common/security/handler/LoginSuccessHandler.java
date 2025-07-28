@@ -28,10 +28,28 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
 
+    /**
+     * 사용자 정보와 AccessToken을 포함하는 AuthResultDTO 객체를 생성합니다.
+     *
+     * @param user        CustomUser 객체
+     * @param accessToken 발급된 AccessToken
+     * @return AuthResultDTO 객체
+     */
     private AuthResultDTO makeAuthResult(CustomUser user, String accessToken) {
         return new AuthResultDTO(accessToken, UserInfoDTO.of(user.getUser()));
     }
 
+    /**
+     * 로그인 성공 시 실행되는 메서드입니다.
+     * - AccessToken, RefreshToken 발급
+     * - RefreshToken Redis 저장 및 쿠키로 전송
+     * - 사용자 정보와 함께 JSON 응답 반환
+     *
+     * @param request        HTTP 요청 객체
+     * @param response       HTTP 응답 객체
+     * @param authentication 인증 정보 객체
+     * @throws IOException JSON 응답 처리 중 오류 발생 시
+     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,

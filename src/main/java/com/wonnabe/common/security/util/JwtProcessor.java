@@ -23,12 +23,21 @@ public class JwtProcessor {
     private final long ACCESS_TOKEN_EXPIRATION = 1000L * 60 * 15;      // 15분
     private final long REFRESH_TOKEN_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7일
 
+    /**
+     * secretKey를 기반으로 JWT 서명 키를 초기화합니다.
+     * Spring 초기화 이후 자동 실행됨 (@PostConstruct)
+     */
     @PostConstruct
     public void init() {
         this.key = Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
-    /** ✅ Access Token 생성 */
+    /**
+     * 주어진 사용자 ID를 기반으로 Access Token을 생성합니다.
+     *
+     * @param userId 사용자 고유 ID
+     * @return 생성된 Access Token (15분 유효)
+     */
     public String generateAccessToken(String userId) {
         return Jwts.builder()
                 .setSubject(userId)
@@ -38,7 +47,12 @@ public class JwtProcessor {
                 .compact();
     }
 
-    /** ✅ Refresh Token 생성 */
+    /**
+     * 주어진 사용자 ID를 기반으로 Refresh Token을 생성합니다.
+     *
+     * @param userId 사용자 고유 ID
+     * @return 생성된 Refresh Token (7일 유효)
+     */
     public String generateRefreshToken(String userId) {
         return Jwts.builder()
                 .setSubject(userId)
@@ -48,7 +62,12 @@ public class JwtProcessor {
                 .compact();
     }
 
-    /** ✅ 토큰에서 userId(subject) 추출 */
+    /**
+     * 토큰에서 사용자 ID(subject)를 추출합니다.
+     *
+     * @param token JWT 토큰 문자열
+     * @return 사용자 ID (subject 클레임 값)
+     */
     public String getUserIdFromToken(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -58,7 +77,12 @@ public class JwtProcessor {
                 .getSubject();
     }
 
-    /** ✅ 토큰 유효성 검증 */
+    /**
+     * 토큰의 유효성을 검증합니다.
+     *
+     * @param token 검증할 JWT 토큰 문자열
+     * @return 유효한 경우 true, 그렇지 않으면 false
+     */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
@@ -74,7 +98,12 @@ public class JwtProcessor {
         return false;
     }
 
-    /** ✅ Access Token 만료 시간 확인용 (옵션) */
+    /**
+     * 토큰의 만료 일자를 반환합니다.
+     *
+     * @param token JWT 토큰 문자열
+     * @return 만료 시각 (Date 객체)
+     */
     public Date getExpirationDate(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)

@@ -5,6 +5,7 @@
 
 <mapper namespace="com.wonnabe.auth.mapper.AuthMapper">
 
+    <!-- 이메일 중복 여부 확인(회원가입 시) -->
     <select id="existsByEmail" resultType="int">
         SELECT COUNT(*)
         FROM User_Profile
@@ -12,6 +13,7 @@
           AND deleted_at IS NULL
     </select>
 
+    <!-- 사용자 회원정보 추가(회원가입) -->
     <insert id="insertUserProfile">
         INSERT INTO User_Profile (user_id, name, email, password_hash, signup_type, created_at)
         VALUES (#{userId}, #{name}, #{email}, #{password}, #{signupType}, NOW())

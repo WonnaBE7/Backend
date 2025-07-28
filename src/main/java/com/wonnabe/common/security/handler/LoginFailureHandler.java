@@ -19,19 +19,25 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    /**
+     * 로그인 인증 실패 시 호출되는 메서드입니다.
+     * 실패 사유를 로그로 출력하고, 사용자에게 JSON 형식의 에러 응답을 반환합니다.
+     *
+     * @param request  클라이언트 요청 객체
+     * @param response 서버 응답 객체
+     * @param exception 인증 실패 시 발생한 예외 객체
+     * @throws IOException JSON 직렬화 또는 응답 작성 중 예외 발생 시
+     */
     @Override
     public void onAuthenticationFailure(HttpServletRequest request,
                                         HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
-        // 🔴 실패 원인 로그 출력
         log.warn("❌ 로그인 실패: {}", exception.getMessage());
 
-        // 🔴 응답 바디 구성
         Map<String, Object> body = new HashMap<>();
         body.put("code", HttpStatus.UNAUTHORIZED.value());
         body.put("message", "이메일 또는 비밀번호가 올바르지 않습니다.");
 
-        // 🔴 JSON 응답 전송
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
         objectMapper.writeValue(response.getWriter(), body);
