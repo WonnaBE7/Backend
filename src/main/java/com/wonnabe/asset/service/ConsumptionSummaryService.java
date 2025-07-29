@@ -20,6 +20,30 @@ public class ConsumptionSummaryService {
     @Autowired
     private SummariesCacheMapper cacheMapper;
 
+    // main page 소비 내역 요약
+    public Map<String, Object> getMonthlyOverview(String userId) {
+        LocalDate today = LocalDate.now();
+        String yearMonth = today.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        String lastMonth = today.minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM"));
+
+        // 이번 달, 지난 달 소비금액 가져오기
+        Double thisMonth = cacheMapper.getMonthlyTotalConsumption(userId, yearMonth);
+        Double prevMonth = cacheMapper.getMonthlyTotalConsumption(userId, lastMonth);
+
+        double current = thisMonth != null ? thisMonth : 0;
+        double previous = prevMonth != null ? prevMonth : 0;
+        double diff = current - previous;
+
+        double changeRate = previous > 0 ? (diff / previous * 100) : 0;
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("monthlyConsumption", current);
+        result.put("changeRate", Math.round(changeRate * 10) / 10.0);  // 소수점 1자리
+        result.put("changeAmount", diff);
+
+        return result;
+    }
+
     // 월 별 소비 금액
     public Map<String, Object> getMonthlyConsumption(String userId, String yearMonth) {
         Double totalAmount = cacheMapper.getMonthlyTotalConsumption(userId, yearMonth);
