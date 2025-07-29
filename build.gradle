@@ -67,6 +67,7 @@ dependencies {
     // 테스트
     testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    testImplementation 'org.hamcrest:hamcrest:2.2'
 
     // DB + MyBatis
     implementation 'com.mysql:mysql-connector-j:8.1.0'
@@ -98,6 +99,10 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5'
     // (선택) String serializer
     implementation 'org.springframework:spring-context-support:5.3.23'
+
+    // 추가 controllerTest
+    testImplementation 'com.jayway.jsonpath:json-path:2.8.0' // 추가
+
 
     // JSON 자바 변환을 위한 의존성
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.3'
