@@ -1,7 +1,6 @@
 package com.wonnabe.common.config;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import lombok.extern.log4j.Log4j2;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.annotation.MapperScan;
@@ -13,16 +12,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-
 import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"com.wonnabe"})
-@ComponentScan(basePackages = {"com.wonnabe"})
-@Log4j2
-@EnableTransactionManagement
+//@MapperScan(basePackages = {"org.scoula.mapper"})
+@MapperScan(basePackages = {"com.wonnabe.product.mapper", "com.wonnabe.auth.mapper"})
+@ComponentScan(basePackages={ "com.wonnabe.product.service" })
 public class RootConfig {
 
     @Value("${jdbc.driver}") String driver;
