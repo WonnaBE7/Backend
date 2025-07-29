@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.product.mapper.UserSavingsMapper">
+
+    <!--  SavingsDetailResultMap 만들어서 활용  -->
+    <resultMap id="SavingsDetailResultMap" type="com.wonnabe.product.domain.UserSavingsVO">
+        <id property="id" column="us_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="productId" column="product_id"/>
+        <result property="principalAmount" column="principal_amount"/>
+        <result property="currentBalance" column="current_balance"/>
+        <result property="startDate" column="start_date"/>
+        <result property="maturityDate" column="maturity_date"/>
+        <result property="monthlyPayment" column="monthly_payment"/>
+
+        <association property="savingsProduct" javaType="com.wonnabe.product.domain.SavingsProductVO">
+            <id property="productId" column="product_id"/>
+            <result property="productName" column="product_name"/>
+            <result property="bankName" column="bank_name"/>
+            <result property="baseRate" column="base_rate"/>
+            <result property="maxRate" column="max_rate"/>
+        </association>
+    </resultMap>
+
+    <!--  Id 이용해 Savings의 Product와 User 이너조인 만들어서 활용  -->
+    <select id="findSavingsDetailByIds" resultMap="SavingsDetailResultMap">
+        SELECT
+            us.id as us_id,
+            us.user_id,
+            us.product_id,
+            us.principal_amount,
+            us.current_balance,
+            us.start_date,
+            us.maturity_date,
+            us.monthly_payment,
+            us.created_at,
+            sp.product_name,
+            sp.bank_name,
+            sp.base_rate,
+            sp.max_rate
+        FROM
+            User_Savings us
+                INNER JOIN
+            Savings_Product sp ON us.product_id = sp.product_id
+        WHERE
+            us.user_id = #{userId} AND us.product_id = #{productId}
+    </select>
+
+    <!--  Transaction에서 userId랑 Category로 가져오는 것  -->
+    <select id="findMonthlyTransactionSums" resultType="com.wonnabe.product.dto.TransactionSummaryDto">
+        SELECT
+            DATE_FORMAT(transaction_date, '%Y-%m') as month,
+            SUM(amount) as totalSavings
+        FROM
+            User_Transactions
+        WHERE
+            user_id = #{userId}
+          AND category LIKE '적금%'
+          AND transaction_date >= #{startDate}
+        GROUP BY
+            month
+        ORDER BY
+            month ASC
+    </select>
+
+</mapper>
