@@ -18,6 +18,28 @@ public class ConsumptionSummaryController {
     private ConsumptionSummaryService summaryService;
 
     /**
+     * 이번 달 소비 현황 (메인 페이지용)
+     * @param userId (JWT에서 추출 예정, 테스트 시 optional)
+     */
+    @GetMapping("/main/overview")
+    public Map<String, Object> getMonthlyOverview(
+            @RequestParam(value = "userId", required = false) String userId) {
+
+        if (userId == null) {
+            userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
+        }
+
+        Map<String, Object> data = summaryService.getMonthlyOverview(userId);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("code", 200);
+        response.put("message", "이번달 소비 현황 조회 성공");
+        response.put("data", data);
+
+        return response;
+    }
+
+    /**
      * 월별 소비금액 조회 (이번 달 vs 지난 달 등)
      * @param yearMonth 조회할 연월 (예: 2025-07)
      * @param userId (실제는 JWT에서 추출, 테스트용으로 허용)

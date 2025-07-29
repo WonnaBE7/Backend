@@ -9,6 +9,12 @@ import java.util.Map;
 
 @Mapper
 public interface SummariesCacheMapper {
+
+    // 메인 페이지 소비내역 요약
+    Double getMainConsumption(@Param("userId") String userId, @Param("yearMonth") String yearMonth);
+    Double getMainConsumptionLastMonth(@Param("userId") String userId, @Param("yearMonth") String lastMonth);
+
+
     // 월별 총 소비금액
     Double getMonthlyTotalConsumption(@Param("userId") String userId,
                                       @Param("yearMonth") String yearMonth);
