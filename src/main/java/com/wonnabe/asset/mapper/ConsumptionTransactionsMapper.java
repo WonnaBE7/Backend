@@ -29,4 +29,12 @@ public interface ConsumptionTransactionsMapper {
             @Param("today") String today
     );
 
+    //오늘 소비 카테고리별 상세 거래 내역 조회
+    List<TransactionDTO> getTodayTransactionsByCategory(
+            @Param("userId") String userId,
+            @Param("today") String today,
+            @Param("category") String category
+    );
+
+
 }

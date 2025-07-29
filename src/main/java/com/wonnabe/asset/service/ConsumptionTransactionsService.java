@@ -30,4 +30,10 @@ public class ConsumptionTransactionsService {
         return transactionsMapper.getTodayTransactions(userId, today);
     }
 
+    //오늘 소비 카테고리별 상세 거래 내역 조회
+    public List<TransactionDTO> getTodayTransactionsByCategory(String userId, String today, String category) {
+        return transactionsMapper.getTodayTransactionsByCategory(userId, today, category);
+    }
+
+
 }

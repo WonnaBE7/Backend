@@ -47,4 +47,20 @@
         ORDER BY transaction_time DESC;
     </select>
 
+    <!--    오늘 소비 카테고리별 상세 거래 내역 조회-->
+    <select id="getTodayTransactionsByCategory" resultType="com.wonnabe.asset.dto.TransactionDTO">
+        SELECT
+            merchant_name AS transactionName,
+            transaction_date AS transactionDate,
+            transaction_time AS transactionTime,
+            card_name AS accountName,
+            amount
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date = #{today}
+          AND merchant_category = #{category}
+        ORDER BY transaction_time DESC;
+    </select>
+
+
 </mapper>
