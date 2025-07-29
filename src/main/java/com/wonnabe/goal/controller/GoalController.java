@@ -1,61 +1,73 @@
 package com.wonnabe.goal.controller;
 
+import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.goal.dto.*;
 import com.wonnabe.goal.service.GoalService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/goals")
-@RequiredArgsConstructor
 @Api(tags = "목표 관리")
 public class GoalController {
     private final GoalService service;
 
+    public GoalController(@Qualifier("goalServiceImpl") GoalService service) {
+        this.service = service;
+    }
+
     @ApiOperation(value = "목표 리스트", notes = "목표 리스트 조회")
     @GetMapping("")
-    public ResponseEntity<GoalListResponseDTO> getGoalList() {
-        GoalListResponseDTO list = service.getGoalList(UUID.fromString("02747659-2dd1-41d6-80a7-131b9ddfac97")); // TODO: 실제 auth user
+    public ResponseEntity<GoalListResponseDTO> getGoalList(
+            @AuthenticationPrincipal CustomUser customUser
+    ) {
+        String userId = customUser.getUser().getUserId();
+        GoalListResponseDTO list = service.getGoalList(userId);
         return ResponseEntity.ok(list);
     }
 
     @ApiOperation(value = "목표 상세", notes = "목표 세부사항, 추천 리스트 조회")
     @GetMapping("/{goalId}")
     public ResponseEntity<GoalDetailResponseDTO> getGoalDetail(
+            @AuthenticationPrincipal CustomUser customUser,
             @PathVariable Long goalId) {
-        GoalDetailResponseDTO detail = service.getGoalDetail(UUID.fromString("02747659-2dd1-41d6-80a7-131b9ddfac97"), goalId); // TODO: 실제 auth user
+        String userId = customUser.getUser().getUserId();
+        GoalDetailResponseDTO detail = service.getGoalDetail(userId, goalId);
         return ResponseEntity.ok(detail);
     }
 
     @ApiOperation(value = "목표 생성", notes = "새로운 목표 추가")
     @PostMapping("")
     public ResponseEntity<GoalCreateResponseDTO> createGoal(
+            @AuthenticationPrincipal CustomUser customUser,
             @RequestBody GoalCreateRequestDTO request
     ) {
-        GoalCreateResponseDTO create = service.createGoal(UUID.fromString("02747659-2dd1-41d6-80a7-131b9ddfac97"), request); // TODO: 실제 auth user
+        String userId = customUser.getUser().getUserId();
+        GoalCreateResponseDTO create = service.createGoal(userId, request);
         return ResponseEntity.ok(create);
     }
 
     @ApiOperation(value = "목표 상태 수정", notes = "목표 상태 수정")
     @PatchMapping("/{goalId}")
     public ResponseEntity<GoalSummaryResponseDTO> updateGoal(
+            @AuthenticationPrincipal CustomUser customUser,
             @PathVariable Long goalId,
             @RequestBody GoalStatusUpdateRequestDTO request
     ) {
+        String userId = customUser.getUser().getUserId();
         try {
             request.validate();
             String status = request.getStatus();
             GoalSummaryResponseDTO result;
 
             if ("PUBLISHED".equals(status)) {
-                result = service.publishAsReport(UUID.fromString("02747659-2dd1-41d6-80a7-131b9ddfac97"), goalId, request.getSelectedProductId()); // TODO: 실제 auth user
+                result = service.publishAsReport(userId, goalId, request.getSelectedProductId());
             } else if ("ACHIEVED".equals(status)) {
-                result = service.achieveGoal(UUID.fromString("02747659-2dd1-41d6-80a7-131b9ddfac97"), goalId);
+                result = service.achieveGoal(userId, goalId);
             } else {
                 return ResponseEntity.badRequest().body(new GoalSummaryResponseDTO());
             }

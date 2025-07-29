@@ -11,7 +11,7 @@ public interface GoalService {
      * @param userId 사용자 ID
      * @return 목표 리스트 요약 정보
      */
-    public GoalListResponseDTO getGoalList(UUID userId);
+    public GoalListResponseDTO getGoalList(String userId);
 
     /**
      * 특정 목표의 상세 정보 조회
@@ -19,7 +19,7 @@ public interface GoalService {
      * @param goalId 목표 ID
      * @return 목표 상세 정보
      */
-    public GoalDetailResponseDTO getGoalDetail(UUID userId, Long goalId);
+    public GoalDetailResponseDTO getGoalDetail(String userId, Long goalId);
 
     /**
      * 새로운 목표 생성
@@ -27,7 +27,7 @@ public interface GoalService {
      * @param requestDTO 목표 생성 요청 정보
      * @return 생성된 목표 정보 (ID, 추천 상품 리스트 등)
      */
-    public GoalCreateResponseDTO createGoal(UUID userId, GoalCreateRequestDTO requestDTO);
+    public GoalCreateResponseDTO createGoal(String userId, GoalCreateRequestDTO requestDTO);
 
     /**
      * 목표 보고서로 저장
@@ -36,7 +36,7 @@ public interface GoalService {
      * @param selectedProductId 선택한 상품 ID
      * @return 수정된 목표 요약 정보
      */
-    public GoalSummaryResponseDTO publishAsReport(UUID userId, Long goalId, Long selectedProductId);
+    public GoalSummaryResponseDTO publishAsReport(String userId, Long goalId, Long selectedProductId);
 
     /**
      * 목표 달성 완료 처리
@@ -44,5 +44,5 @@ public interface GoalService {
      * @param goalId 목표 ID
      * @return 수정된 목표 요약 정보
      */
-    public GoalSummaryResponseDTO achieveGoal(UUID userId, Long goalId);
+    public GoalSummaryResponseDTO achieveGoal(String userId, Long goalId);
 }

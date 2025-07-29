@@ -53,7 +53,7 @@
     </resultMap>
 
     <select id="getGoal" resultMap="goalDetailResultMap">
-        SELECT g.id,
+        SELECT g.id                                                 AS goal_id,
                g.goal_name,
                c.name                                               AS category_name,
                ftt.name                                             AS nowme_name,
