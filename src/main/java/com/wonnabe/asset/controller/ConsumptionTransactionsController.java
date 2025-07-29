@@ -92,4 +92,31 @@ public class ConsumptionTransactionsController {
 
         return response;
     }
+
+    //오늘 소비 카테고리별 상세 거래 내역 조회
+    @GetMapping("/transactions/today/category")
+    public Map<String, Object> getTodayTransactionsByCategory(
+            @RequestParam("category") String category,
+            @RequestParam(value = "userId", required = false) String userId) {
+
+        if (userId == null) {
+            userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
+        }
+
+        String today = java.time.LocalDate.now().toString();
+
+        List<TransactionDTO> transactions = transactionsService.getTodayTransactionsByCategory(userId, today, category);
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("consumptionCategory", category);
+        data.put("transactions", transactions);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("code", 200);
+        response.put("message", "오늘 소비 카테고리별 상세 거래 내역 조회 성공");
+        response.put("data", data);
+
+        return response;
+    }
+
 }
