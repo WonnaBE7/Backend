@@ -2,8 +2,9 @@ package com.wonnabe.asset.dto;
 
 public class CategorySummaryDTO {
     private String consumptionCategory;  // DB 컬럼명과 일치
-    private String amount;
-    private Double percentage;  // 비율 계산 후 세팅할 필드 추가
+    private double amount;
+    private double percentage;
+    private double diffFromLastMonth;
 
     public String getConsumptionCategory() {
         return consumptionCategory;
@@ -13,18 +14,27 @@ public class CategorySummaryDTO {
         this.consumptionCategory = consumptionCategory;
     }
 
-    public String getAmount() {
+    public double getAmount() {
         return amount;
     }
-    public void setAmount(String amount) {
+
+    public void setAmount(double amount) {
         this.amount = amount;
     }
 
-    public Double getPercentage() {
+    public double getPercentage() {
         return percentage;
     }
 
-    public void setPercentage(Double percentage) {
+    public void setPercentage(double percentage) {
         this.percentage = percentage;
+    }
+
+    public double getDiffFromLastMonth() {
+        return diffFromLastMonth;
+    }
+
+    public void setDiffFromLastMonth(double diffFromLastMonth) {
+        this.diffFromLastMonth = diffFromLastMonth;
     }
 }

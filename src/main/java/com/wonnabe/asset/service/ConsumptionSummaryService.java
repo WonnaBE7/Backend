@@ -8,8 +8,8 @@ import org.springframework.stereotype.Service;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -22,50 +22,30 @@ public class ConsumptionSummaryService {
         Double totalAmount = cacheMapper.getMonthlyTotalConsumption(userId, yearMonth);
         String calculatedUntil = LocalDate.now().toString();
 
-        // 총액도 포맷팅된 문자열로 변환
-        NumberFormat nf = NumberFormat.getNumberInstance(Locale.KOREA);
-        String formattedTotal = nf.format(totalAmount != null ? totalAmount : 0);
-
-        Map<String, Object> monthToDateConsumption = new HashMap<>();
-        monthToDateConsumption.put("amount", formattedTotal);  // 문자열로 반환
+        Map<String, Object> monthToDateConsumption = new LinkedHashMap<>();
+        monthToDateConsumption.put("amount", totalAmount != null ? totalAmount : 0);
         monthToDateConsumption.put("calculatedUntil", calculatedUntil);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("yearMonth", yearMonth);
-        response.put("monthToDateConsumption", monthToDateConsumption);
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("yearMonth", yearMonth);
+        result.put("monthToDateConsumption", monthToDateConsumption);
 
-        return response;
+        return result;
     }
 
     // 카테고리별 소비 비율
     public List<CategorySummaryDTO> getMonthlyCategorySummary(String userId, String yearMonth) {
-        List<CategorySummaryDTO> categories = cacheMapper.getMonthlyCategorySummary(userId, yearMonth);
+        List<CategorySummaryDTO> rawList = cacheMapper.getMonthlyCategorySummary(userId, yearMonth);
 
-        // 총합 계산
-        double totalAmount = categories.stream()
-                .mapToDouble(c -> {
-                    try {
-                        return Double.parseDouble(c.getAmount()); // 문자열 → 숫자 변환
-                    } catch (Exception e) {
-                        return 0;
-                    }
-                })
-                .sum();
+        double totalAmount = rawList.stream().mapToDouble(CategorySummaryDTO::getAmount).sum();
 
-        NumberFormat nf = NumberFormat.getNumberInstance(Locale.KOREA);
-
-        for (CategorySummaryDTO c : categories) {
-            double amountVal;
-            try {
-                amountVal = Double.parseDouble(c.getAmount());
-            } catch (Exception e) {
-                amountVal = 0;
-            }
-            c.setAmount(nf.format(amountVal)); // 포맷팅된 문자열로 변환
-            double percentage = totalAmount > 0 ? (amountVal / totalAmount * 100) : 0;
-            c.setPercentage(Math.round(percentage * 10) / 10.0);
+        // 각 항목 비율만 계산해서 DTO에 세팅
+        for (CategorySummaryDTO c : rawList) {
+            double percentage = totalAmount > 0 ? (c.getAmount() / totalAmount * 100) : 0;
+            c.setPercentage(Math.round(percentage * 10) / 10.0);  // 소수점 1자리
         }
 
-        return categories;
+        return rawList;
     }
+
 }

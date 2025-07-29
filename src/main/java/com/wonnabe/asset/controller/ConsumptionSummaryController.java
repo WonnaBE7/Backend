@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,13 +33,20 @@ public class ConsumptionSummaryController {
 
         Map<String, Object> data = summaryService.getMonthlyConsumption(userId, yearMonth);
 
-        return Map.of(
-                "code", 200,
-                "message", "월별 소비 금액 조회 성공",
-                "data", data
-        );
+        // 순서를 보장하려면 LinkedHashMap 사용
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("code", 200);
+        response.put("message", "월별 소비 금액 조회 성공");
+        response.put("data", data);
+
+        return response;
     }
-    // 추가: 카테고리별 비율
+
+    /**
+     * 월별 카테고리별 소비 비율 조회
+     * @param yearMonth 조회할 연월 (예: 2025-07)
+     * @param userId (실제는 JWT에서 추출, 테스트용으로 허용)
+     */
     @GetMapping("/categories")
     public Map<String, Object> getMonthlyCategorySummary(
             @RequestParam("yearMonth") String yearMonth,
@@ -49,15 +57,23 @@ public class ConsumptionSummaryController {
         }
 
         List<CategorySummaryDTO> categories = summaryService.getMonthlyCategorySummary(userId, yearMonth);
-        return Map.of(
-                "code", 200,
-                "message", "월별 카테고리 소비비율 조회 성공",
-                "data", Map.of(
-                        "yearMonth", yearMonth,
-                        "categories", categories
-                )
-        );
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("yearMonth", yearMonth);
+        data.put("categories", categories);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("code", 200);
+        response.put("message", "월별 카테고리 소비비율 조회 성공");
+        response.put("data", data);
+
+        return response;
     }
+    
+
+    /**
+     * JSP 뷰 렌더링 (테스트용)
+     */
     @GetMapping("/categories/view")
     public String viewCategories(@RequestParam("yearMonth") String yearMonth,
                                  @RequestParam(value = "userId", required = false) String userId,
@@ -66,7 +82,6 @@ public class ConsumptionSummaryController {
             userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
         }
 
-        // 카테고리별 데이터 (Service 호출)
         List<CategorySummaryDTO> categories = summaryService.getMonthlyCategorySummary(userId, yearMonth);
 
         model.addAttribute("yearMonth", yearMonth);
