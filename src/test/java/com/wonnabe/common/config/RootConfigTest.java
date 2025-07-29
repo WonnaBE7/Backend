@@ -16,7 +16,7 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class) // JUnit5와 스프링 통합
-@ContextConfiguration(classes = {RootConfig.class}) // 테스트 설정으로 RootConfig 사용
+@ContextConfiguration(classes = {RootConfig.class, RedisConfig.class}) // 테스트 설정으로 RootConfig 사용
 @Log4j2
 class RootConfigTest {
 

@@ -1,5 +1,6 @@
 package com.wonnabe.product.service;
 
+import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.product.dto.UserCardDetailDTO;
 import lombok.extern.log4j.Log4j2;
@@ -12,7 +13,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {RootConfig.class})
+@ContextConfiguration(classes = {RootConfig.class, RedisConfig.class})
 @Log4j2
 class CardServiceImplTest {
 

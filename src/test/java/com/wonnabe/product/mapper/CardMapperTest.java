@@ -1,5 +1,6 @@
 package com.wonnabe.product.mapper;
 
+import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        RootConfig.class
+        RootConfig.class, RedisConfig.class
 })
 public class CardMapperTest {
     @Autowired
