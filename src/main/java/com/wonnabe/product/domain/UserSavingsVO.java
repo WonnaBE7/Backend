@@ -22,7 +22,7 @@ public class UserSavingsVO {
     private Long productId;         // 상품 ID (FK)
 
     private Long principalAmount;   // 원금
-    private Long currentBalance;    // 현재 잔액 !!! 추가
+    private Long currentBalance;    // 현재 잔액 !!! 추가된 것(컬럼에없음)
     private Date startDate;         // 가입일
     private Date maturityDate;      // 만기일
 

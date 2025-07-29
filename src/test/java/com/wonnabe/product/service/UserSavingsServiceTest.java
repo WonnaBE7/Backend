@@ -32,12 +32,10 @@ class UserSavingsServiceTest {
         UserSavingsDetailResponseDto result = userSavingsService.getSavingsDetail(userId, productId);
 
         // then
-        assertNotNull(result);
+        assertNotNull(result, "조회 결과는 null이 아니어야 합니다. DB에 해당 데이터가 있는지 확인해주세요.");
         assertEquals(String.valueOf(productId), result.getProductId());
 
-        // 서비스 로직에 따라 '적금' 또는 '예금'으로 분류되는지 확인
-        // 이 부분은 실제 DB 데이터의 monthlyPayment 값에 따라 달라집니다.
-        // monthlyPayment > 0 이면 '적금', 0 이면 '예금'
+        // DB 데이터의 monthlyPayment 값에 따라 "적금" 또는 "예금"으로 분류되는지 확인
         if (result.getProductType().equals("적금")) {
             assertNotNull(result.getMonthlyChart());
             assertFalse(result.getMonthlyChart().isEmpty(), "적금은 월별 차트가 비어있지 않아야 합니다.");

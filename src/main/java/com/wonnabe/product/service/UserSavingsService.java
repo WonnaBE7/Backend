@@ -37,7 +37,14 @@ public class UserSavingsService {
 
         List<MonthlyChartDto> monthlyChart = new ArrayList<>();
         Integer finalAchievementRate = 0;
+                long calculatedCurrentBalance = 0L;
+        List<TransactionSummaryDto> monthlySumsForBalance = userSavingsMapper.findMonthlyTransactionSums(userId, userSavings.getStartDate());
+        for (TransactionSummaryDto summary : monthlySumsForBalance) {
+            calculatedCurrentBalance += summary.getTotalSavings();
+        }
+        userSavings.setCurrentBalance(calculatedCurrentBalance);
 
+        // 적금 상품일경우
         if (userSavings.getMonthlyPayment() != null && userSavings.getMonthlyPayment() > 0) {
             monthlyChart = createMonthlyChart(userId, userSavings);
             if (!monthlyChart.isEmpty()) {
@@ -67,9 +74,9 @@ public class UserSavingsService {
             String monthKey = date.format(DateTimeFormatter.ofPattern("yyyy-MM"));
             String monthDisplay = date.format(DateTimeFormatter.ofPattern("M월"));
 
-            long monthlyDeposit = monthlySumsMap.getOrDefault(monthKey, 0L);
+            long monthlySavings = monthlySumsMap.getOrDefault(monthKey, 0L);
 
-            cumulativeActualAmount += monthlyDeposit;
+            cumulativeActualAmount += monthlySavings;
             cumulativeExpectedAmount += userSavings.getMonthlyPayment();
 
             int achievementRate = 0;
