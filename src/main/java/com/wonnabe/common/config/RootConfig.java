@@ -18,7 +18,7 @@ import javax.sql.DataSource;
 @PropertySource({"classpath:/application.properties"})
 //@MapperScan(basePackages = {"org.scoula.mapper"})
 @MapperScan(basePackages = {"com.wonnabe.product.mapper", "com.wonnabe.auth.mapper"})
-@ComponentScan(basePackages={ "com.wonnabe.product.service" })
+@ComponentScan(basePackages={ "com.wonnabe.product.service", "com.wonnabe.auth.repository", })
 public class RootConfig {
 
     @Value("${jdbc.driver}") String driver;
