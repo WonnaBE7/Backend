@@ -16,7 +16,7 @@ import java.util.UUID;
 @Builder
 public class GoalVO {
     private Long id;
-    private UUID userId;
+    private String userId;
     private Integer nowmeId;
     private Integer categoryId;
     private String goalName;
@@ -34,7 +34,7 @@ public class GoalVO {
     private LocalDateTime achievedDate;
     private String resultSummary;
     private String recommendedProducts; // TODO: 추천상품타입으로 변경 필요
-    private String status;
+    private String status; // DRAFT, PUBLISHED, ACHIEVED
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
