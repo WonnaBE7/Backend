@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.asset.mapper.ConsumptionTransactionsMapper">
+
+    <!-- 월별 거래내역 조회 -->
+    <select id="getMonthlyTransactions" resultType="com.wonnabe.asset.dto.TransactionDTO">
+        SELECT
+            merchant_name AS transactionName,
+            transaction_date AS transactionDate,
+            transaction_time AS transactionTime,
+            card_name AS accountName,
+            amount
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND DATE_FORMAT(transaction_date, '%Y-%m') = #{yearMonth}
+        ORDER BY transaction_date DESC, transaction_time DESC
+    </select>
+
+    <!--카테고리별 상세 거래 내역 -->
+    <select id="getTransactionsByCategory" resultType="com.wonnabe.asset.dto.TransactionDTO">
+        SELECT
+            merchant_name AS transactionName,
+            transaction_date AS transactionDate,
+            transaction_time AS transactionTime,
+            card_name AS accountName,
+            amount
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND merchant_category = #{category}
+        ORDER BY transaction_date DESC, transaction_time DESC
+    </select>
+</mapper>
