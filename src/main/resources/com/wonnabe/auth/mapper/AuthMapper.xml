@@ -17,4 +17,15 @@
         VALUES (#{userId}, #{name}, #{email}, #{password}, #{signupType}, NOW())
     </insert>
 
+    <select id="findUserByEmail" resultType="com.wonnabe.user.domain.User">
+        SELECT user_id, name, email, signup_type
+        FROM User_Profile
+        WHERE email = #{email}
+          AND deleted_at IS NULL
+    </select>
+
+    <insert id="insertKakaoUser">
+        INSERT INTO User_Profile (user_id, name, email, signup_type, created_at)
+        VALUES (#{user.userId}, #{user.name}, #{user.email}, #{user.signupType}, NOW())
+    </insert>
 </mapper>

@@ -1,3 +1,4 @@
+// 회원가입 & 리프레시 토큰 처리
 package com.wonnabe.auth.controller;
 
 import com.wonnabe.auth.dto.SignupDTO;
@@ -19,6 +20,7 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    // 일반 회원가입
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupDTO signupDTO) {
         boolean result = authService.registerUser(signupDTO);
@@ -32,6 +34,7 @@ public class AuthController {
 //        return authService.refreshAccessToken(request, response);
 //    }
 
+    // 리프레시 토큰으로 access token 재발급
     @PostMapping("/refresh")
     public ResponseEntity<Object> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
