@@ -32,4 +32,19 @@
           AND merchant_category = #{category}
         ORDER BY transaction_date DESC, transaction_time DESC
     </select>
+
+    <!--    오늘의 거래 내역-->
+    <select id="getTodayTransactions" resultType="com.wonnabe.asset.dto.TransactionDTO">
+        SELECT
+            merchant_name AS transactionName,
+            transaction_date AS transactionDate,
+            transaction_time AS transactionTime,
+            card_name AS accountName,
+            amount
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date = #{today}
+        ORDER BY transaction_time DESC;
+    </select>
+
 </mapper>

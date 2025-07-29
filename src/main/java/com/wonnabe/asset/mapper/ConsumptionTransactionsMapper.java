@@ -22,4 +22,11 @@ public interface ConsumptionTransactionsMapper {
             @Param("userId") String userId,
             @Param("category") String category
     );
+
+    //오늘의 거래 내역
+    List<TransactionDTO> getTodayTransactions(
+            @Param("userId") String userId,
+            @Param("today") String today
+    );
+
 }
