@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class UserCardDetailDTO {
-    private long cardId; // 카드 ID
+    private String cardId; // 카드 ID
     private String cardName; // 카드 이름
     private String cardCompany; // 카드 제조사
     @JsonFormat(pattern = "yyyy-MM")
@@ -31,7 +31,7 @@ public class UserCardDetailDTO {
     // UsercardDto와 term, performanceRate를 받아 해당 클래스의 인스턴스를 생성하는 함수
     public static UserCardDetailDTO custom(UserCardDTO userCardDTO, int term, int performanceRate) {
         return userCardDTO == null ? null : UserCardDetailDTO.builder()
-                .cardId(userCardDTO.getId())
+                .cardId(String.valueOf(userCardDTO.getId()))
                 .cardName(userCardDTO.getCardName())
                 .cardCompany(userCardDTO.getCardCompany())
                 .startDate(userCardDTO.getIssueDate())
