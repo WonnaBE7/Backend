@@ -6,4 +6,9 @@
     <settings>
         <setting name="mapUnderscoreToCamelCase" value="true" />
     </settings>
+    <typeAliases>
+        <!-- 약칭 사용할 수 있게 설정 -->
+        <package name="com.wonnabe.product.domain" />
+        <package name="com.wonnabe.product.dto" />
+    </typeAliases>
 </configuration>
