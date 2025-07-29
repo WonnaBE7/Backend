@@ -5,6 +5,7 @@ public class CategorySummaryDTO {
     private double amount;
     private double percentage;
     private double diffFromLastMonth;
+    private double diffFromYesterday;
 
     public String getConsumptionCategory() {
         return consumptionCategory;
@@ -36,5 +37,13 @@ public class CategorySummaryDTO {
 
     public void setDiffFromLastMonth(double diffFromLastMonth) {
         this.diffFromLastMonth = diffFromLastMonth;
+    }
+
+    public double getDiffFromYesterday() {
+        return diffFromYesterday;
+    }
+
+    public void setDiffFromYesterday(double diffFromYesterday) {
+        this.diffFromYesterday = diffFromYesterday;
     }
 }

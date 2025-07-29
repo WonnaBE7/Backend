@@ -69,7 +69,50 @@ public class ConsumptionSummaryController {
 
         return response;
     }
-    
+    /**
+     * 예상 월 소비 및 오늘의 소비
+     * @param userId (실제는 JWT에서 추출, 테스트용으로 허용)
+     */
+    @GetMapping("/overview")
+    public Map<String, Object> getOverviewConsumption(
+            @RequestParam(value = "userId", required = false) String userId) {
+
+        if (userId == null) {
+            userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
+        }
+
+        Map<String, Object> data = summaryService.getOverviewConsumption(userId);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("code", 200);
+        response.put("message", "월 예상 소비 및 오늘의 소비 조회 성공");
+        response.put("data", data);
+
+        return response;
+    }
+
+    /**
+     * 오늘의 소비 카테고리별 소비 금액 및 어제와 비교
+     * @param userId (실제는 JWT에서 추출, 테스트용으로 허용)
+     */
+    @GetMapping("/today/categories")
+    public Map<String, Object> getTodayCategoryConsumption(
+            @RequestParam(value = "userId", required = false) String userId) {
+
+        if (userId == null) {
+            userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
+        }
+
+        Map<String, Object> data = summaryService.getTodayCategoryConsumption(userId);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("code", 200);
+        response.put("message", "오늘의 소비 카테고리 비율 조회 성공");
+        response.put("data", data);
+
+        return response;
+    }
+
 
     /**
      * JSP 뷰 렌더링 (테스트용)

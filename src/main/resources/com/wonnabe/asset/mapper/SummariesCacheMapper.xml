@@ -31,4 +31,25 @@
           AND curr.user_id = #{userId}
         GROUP BY curr.consumption_category
     </select>
+
+    <!-- 오늘의 소비 -->
+    <select id="getTodayConsumption" resultType="double">
+        SELECT IFNULL(SUM(amount), 0)
+        FROM Summaries_Cache
+        WHERE period_type = 'daily'
+          AND date = #{today}
+          AND user_id = #{userId}
+    </select>
+
+    <!-- 오늘의 소비 카테고리별 비율-->
+    <select id="getDailyCategorySummary" parameterType="map" resultType="com.wonnabe.asset.dto.CategorySummaryDTO">
+        SELECT
+            consumption_category AS consumptionCategory,
+            SUM(amount) AS amount
+        FROM Summaries_Cache
+        WHERE period_type = 'daily'
+          AND date = #{date}
+          AND user_id = #{userId}
+        GROUP BY consumption_category
+    </select>
 </mapper>

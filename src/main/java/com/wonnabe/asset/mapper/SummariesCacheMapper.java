@@ -16,4 +16,9 @@ public interface SummariesCacheMapper {
     // 카테고리별 월별 합계
     List<CategorySummaryDTO> getMonthlyCategorySummary(@Param("userId") String userId,
                                                        @Param("yearMonth") String yearMonth);
+    // 오늘의 소비
+    Double getTodayConsumption(@Param("userId") String userId, @Param("today") String today);
+
+    // 오늘/어제 카테고리별 소비 집계
+    List<CategorySummaryDTO> getDailyCategorySummary(@Param("userId") String userId, @Param("date") String date);
 }
