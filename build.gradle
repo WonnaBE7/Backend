@@ -111,3 +111,7 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+war {
+    webXml = null
+}
