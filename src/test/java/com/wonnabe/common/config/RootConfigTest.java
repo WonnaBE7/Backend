@@ -7,19 +7,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.web.WebAppConfiguration;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.SQLException;
 
-import static org.junit.jupiter.api.Assertions.*;
-@ExtendWith(SpringExtension.class) // JUnit5와 스프링 통합
-@ContextConfiguration(classes = {RootConfig.class}) // 테스트 설정으로 RootConfig 사용
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(classes = {RootConfig.class, RedisConfig.class})
+@WebAppConfiguration  // 웹 애플리케이션 컨텍스트로 로드
 @Log4j2
-@ActiveProfiles("test")
 class RootConfigTest {
 
     @Autowired
@@ -28,13 +29,29 @@ class RootConfigTest {
     @Autowired
     private SqlSessionFactory sqlSessionFactory;
 
-    // DB연결 테스트
     @Test
-    @DisplayName("DataSource 연결이 된다.")
-    public void testDataSource() throws SQLException {
+    @DisplayName("데이터소스(DataSource) 연결 테스트")
+    void testDataSourceConnection() {
         try (Connection con = dataSource.getConnection()) {
-            log.info("DataSource 준비 완료");
-            log.info(con);
+            log.info("DataSource Connection 성공: {}", con);
+            assertNotNull(con, "DataSource로부터 받은 Connection은 null이 아니어야 합니다.");
+        } catch (Exception e) {
+            fail("DataSource 연결 실패: " + e.getMessage());
+        }
+    }
+
+    @Test
+    @DisplayName("MyBatis SqlSessionFactory 세션 열기 테스트")
+    void testSqlSessionFactory() {
+        try (SqlSession session = sqlSessionFactory.openSession()) {
+            log.info("SqlSession 생성 성공: {}", session);
+            assertNotNull(session, "SqlSessionFactory로부터 받은 SqlSession은 null이 아니어야 합니다.");
+
+            Connection con = session.getConnection();
+            log.info("SqlSession으로부터 Connection 획득 성공: {}", con);
+            assertNotNull(con, "SqlSession으로부터 받은 Connection은 null이 아니어야 합니다.");
+        } catch (Exception e) {
+            fail("SqlSessionFactory 테스트 실패: " + e.getMessage());
         }
     }
 }
