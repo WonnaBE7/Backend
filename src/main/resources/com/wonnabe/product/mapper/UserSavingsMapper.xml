@@ -55,7 +55,7 @@
             User_Transactions
         WHERE
             user_id = #{userId}
-          AND category LIKE '적금%'
+          AND asset_category LIKE '적금%'
           AND transaction_date >= #{startDate}
         GROUP BY
             month

@@ -24,6 +24,5 @@ public interface UserSavingsMapper {
             @Param("userId") String userId,
             @Param("startDate") Date startDate
     );
-
 }
 
