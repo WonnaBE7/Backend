@@ -5,6 +5,7 @@ import com.wonnabe.product.dto.UserCardDetailDTO;
 import com.wonnabe.product.service.CardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,12 +16,21 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/user/products")
-@RequiredArgsConstructor
 @Log4j2
 public class UserProductController {
 
     private final CardService cardService;
 
+    public UserProductController(@Qualifier("cardServiceImpl") CardService cardService) {
+        this.cardService = cardService;
+    }
+
+    /**
+     * 사용자가 보유한 카드의 상세 정보 조회
+     * @param cardId 카드 Id
+     * @param customuser 인증된 사용자 정보
+     * @return
+     */
     @GetMapping("{cardId}")
     public ResponseEntity<UserCardDetailDTO> getUserCardDetail(
             @PathVariable("cardId") int cardId, // url 경로를 파라미터로 매핑할때
