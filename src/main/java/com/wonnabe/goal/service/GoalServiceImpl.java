@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service("goalServiceImpl")
@@ -43,7 +44,12 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     public GoalDetailResponseDTO getGoalDetail(String userId, Long goalId) {
-        GoalDetailResponseDTO goalDetail = goalMapper.getGoal(userId.toString(), goalId);
+        GoalDetailResponseDTO goalDetail = goalMapper.getGoal(userId, goalId);
+
+        // 목표 존재하지 않는 예외
+        if (goalDetail == null) {
+            throw new NoSuchElementException("요청하신 목표 (ID: " + goalId + ")를 찾을 수 없습니다.");
+        }
 
         List<RecommendedProductDTO> recommendedProducts = new ArrayList<>(); // TODO: 추천된 리스트 가져오는 함수 필요
         goalDetail.setRecommendedProducts(recommendedProducts);
@@ -55,8 +61,13 @@ public class GoalServiceImpl implements GoalService {
     @Transactional
     @SneakyThrows
     public GoalCreateResponseDTO createGoal(String userId, GoalCreateRequestDTO request) {
+        // 목표 기간 0 이하 예외
+        if (request.getGoalDurationMonths() <= 0) {
+            throw new IllegalArgumentException("목표 기간(goalDurationMonths)은 1 이상이어야 합니다.");
+        }
+
         // nowmeId 조회
-        Integer nowmeId = goalMapper.getNowmeIdByUserId(userId.toString());
+        Integer nowmeId = goalMapper.getNowmeIdByUserId(userId);
         String nowmeName = null;
         if (nowmeId != null) {
             nowmeName = goalMapper.getNowmeNameByNowmeId(nowmeId);
@@ -102,13 +113,13 @@ public class GoalServiceImpl implements GoalService {
 
         // 미래의 나에게 보내는 메시지 생성
         String futureMeMessage = generateFutureMeMessage(nowmeName);
-        
+
         // 추천 상품 ID 목록을 List<Long>으로 추출
         // TODO: 실제 예적금 추천
         String recommendedProductsStr = convertProductIdsToJsonArray(recommendedProductList); // 예: "1001,1002"
 
         GoalVO goalToInsert = GoalVO.builder()
-                .userId(userId.toString())
+                .userId(userId)
                 .nowmeId(nowmeId)
                 .categoryId(request.getCategoryId())
                 .goalName(request.getGoalName())
@@ -145,6 +156,12 @@ public class GoalServiceImpl implements GoalService {
     @Override
     @Transactional
     public GoalSummaryResponseDTO publishAsReport(String userId, Long goalId, Long selectedProductId) {
+        // 목표 존재 확인
+        GoalDetailResponseDTO existingGoal = goalMapper.getGoal(userId, goalId);
+        if (existingGoal == null) {
+            throw new NoSuchElementException("목표 (ID: " + goalId + ")를 찾을 수 없습니다.");
+        }
+
         goalMapper.updateGoalStatusToPublished(goalId, selectedProductId);
 
         return goalMapper.getGoalSummaryById(goalId);
@@ -153,6 +170,12 @@ public class GoalServiceImpl implements GoalService {
     @Override
     @Transactional
     public GoalSummaryResponseDTO achieveGoal(String userId, Long goalId) {
+        // 목표 존재 확인
+        GoalDetailResponseDTO existingGoal = goalMapper.getGoal(userId, goalId);
+        if (existingGoal == null) {
+            throw new NoSuchElementException("목표 (ID: " + goalId + ")를 찾을 수 없습니다.");
+        }
+
         goalMapper.updateGoalStatusToAchieved(goalId, LocalDateTime.now());
 
         return goalMapper.getGoalSummaryById(goalId);
