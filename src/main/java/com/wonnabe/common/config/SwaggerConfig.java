@@ -20,7 +20,7 @@ import java.util.List;
 
 @Configuration
 @EnableSwagger2
-@Profile("!test")
+@Profile("!test")  // test 프로파일이 아닐 때만 활성화
 public class SwaggerConfig {
     private final String API_NAME = "Board API";
     private final String API_VERSION = "1.0";
