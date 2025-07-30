@@ -32,11 +32,11 @@
     </select>
 
     <!-- 카테고리별 월별 소비 합계 -->
-    <select id="getMonthlyCategorySummary" parameterType="map" resultType="com.wonnabe.asset.dto.CategorySummaryDTO">
+    <!-- DTO 별칭 사용 (RootConfig의 typeAliasesPackage 설정 덕분에 FQN 제거) -->
+    <select id="getMonthlyCategorySummary" parameterType="map" resultType="CategorySummaryDTO">
         SELECT
             curr.consumption_category AS consumptionCategory,
             IFNULL(SUM(curr.amount), 0) AS amount,
-            -- 지난달 대비 증감액 계산
             (IFNULL(SUM(curr.amount), 0) - IFNULL(SUM(prev.amount), 0)) AS diffFromLastMonth
         FROM Summaries_Cache curr
                  LEFT JOIN Summaries_Cache prev
@@ -59,8 +59,8 @@
           AND user_id = #{userId}
     </select>
 
-    <!-- 오늘의 소비 카테고리별 비율-->
-    <select id="getDailyCategorySummary" parameterType="map" resultType="com.wonnabe.asset.dto.CategorySummaryDTO">
+    <!-- 오늘의 소비 카테고리별 비율 -->
+    <select id="getDailyCategorySummary" parameterType="map" resultType="CategorySummaryDTO">
         SELECT
             consumption_category AS consumptionCategory,
             SUM(amount) AS amount
@@ -70,4 +70,5 @@
           AND user_id = #{userId}
         GROUP BY consumption_category
     </select>
+
 </mapper>

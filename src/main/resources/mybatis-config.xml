@@ -11,7 +11,10 @@
     <!-- VO/도메인 클래스 별칭 등록 -->
     <typeAliases>
         <package name="com.wonnabe.asset.domain"/>
+        <package name="com.wonnabe.asset.dto"/>
     </typeAliases>
+
+
 
     <!-- Mapper XML 파일 경로 등록 (asset/mapper 경로로 수정) -->
     <mappers>

@@ -2,10 +2,12 @@ package com.wonnabe.asset.controller;
 
 import com.wonnabe.asset.dto.TransactionDTO;
 import com.wonnabe.asset.service.ConsumptionTransactionsService;
+import com.wonnabe.common.util.JsonResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.LinkedHashMap;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -16,107 +18,41 @@ public class ConsumptionTransactionsController {
     @Autowired
     private ConsumptionTransactionsService transactionsService;
 
-    /**
-     * 월별 거래 내역 조회
-     */
+    /** userId 기본값 처리 */
+    private String getUserId(String userId) {
+        return (userId != null) ? userId : "111e2222-aaaa-bbbb-cccc-123456789000";
+    }
+
     @GetMapping("/transactions")
-    public Map<String, Object> getMonthlyTransactions(
-            @RequestParam("yearMonth") String yearMonth,
-            @RequestParam(value = "userId", required = false) String userId) {
-
-        if (userId == null) {
-            userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
-        }
-
-        List<TransactionDTO> transactions = transactionsService.getMonthlyTransactions(userId, yearMonth);
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("yearMonth", yearMonth);
-        data.put("transactions", transactions);
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("code", 200);
-        response.put("message", "월 별 거래 내역 조회 성공");
-        response.put("data", data);
-
-        return response;
+    public ResponseEntity<Object> getMonthlyTransactions(@RequestParam("yearMonth") String yearMonth,
+                                                         @RequestParam(value = "userId", required = false) String userId) {
+        List<TransactionDTO> transactions = transactionsService.getMonthlyTransactions(getUserId(userId), yearMonth);
+        return JsonResponse.ok("월 별 거래 내역 조회 성공",
+                Map.of("yearMonth", yearMonth, "transactions", transactions));
     }
-    /**
-     * 카테고리별 상세 거래 내역 조회
-     */
+
     @GetMapping("/transactions/category")
-    public Map<String, Object> getTransactionsByCategory(
-            @RequestParam("category") String category,
-            @RequestParam(value = "userId", required = false) String userId) {
-
-        if (userId == null) {
-            userId = "111e2222-aaaa-bbbb-cccc-123456789000";
-        }
-
-        List<TransactionDTO> transactions = transactionsService.getTransactionsByCategory(userId, category);
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("consumptionCategory", category);
-        data.put("transactions", transactions);
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("code", 200);
-        response.put("message", "카테고리별 상세 거래 내역 조회 성공");
-        response.put("data", data);
-
-        return response;
+    public ResponseEntity<Object> getTransactionsByCategory(@RequestParam("category") String category,
+                                                            @RequestParam(value = "userId", required = false) String userId) {
+        List<TransactionDTO> transactions = transactionsService.getTransactionsByCategory(getUserId(userId), category);
+        return JsonResponse.ok("카테고리별 상세 거래 내역 조회 성공",
+                Map.of("consumptionCategory", category, "transactions", transactions));
     }
 
-    //오늘의 거래 내역
     @GetMapping("/transactions/today")
-    public Map<String, Object> getTodayTransactions(
-            @RequestParam(value = "userId", required = false) String userId) {
-
-        if (userId == null) {
-            userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
-        }
-
-        // 오늘 날짜
-        String today = java.time.LocalDate.now().toString();
-
-        List<TransactionDTO> transactions = transactionsService.getTodayTransactions(userId, today);
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("date", today);
-        data.put("transactions", transactions);
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("code", 200);
-        response.put("message", "오늘의 거래 내역 조회 성공");
-        response.put("data", data);
-
-        return response;
+    public ResponseEntity<Object> getTodayTransactions(@RequestParam(value = "userId", required = false) String userId) {
+        String today = LocalDate.now().toString();
+        List<TransactionDTO> transactions = transactionsService.getTodayTransactions(getUserId(userId), today);
+        return JsonResponse.ok("오늘의 거래 내역 조회 성공",
+                Map.of("date", today, "transactions", transactions));
     }
 
-    //오늘 소비 카테고리별 상세 거래 내역 조회
     @GetMapping("/transactions/today/category")
-    public Map<String, Object> getTodayTransactionsByCategory(
-            @RequestParam("category") String category,
-            @RequestParam(value = "userId", required = false) String userId) {
-
-        if (userId == null) {
-            userId = "111e2222-aaaa-bbbb-cccc-123456789000"; // 테스트용
-        }
-
-        String today = java.time.LocalDate.now().toString();
-
-        List<TransactionDTO> transactions = transactionsService.getTodayTransactionsByCategory(userId, today, category);
-
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("consumptionCategory", category);
-        data.put("transactions", transactions);
-
-        Map<String, Object> response = new LinkedHashMap<>();
-        response.put("code", 200);
-        response.put("message", "오늘 소비 카테고리별 상세 거래 내역 조회 성공");
-        response.put("data", data);
-
-        return response;
+    public ResponseEntity<Object> getTodayTransactionsByCategory(@RequestParam("category") String category,
+                                                                 @RequestParam(value = "userId", required = false) String userId) {
+        String today = LocalDate.now().toString();
+        List<TransactionDTO> transactions = transactionsService.getTodayTransactionsByCategory(getUserId(userId), today, category);
+        return JsonResponse.ok("오늘 소비 카테고리별 상세 거래 내역 조회 성공",
+                Map.of("consumptionCategory", category, "transactions", transactions));
     }
-
 }

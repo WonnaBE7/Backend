@@ -17,7 +17,7 @@ import javax.sql.DataSource;
 @Configuration
 @PropertySource({"classpath:/application.properties"})
 // 내가 수정함
-@MapperScan(basePackages = {"com.wonnabe.asset.mapper"})
+@MapperScan(basePackages = {"com.wonnabe"})
 
 //내가 추가함
 @ComponentScan(basePackages = {"com.wonnabe"})
@@ -27,6 +27,7 @@ public class RootConfig {
     @Value("${jdbc.url}") String url;
     @Value("${jdbc.username}") String username;
     @Value("${jdbc.password}") String password;
+
     @Bean
     public DataSource dataSource() {
         HikariConfig config = new HikariConfig();
@@ -34,8 +35,7 @@ public class RootConfig {
         config.setJdbcUrl(url);
         config.setUsername(username);
         config.setPassword(password);
-        HikariDataSource dataSource = new HikariDataSource(config);
-        return dataSource;
+        return new HikariDataSource(config);
     }
 
     @Autowired
@@ -46,12 +46,15 @@ public class RootConfig {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(applicationContext.getResource("classpath:/mybatis-config.xml"));
         sqlSessionFactory.setDataSource(dataSource());
-        return (SqlSessionFactory) sqlSessionFactory.getObject();
+
+        // DTO 별칭 자동 등록 (여러 패키지 한 번에 스캔 가능)
+        sqlSessionFactory.setTypeAliasesPackage("com.wonnabe.asset.dto");
+
+        return sqlSessionFactory.getObject();
     }
 
     @Bean
-    public DataSourceTransactionManager transactionManager(){
-        DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
-        return manager;
+    public DataSourceTransactionManager transactionManager() {
+        return new DataSourceTransactionManager(dataSource());
     }
 }
