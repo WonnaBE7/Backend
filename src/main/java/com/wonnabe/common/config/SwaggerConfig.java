@@ -2,6 +2,7 @@ package com.wonnabe.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.RestController;
 import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
@@ -19,6 +20,7 @@ import java.util.List;
 
 @Configuration
 @EnableSwagger2
+@Profile("!test")
 public class SwaggerConfig {
     private final String API_NAME = "Board API";
     private final String API_VERSION = "1.0";
