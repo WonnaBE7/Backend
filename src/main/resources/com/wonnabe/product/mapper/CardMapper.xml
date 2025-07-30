@@ -4,20 +4,20 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.wonnabe.product.mapper.CardMapper">
 
-    <select id="findById" resultType="com.wonnabe.product.domain.CardProductVO">
+    <select id="findById" resultType="CardProductVO">
         SELECT *
         from card_product
         where product_id = #{productId}
     </select>
 
-    <select id="findUserCardByproductId" resultType="com.wonnabe.product.domain.UserCardVO">
+    <select id="findUserCardByproductId" resultType="UserCardVO">
         SELECT *
         FROM User_Card
         WHERE product_id = #{productId} and user_id = #{userId}
     </select>
 
     <!-- resultMap 정의 -->
-    <resultMap id="userCardWithConsumptionsMap" type="com.wonnabe.product.dto.UserCardDTO">
+    <resultMap id="userCardWithConsumptionsMap" type="UserCardDTO">
         <id property="id" column="id"/>
         <result property="userId" column="user_id" javaType="java.lang.String"/>
         <result property="productId" column="product_id"/>
