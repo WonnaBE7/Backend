@@ -14,7 +14,10 @@
         <package name="com.wonnabe.product.domain" />
         <package name="com.wonnabe.product.dto" />
         <package name="com.wonnabe.asset.domain"/>
+        <package name="com.wonnabe.asset.dto"/>
     </typeAliases>
+
+
 
     <!-- Mapper XML 파일 경로 등록 (asset/mapper 경로로 수정) -->
     <mappers>
