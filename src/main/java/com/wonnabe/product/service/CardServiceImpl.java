@@ -13,11 +13,12 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Log4j2
-@Service
+@Service("cardServiceImpl")
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
 
     private final CardMapper cardMapper;
+
 
     // 카드 계약기간을 계산함
     public int calculateTerm(LocalDate issueDate, LocalDate expiryDate) {
