@@ -141,7 +141,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // 한글 인코딩 필터 설정
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
             .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class) // JWT 예외 감지 후 JSON 에러 응답
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // 모든 요청 헤더에서 AccessToken 검사
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Authorization 헤더에 access token이 있으면 자동으로 검증 & 사용자 인증을 처리
             .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 로그인 시도 처리
 
         // 인증 및 권한 실패 시 처리 핸들러 설정
@@ -149,7 +149,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler);
 
-        // 인가 정책 설정
+        // 인가 정책 설정 : 모든 API가 인증 없이 접근 가능
         http.authorizeRequests()
             .antMatchers(HttpMethod.OPTIONS).permitAll()
             .anyRequest().permitAll();
