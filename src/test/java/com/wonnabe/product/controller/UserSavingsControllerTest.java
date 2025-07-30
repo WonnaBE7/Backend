@@ -2,6 +2,8 @@ package com.wonnabe.product.controller;
 
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.common.config.ServletConfig;
+import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.common.security.account.domain.UserVO;
 import com.wonnabe.product.service.UserSavingsService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,25 +11,27 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
 @ContextConfiguration(classes = {RootConfig.class, ServletConfig.class})
 @Log4j2
-@Transactional // 테스트 후 DB 롤백
+@ActiveProfiles("test")
 class UserSavingsControllerTest {
 
     @Autowired
@@ -47,17 +51,33 @@ class UserSavingsControllerTest {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(ctx)
                 .addFilters(new CharacterEncodingFilter("UTF-8", true))
                 .build();
+        // 가짜 유저 데이터 생성
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");
+        userVO.setPasswordHash("dummy-password");
+        userVO.setName("테스트 유저");
+
+        // SecurityContext에 사용자 인증 정보를 저장함
+        CustomUser customUser = new CustomUser(userVO);
+        Authentication auth = new UsernamePasswordAuthenticationToken(customUser, null, customUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
     }
 
     @Test
     @DisplayName("예적금 상세 정보 조회 API 성공")
     void getSavingsDetail_success() throws Exception {
-        mockMvc.perform(get("/api/user/savings/{productId}", productId)
-                        .param("userId", userId))
+
+        // API 호출 및 검증
+        mockMvc.perform(get("/api/user/savings/{productId}", productId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productId").value(String.valueOf(productId)))
+                .andExpect(jsonPath("$.productId").value(productId.toString()))
                 .andExpect(jsonPath("$.productName").exists()) // productName이 존재하는지 확인
                 .andDo(print()); // 응답/요청 전체 내용 출력
+
+        // 컨텍스트 비우기
+        SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -66,10 +86,24 @@ class UserSavingsControllerTest {
         // given
         Long nonExistentProductId = 9999L;
 
+        // 가짜 유저 데이터 생성
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");
+        userVO.setPasswordHash("dummy-password");
+        userVO.setName("테스트 유저");
+
+        // SecurityContext에 사용자 인증 정보를 저장함
+        CustomUser customUser = new CustomUser(userVO);
+        Authentication auth = new UsernamePasswordAuthenticationToken(customUser, null, customUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(auth);
+
         // when & then
-        mockMvc.perform(get("/api/user/savings/{productId}", nonExistentProductId)
-                        .param("userId", userId))
+        mockMvc.perform(get("/api/user/savings/{productId}", nonExistentProductId))
                 .andExpect(status().isNotFound())
                 .andDo(print());
+
+        // 컨텍스트 비우기
+        SecurityContextHolder.clearContext();
     }
 }

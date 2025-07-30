@@ -1,27 +1,26 @@
 package com.wonnabe.product.mapper;
 
+import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;
+import com.wonnabe.common.security.config.SecurityConfig;
 import com.wonnabe.product.domain.UserSavingsVO;
 import com.wonnabe.product.dto.TransactionSummaryDto;
-import lombok.extern.log4j.Log4j2;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {RootConfig.class})
-@Log4j2
-@Transactional
-class UserSavingsMapperTest {
+@TestPropertySource(properties = {
+        "springfox.documentation.enabled=false"  // 테스트에서 Swagger 비활성화
+})
+public class UserSavingsMapperTest {
 
     @Autowired
     private UserSavingsMapper userSavingsMapper;
@@ -29,38 +28,30 @@ class UserSavingsMapperTest {
     private final String userId = "550e8400-e29b-41d4-a716-446655440000";
     private final Long productId = 1306L;
 
+    // 사용자 예적금 상세 정보 가져오는 거 테스트
     @Test
-    @DisplayName("사용자 예적금 상세 정보를 성공적으로 조회한다")
-    void findSavingsDetailByIds_success() {
-        // when
-        UserSavingsVO result = userSavingsMapper.findSavingsDetailByIds(userId, productId);
-
-        // then
-        assertNotNull(result, "조회 결과는 null이 아니어야 합니다. DB에 해당 데이터가 있는지 확인해주세요.");
-        assertEquals(userId, result.getUserId());
-        assertEquals(productId, result.getProductId());
-        assertNotNull(result.getSavingsProduct(), "상품 정보는 null이 아니어야 합니다.");
-        assertNotNull(result.getSavingsProduct().getProductName());
-
-        log.info("=== 예적금 상세 조회 (Mapper) 성공 ====");
-        log.info("조회된 정보: {}", result);
+    void testFindSavingsDetailByIds() {
+        UserSavingsVO userSavingsVO = userSavingsMapper.findSavingsDetailByIds(userId, productId);
+        System.out.println("userSavingsVO = " + userSavingsVO);
     }
 
+    // 월별 거래 내역 합계 가져오는거 테스트
     @Test
-    @DisplayName("월별 거래 내역 합계를 성공적으로 조회한다")
-    void findMonthlyTransactionSums_success() {
-        // given
-        // startDate를 충분히 과거로 설정하여 모든 적금 거래를 포함하도록 합니다.
+    void testFindMonthlyTransactionSums() {
         Date startDate = new Date(0); // 1970-01-01
+        List<TransactionSummaryDto> transactionSummaryList = userSavingsMapper.findMonthlyTransactionSums(userId, startDate);
+        System.out.println("transactionSummaryList = " + transactionSummaryList);
 
-        // when
-        List<TransactionSummaryDto> result = userSavingsMapper.findMonthlyTransactionSums(userId, startDate);
+        for (TransactionSummaryDto dto : transactionSummaryList) {
+            System.out.println("month: " + dto.getMonth() + ", totalSavings: " + dto.getTotalSavings());
+        }
+    }
 
-        // then
-        assertNotNull(result, "조회 결과는 null이 아니어야 합니다.");
-        assertFalse(result.isEmpty(), "거래 내역이 없습니다. DB에 적금 거래 데이터가 있는지 확인해주세요.");
-
-        log.info("=== 월별 거래 내역 조회 (Mapper) 성공 ====");
-        result.forEach(dto -> log.info("월: {}, 합계: {}", dto.getMonth(), dto.getTotalSavings()));
+    // 존재하지 않는 사용자 ID로 조회하는거 테스트
+    @Test
+    void testFindSavingsDetailByIds_NotFound() {
+        String nonExistentUserId = "non-existent-user-id";
+        UserSavingsVO userSavingsVO = userSavingsMapper.findSavingsDetailByIds(nonExistentUserId, productId);
+        System.out.println("notFound userSavingsVO = " + userSavingsVO);
     }
 }

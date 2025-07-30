@@ -1,67 +1,155 @@
 package com.wonnabe.product.service;
 
-import com.wonnabe.common.config.RootConfig;
+import com.wonnabe.product.domain.SavingsProductVO;
+import com.wonnabe.product.domain.UserSavingsVO;
+import com.wonnabe.product.dto.TransactionSummaryDto;
 import com.wonnabe.product.dto.UserSavingsDetailResponseDto;
-import lombok.extern.log4j.Log4j2;
+import com.wonnabe.product.mapper.UserSavingsMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.transaction.annotation.Transactional;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {RootConfig.class})
-@Transactional // 테스트 후 DB 롤백
-@Log4j2
+/**
+ * UserSavingsService의 비즈니스 로직을 단위 테스트하는 클래스입니다.
+ * Mockito를 사용하여 매퍼의 의존성을 제거하고, 순수 서비스 로직만을 검증합니다.
+ */
+@ExtendWith(MockitoExtension.class)
 class UserSavingsServiceTest {
 
-    @Autowired
+    @Mock // 가짜(Mock) 매퍼 객체 생성
+    private UserSavingsMapper userSavingsMapper;
+
+    @InjectMocks // @Mock으로 생성된 객체를 주입받는 서비스 객체 생성
     private UserSavingsService userSavingsService;
 
-    private final String userId = "550e8400-e29b-41d4-a716-446655440000";
-    private final Long productId = 1306L; // 테스트에 사용할 상품 ID (적금 또는 예금)
+    private final String userId = "testUser";
 
     @Test
-    @DisplayName("상품 상세 정보를 성공적으로 조회하고, 타입에 따라 적금/예금으로 분류한다")
-    void getSavingsDetail_success() {
+    @DisplayName("적금 상품: 이자를 포함한 최근 5개월 자산 차트와 최종 달성률을 정확히 계산한다")
+    void getSavingsDetail_forSavingsProduct_success() {
+        // given: 테스트를 위한 가짜 데이터 설정
+        Long productId = 1L;
+        // UserSavingsMapper가 특정 값을 반환하도록 미리 정의합니다.
+        given(userSavingsMapper.findSavingsDetailByIds(userId, productId)).willReturn(createMockSavingsVO(productId));
+        given(userSavingsMapper.findMonthlyTransactionSums(anyString(), any(Date.class))).willReturn(createMockTransactions(7)); // 7개월치 거래내역 생성
+
+        // when: 테스트할 메서드를 실제로 호출합니다.
+        UserSavingsDetailResponseDto result = userSavingsService.getSavingsDetail(userId, productId);
+
+        // then: 반환된 결과가 우리의 기대와 일치하는지 검증합니다.
+        assertNotNull(result);
+        assertEquals("적금", result.getProductType());
+
+        // 1. 최종 달성률 검증 (만기 12개월, 월 10만원 -> 총 120만원 목표. 현재 7개월치 70만원 납입)
+        // 기대값: (700,000 / 1,200,000) * 100 = 58
+        assertEquals(58, result.getAchievementRate());
+
+        // ---- 가시적 출력(적금)  -------
+        System.out.println("===== 적금 상품 테스트 결과 =====");
+        System.out.println("최종 달성률: " + result.getAchievementRate() + "%");
+        System.out.println("차트 데이터: " + result.getMonthlyChart());
+        System.out.println("마지막 달 누적 자산: " + result.getMonthlyChart().get(4).getAmount());
+
+        // 2. 차트 데이터 검증
+        assertNotNull(result.getMonthlyChart());
+        assertEquals(5, result.getMonthlyChart().size(), "차트 데이터는 최근 5개월치여야 합니다.");
+        assertEquals("7월", result.getMonthlyChart().get(4).getMonth(), "차트의 마지막 데이터는 7월이어야 합니다.");
+
+        // 3. 이자 계산 검증 (가장 마지막 달인 7월의 누적 자산 검증)
+        // 6월까지 누적원금 60만원에 대한 7월 이자: 600,000 * (0.03 / 12) = 1500
+        // 7월까지 누적 이자 총합 (간략 계산): (0+10+20+30+40+50+60)만 * 0.0025 = 5250
+        // 7월까지 누적 원금: 700,000
+        // 기대 누적 자산: 700,000 + 5250 = 705,250
+        assertEquals(705250L, result.getMonthlyChart().get(4).getAmount(), "이자를 포함한 누적 자산이 정확해야 합니다.");
+    }
+
+    @Test
+    @DisplayName("예금 상품: 이자를 포함한 최근 5개월 자산 차트와 최종 달성률을 정확히 계산한다")
+    void getSavingsDetail_forDepositProduct_success() {
+        // given
+        Long productId = 2L;
+        given(userSavingsMapper.findSavingsDetailByIds(userId, productId)).willReturn(createMockDepositVO(productId));
+        given(userSavingsMapper.findMonthlyTransactionSums(anyString(), any(Date.class))).willReturn(createMockTransactions(7));
+
         // when
         UserSavingsDetailResponseDto result = userSavingsService.getSavingsDetail(userId, productId);
 
         // then
-        assertNotNull(result, "조회 결과는 null이 아니어야 합니다. DB에 해당 데이터가 있는지 확인해주세요.");
-        assertEquals(String.valueOf(productId), result.getProductId());
+        assertNotNull(result);
+        assertEquals("예금", result.getProductType());
 
-        // DB 데이터의 monthlyPayment 값에 따라 "적금" 또는 "예금"으로 분류되는지 확인
-        if (result.getProductType().equals("적금")) {
-            assertNotNull(result.getMonthlyChart());
-            assertFalse(result.getMonthlyChart().isEmpty(), "적금은 월별 차트가 비어있지 않아야 합니다.");
-        } else if (result.getProductType().equals("예금")) {
-            assertNotNull(result.getMonthlyChart());
-            assertTrue(result.getMonthlyChart().isEmpty(), "예금은 월별 차트가 비어있어야 합니다.");
-            assertEquals(100, result.getAchievementRate());
-        }
+        // 1. 최종 달성률 검증 (최초 원금 100만원, 현재 총 납입액 70만원)
+        // 기대값: (700,000 / 1,000,000) * 100 = 70
+        assertEquals(70, result.getAchievementRate());
 
-        assertNotNull(result.getAchievementRate());
+        // ---- 가시적 출력(예금)  -------
+        System.out.println("===== 예금 상품 테스트 결과 =====");
+        System.out.println("최종 달성률: " + result.getAchievementRate() + "%");
+        System.out.println("차트 데이터: " + result.getMonthlyChart());
+        System.out.println("마지막 달 누적 자산: " + result.getMonthlyChart().get(4).getAmount());
 
-        log.info("=== 상품 상세 조회 (Service) 성공 ===");
-        log.info("조회 결과: {}", result);
+        // 2. 차트 데이터 검증
+        assertEquals(5, result.getMonthlyChart().size());
+        assertEquals(705250L, result.getMonthlyChart().get(4).getAmount(), "예금 상품의 누적 자산도 정확해야 합니다.");
     }
 
-    @Test
-    @DisplayName("존재하지 않는 상품 조회 시 null을 반환한다")
-    void getSavingsDetail_forNonExistent_returnsNull() {
-        // given
-        Long nonExistentProductId = 9999L;
 
-        // when
-        UserSavingsDetailResponseDto result = userSavingsService.getSavingsDetail(userId, nonExistentProductId);
+    // --- 테스트용 가짜 데이터를 생성하는 헬퍼 메서드 --- //
 
-        // then
-        assertNull(result);
-        log.info("=== 존재하지 않는 상품 조회 테스트 성공 ===");
+    private UserSavingsVO createMockSavingsVO(Long productId) {
+        return UserSavingsVO.builder()
+                .productId(productId)
+                .principalAmount(1200000L) // 만기 시 총 원금
+                .monthlyPayment(100000L)   // 월 납입액 (적금)
+                .startDate(Date.from(LocalDate.now().minusMonths(7).atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .maturityDate(Date.from(LocalDate.now().plusMonths(5).atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .savingsProduct(createMockSavingsProductVO(productId))
+                .build();
+    }
+
+    private UserSavingsVO createMockDepositVO(Long productId) {
+        return UserSavingsVO.builder()
+                .productId(productId)
+                .principalAmount(1000000L) // 최초 계약 원금
+                .monthlyPayment(0L)        // 월 납입액 0 (예금)
+                .startDate(Date.from(LocalDate.now().minusMonths(7).atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .maturityDate(Date.from(LocalDate.now().plusMonths(5).atStartOfDay(ZoneId.systemDefault()).toInstant()))
+                .savingsProduct(createMockSavingsProductVO(productId))
+                .build();
+    }
+
+    private SavingsProductVO createMockSavingsProductVO(Long productId) {
+        return SavingsProductVO.builder()
+                .productId(productId)
+                .productName("테스트 상품")
+                .baseRate(3.0f) // 연 3% 금리
+                .build();
+    }
+
+    private List<TransactionSummaryDto> createMockTransactions(int months) {
+        List<TransactionSummaryDto> transactions = new ArrayList<>();
+        for (int i = 0; i < months; i++) {
+            LocalDate date = LocalDate.now().minusMonths(months - 1 - i);
+            TransactionSummaryDto transaction = new TransactionSummaryDto();
+            transaction.setMonth(date.format(DateTimeFormatter.ofPattern("yyyy-MM")));
+            transaction.setTotalSavings(100000L); // 매월 10만원씩 입금했다고 가정
+            transactions.add(transaction);
+        }
+        return transactions;
     }
 }
