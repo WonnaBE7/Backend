@@ -61,18 +61,24 @@ public class ConsumptionSummaryService {
     }
 
     // 월 별 카테고리별 소비 비율
-    public List<CategorySummaryDTO> getMonthlyCategorySummary(String userId, String yearMonth) {
+    public List<Map<String, Object>> getMonthlyCategorySummary(String userId, String yearMonth) {
         List<CategorySummaryDTO> rawList = cacheMapper.getMonthlyCategorySummary(userId, yearMonth);
 
         double totalAmount = rawList.stream().mapToDouble(CategorySummaryDTO::getAmount).sum();
 
-        // 각 항목 비율만 계산해서 DTO에 세팅
-        for (CategorySummaryDTO c : rawList) {
+        // DTO를 Map으로 변환하면서 diffFromYesterday 제거
+        return rawList.stream().map(c -> {
             double percentage = totalAmount > 0 ? (c.getAmount() / totalAmount * 100) : 0;
-            c.setPercentage(Math.round(percentage * 10) / 10.0);  // 소수점 1자리
-        }
 
-        return rawList;
+            Map<String, Object> map = new LinkedHashMap<>();
+            map.put("consumptionCategory", c.getConsumptionCategory());
+            map.put("amount", c.getAmount());
+            map.put("percentage", Math.round(percentage * 10) / 10.0);
+            map.put("diffFromLastMonth", c.getDiffFromLastMonth());
+            // diffFromYesterday는 추가 안 함
+
+            return map;
+        }).collect(Collectors.toList());
     }
 
     // 예상 월 소비 및 오늘의 소비

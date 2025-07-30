@@ -39,10 +39,11 @@ public class ConsumptionSummaryController {
     @GetMapping("/categories")
     public ResponseEntity<Object> getMonthlyCategorySummary(@RequestParam("yearMonth") String yearMonth,
                                                             @RequestParam(value = "userId", required = false) String userId) {
-        List<CategorySummaryDTO> categories = summaryService.getMonthlyCategorySummary(getUserId(userId), yearMonth);
+        List<Map<String, Object>> categories = summaryService.getMonthlyCategorySummary(getUserId(userId), yearMonth);
         return JsonResponse.ok("월별 카테고리 소비비율 조회 성공",
                 Map.of("yearMonth", yearMonth, "categories", categories));
     }
+
 
     @GetMapping("/overview")
     public ResponseEntity<Object> getOverviewConsumption(@RequestParam(value = "userId", required = false) String userId) {
@@ -60,9 +61,10 @@ public class ConsumptionSummaryController {
     public String viewCategories(@RequestParam("yearMonth") String yearMonth,
                                  @RequestParam(value = "userId", required = false) String userId,
                                  Model model) {
-        List<CategorySummaryDTO> categories = summaryService.getMonthlyCategorySummary(getUserId(userId), yearMonth);
+        List<Map<String, Object>> categories = summaryService.getMonthlyCategorySummary(getUserId(userId), yearMonth);
         model.addAttribute("yearMonth", yearMonth);
         model.addAttribute("categories", categories);
         return "categories";
     }
+
 }

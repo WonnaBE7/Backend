@@ -1,10 +1,14 @@
 package com.wonnabe.asset.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class CategorySummaryDTO {
     private String consumptionCategory;  // DB 컬럼명과 일치
     private double amount;
     private double percentage;
     private double diffFromLastMonth;
+
+    @JsonIgnore
     private double diffFromYesterday;
 
     public String getConsumptionCategory() {
