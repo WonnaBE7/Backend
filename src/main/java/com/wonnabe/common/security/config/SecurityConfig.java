@@ -149,7 +149,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .authenticationEntryPoint(authenticationEntryPoint)
             .accessDeniedHandler(accessDeniedHandler);
 
-        // 인가 정책 설정 : 모든 API가 인증 없이 접근 가능
+        // 인가 정책 설정
         http.authorizeRequests()
             .antMatchers(HttpMethod.OPTIONS).permitAll()
             .anyRequest().permitAll();
