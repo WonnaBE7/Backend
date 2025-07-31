@@ -1,6 +1,7 @@
 package com.wonnabe.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wonnabe.asset.service.CodefAuthService;
 import com.wonnabe.auth.repository.RefreshTokenRedisRepository;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.dto.AuthResultDTO;
@@ -27,6 +28,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtProcessor jwtProcessor;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
+    private final CodefAuthService codefAuthService;
 
     /**
      * 사용자 정보와 AccessToken을 포함하는 AuthResultDTO 객체를 생성합니다.
@@ -57,6 +59,9 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         CustomUser user = (CustomUser) authentication.getPrincipal();
         String userId = user.getUser().getUserId();
+
+        // ✅ CODEF access token 갱신
+        codefAuthService.refreshAllExpiredTokens(userId);
 
         // ✅ 토큰 생성
         String accessToken = jwtProcessor.generateAccessToken(userId);
