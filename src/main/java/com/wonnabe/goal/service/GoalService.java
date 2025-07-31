@@ -9,9 +9,10 @@ public interface GoalService {
     /**
      * 사용자의 전체 목표 리스트 조회
      * @param userId 사용자 ID
+     * @param status 상태 필터링
      * @return 목표 리스트 요약 정보
      */
-    public GoalListResponseDTO getGoalList(String userId);
+    public GoalListResponseDTO getGoalList(String userId, String status);
 
     /**
      * 특정 목표의 상세 정보 조회

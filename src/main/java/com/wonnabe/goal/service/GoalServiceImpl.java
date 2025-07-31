@@ -28,8 +28,13 @@ public class GoalServiceImpl implements GoalService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public GoalListResponseDTO getGoalList(String userId) {
-        List<GoalSummaryResponseDTO> goalSummaries = goalMapper.getGoalList(userId);
+    public GoalListResponseDTO getGoalList(String userId, String status) {
+        // status 유효성 검사
+        if (!status.equals("PUBLISHED") && !status.equals("ACHIEVED")) {
+            throw new IllegalArgumentException("유효하지 않은 status 값입니다. (허용: PUBLISHED, ACHIEVED)");
+        }
+
+        List<GoalSummaryResponseDTO> goalSummaries = goalMapper.getGoalList(userId, status);
 
         BigDecimal totalTargetAmount = goalSummaries.stream()
                 .map(goal -> goal.getTargetAmount() != null ? goal.getTargetAmount() : BigDecimal.ZERO)

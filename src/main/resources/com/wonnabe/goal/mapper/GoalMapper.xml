@@ -33,7 +33,7 @@
                  LEFT JOIN
              financial_tendency_type ftt ON g.nowme_id = ftt.id
         WHERE g.user_id = #{userId, jdbcType=VARCHAR}
-          AND g.status = 'PUBLISHED'
+          AND g.status = #{status}
         ORDER BY g.id DESC
     </select>
 

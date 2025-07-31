@@ -25,10 +25,11 @@ public class GoalController {
     @ApiOperation(value = "목표 리스트", notes = "목표 리스트 조회")
     @GetMapping("")
     public ResponseEntity<Object> getGoalList(
-            @AuthenticationPrincipal CustomUser customUser
+            @AuthenticationPrincipal CustomUser customUser,
+            @RequestParam(required = false, defaultValue = "PUBLISHED") String status
     ) {
         String userId = customUser.getUser().getUserId();
-        GoalListResponseDTO list = service.getGoalList(userId);
+        GoalListResponseDTO list = service.getGoalList(userId, status);
         return JsonResponse.ok("목표 리스트 조회 성공", list);
     }
 

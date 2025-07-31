@@ -11,7 +11,7 @@ import java.util.List;
 
 public interface GoalMapper {
 
-    public List<GoalSummaryResponseDTO> getGoalList(@Param("userId") String userId);
+    public List<GoalSummaryResponseDTO> getGoalList(@Param("userId") String userId, @Param("status") String status);
 
     public GoalDetailResponseDTO getGoal(@Param("userId") String userId, @Param("goalId") Long goalId);
 
