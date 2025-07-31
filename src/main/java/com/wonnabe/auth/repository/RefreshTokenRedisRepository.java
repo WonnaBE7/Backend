@@ -1,6 +1,7 @@
 package com.wonnabe.auth.repository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisHash;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,7 @@ import java.time.Duration;
  */
 @Repository
 @RequiredArgsConstructor
+@RedisHash("refreshToken")
 public class RefreshTokenRedisRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;

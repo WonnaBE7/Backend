@@ -6,7 +6,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
-@ComponentScan(basePackages = "com.wonnabe")
+@ComponentScan(basePackages = {"com.wonnabe.product.controller", "org.scoula.controller", "org.scoula.board.controller"})
 public class ServletConfig implements WebMvcConfigurer {
 
     @Override
