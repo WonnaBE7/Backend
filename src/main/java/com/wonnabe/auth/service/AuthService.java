@@ -8,6 +8,9 @@ import com.wonnabe.common.security.account.dto.AuthResultDTO;
 import com.wonnabe.common.security.account.dto.UserInfoDTO;
 import com.wonnabe.common.security.service.CustomUserDetailsService;
 import com.wonnabe.common.util.JsonResponse;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.UUID;
 
+@Log4j2
 @Service
 public class AuthService {
 
@@ -111,11 +115,28 @@ public class AuthService {
         // 1. 쿠키에서 Refresh Token 추출
         String refreshToken = extractTokenFromCookie(request, "refresh_token");
         if (refreshToken == null) {
-            throw new IllegalArgumentException("로그아웃 실패: Refresh Token이 존재하지 않습니다.");
+            throw new IllegalArgumentException("이미 로그아웃된 상태입니다.");
         }
 
         // 2. JwtProcessor로부터 userId 추출
-        String userId = jwtProcessor.getUserIdFromToken(refreshToken);
+        String userId;
+        try {
+            // 2. JwtProcessor로부터 userId 추출
+            userId = jwtProcessor.getUserIdFromToken(refreshToken);
+        } catch (ExpiredJwtException e) {
+            throw new IllegalArgumentException("세션이 만료되었습니다. 다시 로그인해 주세요.");
+        } catch (UnsupportedJwtException | MalformedJwtException | SecurityException e) {
+            throw new IllegalArgumentException("유효하지 않은 인증 정보입니다. 다시 로그인해 주세요.");
+        } catch (Exception e) {
+            throw new IllegalArgumentException("로그아웃 처리 중 문제가 발생했습니다.");
+        }
+
+        // + Redis에서 해당 userId로 저장된 refresh token 제거
+        String storedToken = refreshTokenRedisRepository.get(userId);
+        if (storedToken == null) {
+            log.info("이미 로그아웃된 사용자 요청: {}", userId);
+            return; // 그냥 통과
+        }
 
         // 3. Redis에서 해당 userId로 저장된 refresh token 제거
         refreshTokenRedisRepository.delete(userId);

@@ -1,10 +1,12 @@
 package com.wonnabe.user.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.common.util.JsonResponse;
 import com.wonnabe.user.dto.UpdateUserRequest;
 import com.wonnabe.user.dto.UserInfoResponse;
 import com.wonnabe.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +27,15 @@ public class UserController {
      * @return UserInfoResponse 객체 (사용자 정보 포함), 상태코드 200 OK
      */
     @GetMapping("/me")
-    public ResponseEntity<UserInfoResponse> getMyInfo(@AuthenticationPrincipal CustomUser user) {
-        return ResponseEntity.ok(userService.getUserInfo(user));
+    public ResponseEntity<Object> getMyInfo(@AuthenticationPrincipal CustomUser user) {
+        try {
+            if (user == null || user.getUser() == null) {
+                return JsonResponse.error(HttpStatus.UNAUTHORIZED, "로그인 정보가 확인되지 않습니다. 다시 로그인해 주세요.");
+            }
+            return JsonResponse.ok("사용자 정보 조회 성공", userService.getUserInfo(user));
+        } catch (Exception e) {
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 정보를 불러오는 데 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        }
     }
 
     /**
@@ -39,9 +48,15 @@ public class UserController {
      * @return 상태코드 200 OK (변경 성공)
      */
     @PutMapping("/me")
-    public ResponseEntity<Void> updateMyInfo(@AuthenticationPrincipal CustomUser user,
-                                             @RequestBody UpdateUserRequest request) {
-        userService.updateUserInfo(user, request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Object> updateMyInfo(@AuthenticationPrincipal CustomUser user,
+                                               @RequestBody UpdateUserRequest request) {
+        try {
+            userService.updateUserInfo(user, request);
+            return JsonResponse.ok("사용자 정보가 성공적으로 수정되었습니다.");
+        } catch (IllegalArgumentException e) {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IllegalStateException e) {
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+        }
     }
 }
