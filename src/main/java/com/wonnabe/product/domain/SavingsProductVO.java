@@ -26,5 +26,13 @@ public class SavingsProductVO {
     private Float maxRate;          // 최고금리
     private Long maxAmount;         // 최대한도
 
+    // recommend를 위한 Score
+    private int interestRateScore;      // 금리_점수
+    private int compoundInterestScore;  // 단복리_점수
+    private int preferentialScore;      // 우대조건_점수
+    private int penaltyScore;          // 중도해지페널티_점수
+    private int limitScore;            // 최대한도_점수
+
+
 
 }
