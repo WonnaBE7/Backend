@@ -1,6 +1,6 @@
 # 빌드 관련
 /build/
-../../Downloads/wonnabe/.gradle/
+.gradle/
 out/
 
 # IDE 관련
