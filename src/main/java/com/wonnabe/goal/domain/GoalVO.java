@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -29,11 +28,10 @@ public class GoalVO {
     private BigDecimal monthlySaveAmount;
     private BigDecimal expectedTotalAmount;
     private BigDecimal interestGain;
-    private Float progressRate;
+    private BigDecimal progressRate;
     private Boolean isAchieved;
     private LocalDateTime achievedDate;
     private String resultSummary;
-    private String recommendedProducts; // TODO: 추천상품타입으로 변경 필요
     private String status; // DRAFT, PUBLISHED, ACHIEVED
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

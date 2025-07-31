@@ -1,6 +1,7 @@
 package com.wonnabe.goal.mapper;
 
 import com.wonnabe.goal.domain.GoalVO;
+import com.wonnabe.goal.domain.RecommendedProductVO;
 import com.wonnabe.goal.dto.GoalDetailResponseDTO;
 import com.wonnabe.goal.dto.GoalSummaryResponseDTO;
 import org.apache.ibatis.annotations.Param;
@@ -15,6 +16,8 @@ public interface GoalMapper {
     public GoalDetailResponseDTO getGoal(@Param("userId") String userId, @Param("goalId") Long goalId);
 
     public GoalSummaryResponseDTO getGoalSummaryById(@Param("goalId") Long goalId);
+
+    public List<RecommendedProductVO> getRecommendedProductList(@Param("goalId") Long goalId);
 
     public int createGoal(GoalVO goalVO);
 

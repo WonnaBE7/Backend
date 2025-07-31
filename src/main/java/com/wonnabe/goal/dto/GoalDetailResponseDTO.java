@@ -17,7 +17,7 @@ public class GoalDetailResponseDTO {
     private String goalName;
     private String categoryName;
     private String nowmeName;
-    private Float progressRate;
+    private BigDecimal progressRate;
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
     private Integer goalDurationMonths;

@@ -49,7 +49,7 @@
         <result property="remainingMonths" column="remaining_months"/>
         <result property="monthlySaveAmount" column="monthly_save_amount"/>
         <result property="futureMeMessage" column="result_summary"/>
-        <result property="selectedProductId" column="selected_products_id"/>
+        <result property="selectedProductId" column="selected_product_id"/>
     </resultMap>
 
     <select id="getGoal" resultMap="goalDetailResultMap">
@@ -62,7 +62,7 @@
                g.goal_duration_months,
                g.monthly_save_amount,
                g.result_summary,
-               g.selected_products_id,
+               g.selected_product_id,
                TIMESTAMPDIFF(MONTH, NOW(), g.target_date)           AS remaining_months,
                ROUND((g.current_amount * 100 / g.target_amount), 0) AS progress_rate
         FROM user_goal g
@@ -70,6 +70,19 @@
                  JOIN financial_tendency_type ftt ON g.nowme_id = ftt.id
         WHERE g.user_id = #{userId}
           AND g.id = #{goalId}
+    </select>
+
+    <select id="getRecommendedProductList" resultType="com.wonnabe.goal.domain.RecommendedProductVO">
+        SELECT grp.id,
+               grp.product_name AS productName,
+               grp.bank_name AS bankName,
+               grp.interest_rate AS interestRate,
+               grp.achievement_rate AS achievementRate,
+               grp.monthly_deposit_amount AS monthlyDepositAmount,
+               grp.expected_achievement_date AS expectedAchievementDate,
+               grp.expected_total_amount AS expectedTotalAmount
+        FROM goal_recommended_product grp
+        WHERE goal_id = #{goalId}
     </select>
 
     <select id="getGoalSummaryById" resultMap="goalSummaryResultMap">
@@ -108,7 +121,6 @@
                                achieved_date,
                                result_summary,
                                updated_at,
-                               recommended_products_id,
                                status,
                                created_at)
         VALUES (#{userId},
@@ -127,7 +139,6 @@
                 null,
                 #{resultSummary},
                 #{updatedAt},
-                #{recommendedProducts},
                 #{status},
                 #{createdAt})
     </insert>
@@ -135,7 +146,7 @@
     <update id="updateGoalStatusToPublished">
         UPDATE user_goal
         SET status               = 'PUBLISHED',
-            selected_products_id = #{selectedProductId}
+            selected_product_id = #{selectedProductId}
         WHERE id = #{goalId}
     </update>
 

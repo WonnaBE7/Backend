@@ -1,7 +1,6 @@
 package com.wonnabe.goal.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.wonnabe.goal.domain.GoalVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

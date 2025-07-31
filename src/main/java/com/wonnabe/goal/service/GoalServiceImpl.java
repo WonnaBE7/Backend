@@ -51,7 +51,7 @@ public class GoalServiceImpl implements GoalService {
             throw new NoSuchElementException("요청하신 목표 (ID: " + goalId + ")를 찾을 수 없습니다.");
         }
 
-        List<RecommendedProductDTO> recommendedProducts = new ArrayList<>(); // TODO: 추천된 리스트 가져오는 함수 필요
+        List<RecommendedProductDTO> recommendedProducts = RecommendedProductDTO.ofList(goalMapper.getRecommendedProductList(goalId));
         goalDetail.setRecommendedProducts(recommendedProducts);
 
         return goalDetail;
@@ -85,11 +85,10 @@ public class GoalServiceImpl implements GoalService {
                         .id(1001L)
                         .name("하나 예금 상품")
                         .bank("하나은행")
-                        .tags(Arrays.asList("단기", "고금리"))
-                        .interestRate(3.5f)
+                        .interestRate(BigDecimal.valueOf(3.5))
                         .achievementRate(80)
                         .monthlyDepositAmount(monthlySaveAmount)
-                        .expectedAchievementDate(LocalDate.now().plusMonths(request.getGoalDurationMonths()).toString())
+                        .expectedAchievementDate(LocalDate.now().plusMonths(request.getGoalDurationMonths()))
                         .expectedTotalAmount(monthlySaveAmount.multiply(new BigDecimal(request.getGoalDurationMonths())))
                         .build(),
 
@@ -97,11 +96,10 @@ public class GoalServiceImpl implements GoalService {
                         .id(1010L)
                         .name("카카오 적금 상품")
                         .bank("카카오뱅크")
-                        .tags(Arrays.asList("적금", "자유입출금"))
-                        .interestRate(3.0f)
+                        .interestRate(BigDecimal.valueOf(3.0))
                         .achievementRate(70)
                         .monthlyDepositAmount(monthlySaveAmount)
-                        .expectedAchievementDate(LocalDate.now().plusMonths(request.getGoalDurationMonths()).toString())
+                        .expectedAchievementDate(LocalDate.now().plusMonths(request.getGoalDurationMonths()))
                         .expectedTotalAmount(monthlySaveAmount.multiply(new BigDecimal(request.getGoalDurationMonths())))
                         .build()
         );
@@ -116,7 +114,6 @@ public class GoalServiceImpl implements GoalService {
 
         // 추천 상품 ID 목록을 List<Long>으로 추출
         // TODO: 실제 예적금 추천
-        String recommendedProductsStr = convertProductIdsToJsonArray(recommendedProductList); // 예: "1001,1002"
 
         GoalVO goalToInsert = GoalVO.builder()
                 .userId(userId)
@@ -130,10 +127,9 @@ public class GoalServiceImpl implements GoalService {
                 .monthlySaveAmount(monthlySaveAmount)
                 .expectedTotalAmount(expectedTotalAmount)
                 .interestGain(interestGain)
-                .progressRate(0f)
+                .progressRate(BigDecimal.valueOf(0))
                 .isAchieved(false)
                 .resultSummary(futureMeMessage)
-                .recommendedProducts(recommendedProductsStr)
                 .status("DRAFT")
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -185,17 +181,5 @@ public class GoalServiceImpl implements GoalService {
         // TODO: GPT API
         if (nowmeName == null) return "지금의 당신도 멋져요!";
         return nowmeName + "님, 목표를 꼭 달성하고 미래의 나에게 칭찬을 아끼지 마세요!";
-    }
-
-    private String convertProductIdsToJsonArray(List<RecommendedProductDTO> products) {
-        List<Long> idList = products.stream()
-                .map(RecommendedProductDTO::getId)
-                .collect(Collectors.toList());
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(idList); // 예: "[1,2,3]"
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON 변환 실패", e);
-        }
     }
 }
