@@ -74,13 +74,13 @@
 
     <select id="getRecommendedProductList" resultType="com.wonnabe.goal.domain.RecommendedProductVO">
         SELECT grp.id,
-               grp.product_name AS productName,
-               grp.bank_name AS bankName,
-               grp.interest_rate AS interestRate,
-               grp.achievement_rate AS achievementRate,
-               grp.monthly_deposit_amount AS monthlyDepositAmount,
+               grp.product_name              AS productName,
+               grp.bank_name                 AS bankName,
+               grp.interest_rate             AS interestRate,
+               grp.achievement_rate          AS achievementRate,
+               grp.monthly_deposit_amount    AS monthlyDepositAmount,
                grp.expected_achievement_date AS expectedAchievementDate,
-               grp.expected_total_amount AS expectedTotalAmount
+               grp.expected_total_amount     AS expectedTotalAmount
         FROM goal_recommended_product grp
         WHERE goal_id = #{goalId}
     </select>
@@ -168,5 +168,19 @@
         SELECT name
         FROM financial_tendency_type
         WHERE id = #{nowmeId}
+    </select>
+
+    <select id="getSavingsProductList" resultType="com.wonnabe.product.domain.SavingsProductVO">
+        SELECT sp.product_id,
+               sp.product_name,
+               sp.bank_name,
+               sp.base_rate,
+               sp.max_rate,
+               sp.min_amount,
+               sp.max_amount,
+               sp.min_join_period,
+               sp.max_join_period,
+               sp.rate_type
+        FROM savings_product sp
     </select>
 </mapper>

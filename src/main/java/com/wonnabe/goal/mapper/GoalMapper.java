@@ -4,6 +4,7 @@ import com.wonnabe.goal.domain.GoalVO;
 import com.wonnabe.goal.domain.RecommendedProductVO;
 import com.wonnabe.goal.dto.GoalDetailResponseDTO;
 import com.wonnabe.goal.dto.GoalSummaryResponseDTO;
+import com.wonnabe.product.domain.SavingsProductVO;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDateTime;
@@ -30,4 +31,6 @@ public interface GoalMapper {
     public Integer getNowmeIdByUserId(@Param("userId") String userId);
 
     public String getNowmeNameByNowmeId(@Param("nowmeId") Integer nowmeId);
+
+    public List<SavingsProductVO> getSavingsProductList();
 }
