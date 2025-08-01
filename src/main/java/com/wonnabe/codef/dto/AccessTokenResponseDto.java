@@ -1,10 +1,10 @@
-package com.wonnabe.asset.dto;
+package com.wonnabe.codef.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
-public class TokenResponseDto {
+public class AccessTokenResponseDto {
 
     @JsonProperty("access_token")
     private String accessToken;
