@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.goal.mapper.GoalMapper">
+    <resultMap id="goalSummaryResultMap" type="com.wonnabe.goal.dto.GoalSummaryResponseDTO">
+        <id property="id" column="goal_id"/>
+        <result property="goalName" column="goal_name"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="nowmeName" column="nowme_name"/>
+        <result property="progressRate" column="progress_rate"/>
+        <result property="targetAmount" column="target_amount"/>
+        <result property="currentAmount" column="current_amount"/>
+        <result property="goalDurationMonths" column="goal_duration_months"/>
+        <result property="startDate" column="start_date"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <select id="getGoalList" resultMap="goalSummaryResultMap">
+        SELECT g.id                                                 AS goal_id,
+               g.goal_name,
+               c.name                                               AS category_name,
+               ftt.name                                             AS nowme_name,
+               g.target_amount,
+               g.current_amount,
+               g.goal_duration_months,
+               g.start_date,
+               g.status,
+               ROUND((g.current_amount * 100 / g.target_amount), 0) AS progress_rate
+        FROM user_goal g
+                 LEFT JOIN
+             common_category c ON g.category_id = c.id
+                 LEFT JOIN
+             financial_tendency_type ftt ON g.nowme_id = ftt.id
+        WHERE g.user_id = #{userId, jdbcType=VARCHAR}
+          AND g.status = #{status}
+        ORDER BY g.id DESC
+    </select>
+
+    <resultMap id="goalDetailResultMap" type="com.wonnabe.goal.dto.GoalDetailResponseDTO">
+        <id property="id" column="goal_id"/>
+        <result property="goalName" column="goal_name"/>
+        <result property="categoryName" column="category_name"/>
+        <result property="nowmeName" column="nowme_name"/>
+        <result property="progressRate" column="progress_rate"/>
+        <result property="targetAmount" column="target_amount"/>
+        <result property="currentAmount" column="current_amount"/>
+        <result property="goalDurationMonths" column="goal_duration_months"/>
+        <result property="remainingMonths" column="remaining_months"/>
+        <result property="saveAmount" column="save_amount"/>
+        <result property="futureMeMessage" column="result_summary"/>
+        <result property="selectedProductId" column="selected_product_id"/>
+    </resultMap>
+
+    <select id="getGoal" resultMap="goalDetailResultMap">
+        SELECT g.id                                                 AS goal_id,
+               g.goal_name,
+               c.name                                               AS category_name,
+               ftt.name                                             AS nowme_name,
+               g.target_amount,
+               g.current_amount,
+               g.goal_duration_months,
+               g.save_amount,
+               g.result_summary,
+               g.selected_product_id,
+               TIMESTAMPDIFF(MONTH, NOW(), g.target_date)           AS remaining_months,
+               ROUND((g.current_amount * 100 / g.target_amount), 0) AS progress_rate
+        FROM user_goal g
+                 LEFT JOIN common_category c ON g.category_id = c.id
+                 LEFT JOIN financial_tendency_type ftt ON g.nowme_id = ftt.id
+        WHERE g.user_id = #{userId}
+          AND g.id = #{goalId}
+    </select>
+
+    <select id="getRecommendedProductList" resultType="com.wonnabe.goal.domain.RecommendedProductVO">
+        SELECT grp.id,
+               grp.product_id                AS productId,
+               grp.product_name              AS productName,
+               grp.bank_name                 AS bankName,
+               grp.interest_rate             AS interestRate,
+               grp.achievement_rate          AS achievementRate,
+               grp.save_amount               AS saveAmount,
+               grp.expected_achievement_date AS expectedAchievementDate,
+               grp.expected_total_amount     AS expectedTotalAmount
+        FROM goal_recommended_product grp
+        WHERE goal_id = #{goalId}
+    </select>
+
+    <select id="getGoalSummaryById" resultMap="goalSummaryResultMap">
+        SELECT g.id                                                 AS goal_id,
+               g.goal_name,
+               c.name                                               AS category_name,
+               ftt.name                                             AS nowme_name,
+               ROUND((g.current_amount * 100 / g.target_amount), 0) AS progress_rate,
+               g.target_amount,
+               g.current_amount,
+               g.goal_duration_months,
+               g.start_date,
+               g.status
+        FROM user_goal g
+                 LEFT JOIN
+             common_category c ON g.category_id = c.id
+                 LEFT JOIN
+             financial_tendency_type ftt ON g.nowme_id = ftt.id
+        WHERE g.id = #{goalId}
+    </select>
+
+    <insert id="createGoal" parameterType="com.wonnabe.goal.domain.GoalVO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO user_goal (user_id,
+                               nowme_id,
+                               category_id,
+                               goal_name,
+                               target_amount,
+                               goal_duration_months,
+                               start_date,
+                               target_date,
+                               current_amount,
+                               progress_rate,
+                               is_achieved,
+                               achieved_date,
+                               result_summary,
+                               updated_at,
+                               status,
+                               created_at)
+        VALUES (#{userId},
+                #{nowmeId},
+                #{categoryId},
+                #{goalName},
+                #{targetAmount},
+                #{goalDurationMonths},
+                #{startDate},
+                #{targetDate},
+                #{currentAmount},
+                #{progressRate},
+                #{isAchieved},
+                null,
+                #{resultSummary},
+                #{updatedAt},
+                #{status},
+                #{createdAt})
+    </insert>
+
+    <insert id="insertRecommendedProductList">
+        INSERT INTO goal_recommended_product(goal_id, product_id, product_name, bank_name, interest_rate,
+        achievement_rate, save_amount, expected_achievement_date,
+        expected_total_amount)
+        VALUES
+        <foreach collection="recommendations" item="item" separator=",">
+            (
+            #{item.goalId}, #{item.productId}, #{item.productName}, #{item.bankName},
+            #{item.interestRate}, #{item.achievementRate}, #{item.saveAmount},
+            #{item.expectedAchievementDate}, #{item.expectedTotalAmount}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateGoalStatusToPublished">
+        UPDATE user_goal
+        SET status                = 'PUBLISHED',
+            selected_product_id   = #{selectedProductId},
+            save_amount           = #{saveAmount},
+            expected_total_amount = #{expectedTotalAmount}
+        WHERE id = #{goalId}
+    </update>
+
+    <update id="updateGoalStatusToAchieved">
+        UPDATE user_goal
+        SET status        = 'ACHIEVED',
+            is_achieved   = true,
+            achieved_date = #{achievedDate}
+        WHERE id = #{goalId}
+    </update>
+
+    <select id="findRecommendedProductById" resultType="com.wonnabe.goal.domain.RecommendedProductVO">
+        SELECT *
+        FROM goal_recommended_product
+        WHERE product_id = #{productId}
+          AND goal_id = #{goalId}
+    </select>
+
+    <select id="getNowmeIdByUserId" resultType="java.lang.Integer">
+        SELECT nowme_id
+        FROM user_info
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="getNowmeNameByNowmeId" resultType="java.lang.String">
+        SELECT name
+        FROM financial_tendency_type
+        WHERE id = #{nowmeId}
+    </select>
+
+    <select id="getSavingsProductList" resultType="com.wonnabe.product.domain.SavingsProductVO">
+        SELECT sp.product_id,
+               sp.product_name,
+               sp.bank_name,
+               sp.base_rate,
+               sp.max_rate,
+               sp.min_amount,
+               sp.max_amount,
+               sp.min_join_period,
+               sp.max_join_period,
+               sp.rate_type
+        FROM savings_product sp
+    </select>
+
+    <select id="getCategoryNameById" resultType="java.lang.String">
+        SELECT name
+        FROM common_category
+        WHERE id = #{categoryId}
+    </select>
+</mapper>
