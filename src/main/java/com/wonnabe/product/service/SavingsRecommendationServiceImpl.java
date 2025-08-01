@@ -12,8 +12,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class SavingsRecommendationServiceImpl implements SavingsRecommendationService {
@@ -55,9 +57,17 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     public SavingsRecommendationResponseDTO recommendSavings(String userId, int topN) {
         // 1. 사용자 정보 조회
         UserIncomeInfoVO userInfo = recommendationMapper.getUserIncomeInfo(userId);
+        if (userInfo == null || userInfo.getPersonaIds() == null || userInfo.getPersonaIds().isEmpty()) {
+            log.warn("사용자 정보 또는 페르소나 ID가 없어 적금 추천을 진행할 수 없습니다. userId: {}", userId);
+            return new SavingsRecommendationResponseDTO(userId, new ArrayList<>());
+        }
 
         // 2. 모든 적금 상품과 점수 조회
         List<SavingsProductVO> productsWithScores = recommendationMapper.getAllSavingsScores();
+        if (productsWithScores == null || productsWithScores.isEmpty()) {
+            log.warn("추천할 적금 상품이 없어 적금 추천을 진행할 수 없습니다.");
+            return new SavingsRecommendationResponseDTO(userId, new ArrayList<>());
+        }
 
         // 3. 상품ID로 빠른 조회를 위한 Map 생성 (이제 필요 없음)
 
@@ -102,8 +112,8 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                 rec.setProductId(String.valueOf(product.getProductId()));
                 rec.setProductName(product.getProductName());
                 rec.setBankName(product.getBankName());
-                rec.setBaseRate(product.getBaseRate());
-                rec.setMaxRate(product.getMaxRate());
+                rec.setBaseRate(product.getBaseRate() != null ? product.getBaseRate() : 0.0f);
+                rec.setMaxRate(product.getMaxRate() != null ? product.getMaxRate() : 0.0f);
                 rec.setTotalScore(item.score);
 
                 personaRec.getProducts().add(rec);
@@ -120,7 +130,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
         double[] adjusted = weights.clone();
 
         // 소득원별 조정
-        if (incomeSource != null) {
+        if (incomeSource != null && !incomeSource.isEmpty()) {
             switch (incomeSource) {
                 case "급여":
                     adjusted[0] += 0.05;  // 금리
@@ -139,7 +149,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
         }
 
         // 고용상태별 조정
-        if (employment != null) {
+        if (employment != null && !employment.isEmpty()) {
             switch (employment) {
                 case "정규직":
                     adjusted[0] += 0.05;  // 금리
