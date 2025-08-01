@@ -1,6 +1,7 @@
 package com.wonnabe.product.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.common.util.JsonResponse;
 import com.wonnabe.product.dto.UserCardDetailDTO;
 import com.wonnabe.product.service.CardService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class UserProductController {
      * @return
      */
     @GetMapping("{cardId}")
-    public ResponseEntity<UserCardDetailDTO> getUserCardDetail(
+    public ResponseEntity<Object> getUserCardDetail(
             @PathVariable("cardId") int cardId, // url 경로를 파라미터로 매핑할때
             @AuthenticationPrincipal CustomUser customuser // 인증된 사용자 정보
     ) {
@@ -42,6 +43,6 @@ public class UserProductController {
         // 서비스에서 만든 함수로 dto를 가져옴
         UserCardDetailDTO userCardDetailDTO = cardService.findUserCardDetail(cardId, userId);
         // 반환
-        return ResponseEntity.ok(userCardDetailDTO);
+        return JsonResponse.ok("내 카드 정보 조회 성공", userCardDetailDTO);
     }
 }

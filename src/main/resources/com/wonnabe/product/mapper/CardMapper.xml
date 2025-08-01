@@ -4,12 +4,37 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.wonnabe.product.mapper.CardMapper">
 
+    <!--  사용자가 신청한 카드 등록  -->
+    <insert id="insertUserCard">
+        <selectKey resultType="Long" keyProperty="id" keyColumn="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+
+        INSERT INTO User_Card (user_id, product_id, issue_date, expiry_date,
+                               performance_condition, card_number, account_id)
+        VALUES (#{userId}, #{productId}, #{issueDate}, #{expiryDate},
+                #{performanceCondition}, #{cardNumber}, #{accountId})
+    </insert>
+
+    <!--  사용자 보유 카드 목록 최신화  -->
+    <update id="updateUserCardInfo">
+        UPDATE User_Info
+        SET my_card_ids =
+                CASE
+                    WHEN JSON_VALID(my_card_ids) = 0 OR my_card_ids IS NULL THEN JSON_ARRAY(#{cardId})
+                    ELSE JSON_ARRAY_APPEND(my_card_ids, '$', CAST(#{cardId} AS UNSIGNED))
+                    END
+        WHERE user_id = #{userId}
+    </update>
+
+    <!--  특정 카드 상품 정보 조회  -->
     <select id="findById" resultType="CardProductVO">
         SELECT *
         from card_product
         where product_id = #{productId}
     </select>
 
+    <!--  사용자가 등록한 카드 정보 조회  -->
     <select id="findUserCardByproductId" resultType="UserCardVO">
         SELECT *
         FROM User_Card
@@ -35,7 +60,7 @@
         </collection>
     </resultMap>
 
-
+    <!--  사용자가 보유한 카드 상세 정보 조회  -->
     <select id="findUserCardDetailById" resultMap="userCardWithConsumptionsMap">
         SELECT uc.id,
                uc.user_id,
@@ -59,6 +84,24 @@
         ORDER BY month DESC
     </select>
 
+    <select id="getAccountId" resultType="java.lang.Long">
+        SELECT id FROM User_Accounts
+        WHERE account_number = #{accountNumber}
+        and user_id = #{userId}
+    </select>
+
+    <select id="getMyCardIdsJson" resultType="java.lang.String">
+        SELECT my_card_ids
+        FROM user_info
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findLastCardNumber" resultType="java.lang.String">
+        SELECT card_number
+        FROM User_Card
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
 
 
 </mapper>
