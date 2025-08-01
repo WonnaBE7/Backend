@@ -32,9 +32,10 @@ public class UserIncomeInfoVO {
 
     // 페르소나 ID 리스트로 변환
     public List<Integer> getPersonaIds() {
-        // "[1,2,3]" → List<Integer>로 변환
-        String ids = selectedWonnabeIds.replaceAll("[\\[\\]\\s]", "");
+        // 예: ["1", "2"] → List<Integer>로 변환
+        String ids = selectedWonnabeIds.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
         return Arrays.stream(ids.split(","))
+                .filter(s -> !s.isEmpty())
                 .map(Integer::parseInt)
                 .collect(Collectors.toList());
     }
