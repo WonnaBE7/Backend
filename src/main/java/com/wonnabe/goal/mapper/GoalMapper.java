@@ -7,6 +7,7 @@ import com.wonnabe.goal.dto.GoalSummaryResponseDTO;
 import com.wonnabe.product.domain.SavingsProductVO;
 import org.apache.ibatis.annotations.Param;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,10 +26,15 @@ public interface GoalMapper {
     public void insertRecommendedProductList(@Param("recommendations") List<RecommendedProductVO> recommendations);
 
     public int updateGoalStatusToPublished(@Param("goalId") Long goalId,
-                                           @Param("selectedProductId") Long selectedProductId);
+                                           @Param("selectedProductId") Long selectedProductId,
+                                           @Param("saveAmount") BigDecimal saveAmount,
+                                           @Param("expectedTotalAmount") BigDecimal expectedTotalAmount);
 
     public int updateGoalStatusToAchieved(@Param("goalId") Long goalId,
                                           @Param("achievedDate") LocalDateTime achievedDate);
+
+    public RecommendedProductVO findRecommendedProductById(@Param("productId") Long productId,
+                                                           @Param("goalId") Long goalId);
 
     public Integer getNowmeIdByUserId(@Param("userId") String userId);
 

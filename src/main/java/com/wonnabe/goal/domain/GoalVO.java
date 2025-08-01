@@ -27,7 +27,6 @@ public class GoalVO {
     private BigDecimal currentAmount;
     private BigDecimal saveAmount;
     private BigDecimal expectedTotalAmount;
-    private BigDecimal interestGain;
     private BigDecimal progressRate;
     private Boolean isAchieved;
     private LocalDateTime achievedDate;

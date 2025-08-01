@@ -119,10 +119,14 @@ public class GoalServiceImpl implements GoalService {
         if (existingGoal == null) {
             throw new NoSuchElementException("목표 (ID: " + goalId + ")를 찾을 수 없습니다.");
         }
-        // TODO: selectedProductId 유효성 예외처리
 
-        // TODO: 선택한 상품에 따른 user_goal의 monthly_save_amount, expected_total_amount 업데이트 필요
-        goalMapper.updateGoalStatusToPublished(goalId, selectedProductId);
+        // 상품 존재 확인
+        RecommendedProductVO selectedProduct = goalMapper.findRecommendedProductById(selectedProductId, goalId);
+        if (selectedProduct == null) {
+            throw new NoSuchElementException("해당하는 상품이 없습니다.");
+        }
+
+        goalMapper.updateGoalStatusToPublished(goalId, selectedProductId, selectedProduct.getSaveAmount(), selectedProduct.getExpectedTotalAmount());
 
         return goalMapper.getGoalSummaryById(goalId);
     }

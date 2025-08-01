@@ -156,8 +156,10 @@
 
     <update id="updateGoalStatusToPublished">
         UPDATE user_goal
-        SET status              = 'PUBLISHED',
-            selected_product_id = #{selectedProductId}
+        SET status                = 'PUBLISHED',
+            selected_product_id   = #{selectedProductId},
+            save_amount           = #{saveAmount},
+            expected_total_amount = #{expectedTotalAmount}
         WHERE id = #{goalId}
     </update>
 
@@ -168,6 +170,13 @@
             achieved_date = #{achievedDate}
         WHERE id = #{goalId}
     </update>
+
+    <select id="findRecommendedProductById" resultType="com.wonnabe.goal.domain.RecommendedProductVO">
+        SELECT *
+        FROM goal_recommended_product
+        WHERE product_id = #{productId}
+          AND goal_id = #{goalId}
+    </select>
 
     <select id="getNowmeIdByUserId" resultType="java.lang.Integer">
         SELECT nowme_id
