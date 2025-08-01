@@ -143,9 +143,23 @@
                 #{createdAt})
     </insert>
 
+    <insert id="insertRecommendedProductList">
+        INSERT INTO goal_recommended_product(goal_id, product_id, product_name, bank_name, interest_rate,
+        achievement_rate, monthly_deposit_amount, expected_achievement_date,
+        expected_total_amount)
+        VALUES
+        <foreach collection="recommendations" item="item" separator=",">
+            (
+            #{item.goalId}, #{item.productId}, #{item.productName}, #{item.bankName},
+            #{item.interestRate}, #{item.achievementRate}, #{item.monthlyDepositAmount},
+            #{item.expectedAchievementDate}, #{item.expectedTotalAmount}
+            )
+        </foreach>
+    </insert>
+
     <update id="updateGoalStatusToPublished">
         UPDATE user_goal
-        SET status               = 'PUBLISHED',
+        SET status              = 'PUBLISHED',
             selected_product_id = #{selectedProductId}
         WHERE id = #{goalId}
     </update>

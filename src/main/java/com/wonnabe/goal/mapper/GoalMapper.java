@@ -22,6 +22,8 @@ public interface GoalMapper {
 
     public int createGoal(GoalVO goalVO);
 
+    public void insertRecommendedProductList(@Param("recommendations") List<RecommendedProductVO> recommendations);
+
     public int updateGoalStatusToPublished(@Param("goalId") Long goalId,
                                            @Param("selectedProductId") Long selectedProductId);
 

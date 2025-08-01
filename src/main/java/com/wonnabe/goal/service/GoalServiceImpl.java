@@ -107,7 +107,7 @@ public class GoalServiceImpl implements GoalService {
         List<RecommendedProductVO> recommendations = calculateRecommendedProductList(request, createdGoalId);
 
         if (!recommendations.isEmpty()) {
-            // TODO: 추천된 상품들 DB에 저장
+            goalMapper.insertRecommendedProductList(recommendations);
         }
 
         List<RecommendedProductDTO> recommendedProductList = RecommendedProductDTO.ofList(goalMapper.getRecommendedProductList(createdGoalId));
@@ -166,10 +166,12 @@ public class GoalServiceImpl implements GoalService {
         List<RecommendedProductVO> recommendations = new ArrayList<>();
 
         for (SavingsProductVO product : allProducts) {
-            // 기간 필터링
-            if (goalDurationMonths < product.getMinJoinPeriod() || goalDurationMonths > product.getMaxJoinPeriod()) {
+            // 최소 기간 필터링
+            if (goalDurationMonths < product.getMinJoinPeriod()) {
                 continue;
             }
+
+            int actualJoinPeriod = Math.min(goalDurationMonths, product.getMaxJoinPeriod());
 
             BigDecimal maxRate = BigDecimal.valueOf(product.getMaxRate());
             BigDecimal annualRate = maxRate.divide(new BigDecimal("100"), 10, RoundingMode.HALF_UP);
@@ -178,66 +180,70 @@ public class GoalServiceImpl implements GoalService {
             if (product.getProductId() >= SAVINGS_PRODUCT_ID_START && product.getProductId() < SAVINGS_PRODUCT_ID_END) { // 적금
                 BigDecimal monthlyDepositAmount; // 월 필요 납입액
                 if ("단리".equals(product.getRateType())) {
-                    monthlyDepositAmount = calculateMonthlyDepositSimple(targetAmount, goalDurationMonths, annualRate);
+                    monthlyDepositAmount = calculateMonthlyDepositSimple(targetAmount, actualJoinPeriod, annualRate);
                 } else {
-                    monthlyDepositAmount = calculateMonthlyDepositCompound(targetAmount, goalDurationMonths, annualRate);
+                    monthlyDepositAmount = calculateMonthlyDepositCompound(targetAmount, actualJoinPeriod, annualRate);
                 }
 
                 if (monthlyDepositAmount.compareTo(BigDecimal.ZERO) <= 0) continue;
 
-                BigDecimal totalPrincipal = monthlyDepositAmount.multiply(new BigDecimal(goalDurationMonths));
-                if (product.getMaxAmount() != null && totalPrincipal.compareTo(BigDecimal.valueOf(product.getMaxAmount())) > 0) {
+                // 적금의 월 납입 한도(min/max) 체크
+                if ((product.getMaxAmount() != null && monthlyDepositAmount.compareTo(BigDecimal.valueOf(product.getMaxAmount())) > 0) ||
+                        (product.getMinAmount() != null && monthlyDepositAmount.compareTo(BigDecimal.valueOf(product.getMinAmount())) < 0)) {
                     continue;
                 }
 
-                BigDecimal expectedTotalAmount = calculateFinalAmountForSaving(monthlyDepositAmount, goalDurationMonths, annualRate, product.getRateType());
+                BigDecimal expectedTotalAmount = calculateFinalAmountForSaving(monthlyDepositAmount, actualJoinPeriod, annualRate, product.getRateType());
+                BigDecimal achievementRate = calculateAchievementRate(expectedTotalAmount, targetAmount);
 
                 recommendations.add(RecommendedProductVO.builder()
                         .goalId(goalId)
                         .productId(product.getProductId())
                         .productName(product.getProductName())
                         .bankName(product.getBankName())
-                        .interestRate(annualRate)
-                        .achievementRate(calculateAchievementRate(expectedTotalAmount, targetAmount))
+                        .interestRate(maxRate)
+                        .achievementRate(achievementRate)
                         .monthlyDepositAmount(monthlyDepositAmount)
-                        .expectedAchievementDate(LocalDate.now().plusMonths(goalDurationMonths))
+                        .expectedAchievementDate(LocalDate.now().plusMonths(actualJoinPeriod))
                         .expectedTotalAmount(expectedTotalAmount)
                         .build());
             } else if (product.getProductId() >= DEPOSIT_PRODUCT_ID_START && product.getProductId() < DEPOSIT_PRODUCT_ID_END) { // 예금
                 BigDecimal initialPrincipal; // 최초 필요 원금
                 if ("단리".equals(product.getRateType())) {
-                    initialPrincipal = calculatePrincipalSimple(targetAmount, goalDurationMonths, annualRate);
+                    initialPrincipal = calculatePrincipalSimple(targetAmount, actualJoinPeriod, annualRate);
                 } else {
-                    initialPrincipal = calculatePrincipalCompound(targetAmount, goalDurationMonths, annualRate);
+                    initialPrincipal = calculatePrincipalCompound(targetAmount, actualJoinPeriod, annualRate);
                 }
 
                 if (initialPrincipal.compareTo(BigDecimal.ZERO) <= 0) continue;
 
                 // 예금의 가입 금액 한도(min/max) 체크
                 if ((product.getMaxAmount() != null && initialPrincipal.compareTo(BigDecimal.valueOf(product.getMaxAmount())) > 0) ||
-                        (product.getMaxAmount() != null && initialPrincipal.compareTo(BigDecimal.valueOf(product.getMinAmount())) < 0)) {
+                        (product.getMinAmount() != null && initialPrincipal.compareTo(BigDecimal.valueOf(product.getMinAmount())) < 0)) {
                     continue;
                 }
 
-                BigDecimal expectedTotalAmount = calculateFinalAmountForDeposit(initialPrincipal, goalDurationMonths, annualRate, product.getRateType());
+                BigDecimal expectedTotalAmount = calculateFinalAmountForDeposit(initialPrincipal, actualJoinPeriod, annualRate, product.getRateType());
+                BigDecimal achievementRate = calculateAchievementRate(expectedTotalAmount, targetAmount);
 
                 recommendations.add(RecommendedProductVO.builder()
                         .goalId(goalId)
                         .productId(product.getProductId())
                         .productName(product.getProductName())
                         .bankName(product.getBankName())
-                        .interestRate(annualRate)
-                        .achievementRate(calculateAchievementRate(expectedTotalAmount, targetAmount))
+                        .interestRate(maxRate)
+                        .achievementRate(achievementRate)
                         .monthlyDepositAmount(initialPrincipal)
-                        .expectedAchievementDate(LocalDate.now().plusMonths(goalDurationMonths))
+                        .expectedAchievementDate(LocalDate.now().plusMonths(actualJoinPeriod))
                         .expectedTotalAmount(expectedTotalAmount)
                         .build());
             }
         }
 
         return recommendations.stream()
-                .sorted(Comparator.comparing(RecommendedProductVO::getInterestRate).reversed()
-                        .thenComparing(RecommendedProductVO::getAchievementRate).reversed())
+                .sorted(Comparator.comparing(RecommendedProductVO::getInterestRate).reversed()  // 1. 이자 높은 순
+                        .thenComparing(RecommendedProductVO::getMonthlyDepositAmount))          // 2. 납입액 적은 순
+                .limit(5)
                 .collect(Collectors.toList());
     }
 
