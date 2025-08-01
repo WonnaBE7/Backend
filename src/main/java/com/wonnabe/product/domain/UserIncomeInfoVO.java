@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserInfoVO {
+public class UserIncomeInfoVO {
     private String userId;
     private String selectedWonnabeIds;     // "[1,2,3]" 형태의 문자열
 
