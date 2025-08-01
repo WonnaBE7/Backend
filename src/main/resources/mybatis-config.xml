@@ -16,11 +16,5 @@
         <package name="com.wonnabe.asset.domain"/>
         <package name="com.wonnabe.asset.dto"/>
     </typeAliases>
-
-
-
-    <!-- Mapper XML 파일 경로 등록 (asset/mapper 경로로 수정) -->
-    <mappers>
-        <mapper resource="com/wonnabe/asset/mapper/SummariesCacheMapper.xml"/>
-    </mappers>
+    
 </configuration>
