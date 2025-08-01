@@ -16,7 +16,7 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"com.wonnabe","com.wonnabe.product.mapper"})
+@MapperScan(basePackages = {"com.wonnabe"})
 @ComponentScan(
         basePackages = {"com.wonnabe"},
         excludeFilters = {
