@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.product.mapper.SavingsRecommendationMapper">
+
+    <!-- 모든 적금 상품과 점수 조회 -->
+    <select id="getAllSavingsScores" resultType="com.wonnabe.product.domain.SavingsProductVO">
+        SELECT
+            product_id AS productId,
+            product_name AS productName,
+            bank_name AS bankName,
+            base_rate AS baseRate,
+            max_rate AS maxRate,
+            score_interest_rate AS interestRateScore,
+            score_interest_type AS compoundInterestScore,
+            score_preferential_condition AS preferentialScore,
+            score_cancel_benefit AS penaltyScore,
+            score_max_amount AS limitScore
+        FROM
+            savings_product
+    </select>
+
+    <!-- 사용자 소득/고용 정보 조회 -->
+    <select id="getUserIncomeInfo" resultType="com.wonnabe.product.domain.UserIncomeInfoVO">
+        SELECT
+            user_id AS userId,
+            income_source_type AS incomeSourceType,
+            income_employment_status AS incomeEmploymentStatus,
+            selected_wonnabe_ids AS personaIds
+        FROM user_info
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>
