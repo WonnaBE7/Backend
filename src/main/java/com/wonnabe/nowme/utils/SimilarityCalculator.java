@@ -7,6 +7,9 @@ public class SimilarityCalculator {
 
     /**
      * 코사인 유사도 계산 (0~1)
+     * - 방향이 얼마나 비슷한지를 봄
+     * - 1에 가까울수록 유사한 방향
+     * - 공식: 유사도 = (A • B) / (||A|| * ||B||)
      */
     public static double cosineSimilarity(double[] vector1, double[] vector2) {
         if (vector1 == null || vector2 == null) {
@@ -35,6 +38,8 @@ public class SimilarityCalculator {
 
     /**
      * 유클리드 거리 계산
+     * - 두 벡터 간의 직선 거리
+     * - 작을수록 유사
      */
     public static double euclideanDistance(double[] vector1, double[] vector2) {
         if (vector1 == null || vector2 == null) {
@@ -55,6 +60,8 @@ public class SimilarityCalculator {
 
     /**
      * 거리 기반 유사도 (1 / (1 + distance))
+     * - 유클리드 거리 기반
+     * - 거리가 0이면 유사도 1, 거리가 커질수록 0에 가까워짐
      */
     public static double euclideanSimilarity(double[] vector1, double[] vector2) {
         double distance = euclideanDistance(vector1, vector2);
@@ -63,6 +70,8 @@ public class SimilarityCalculator {
 
     /**
      * 맨해튼 거리 계산 (L1 norm)
+     * - 각 요소의 절댓값 차이의 합으로 거리 계산
+     * - |x1 - y1| + |x2 - y2| + ...
      */
     public static double manhattanDistance(double[] vector1, double[] vector2) {
         if (vector1 == null || vector2 == null) {
