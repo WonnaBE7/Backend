@@ -27,7 +27,7 @@
             user_id AS userId,
             income_source_type AS incomeSourceType,
             income_employment_status AS incomeEmploymentStatus,
-            selected_wonnabe_ids AS personaIds
+            selected_wonnabe_ids AS selectedWonnabeIds
         FROM user_info
         WHERE user_id = #{userId}
     </select>
