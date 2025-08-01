@@ -1,0 +1,39 @@
+package com.wonnabe.asset.service;
+
+import com.wonnabe.asset.dto.TransactionDTO;
+import com.wonnabe.asset.mapper.ConsumptionTransactionsMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class ConsumptionTransactionsService {
+
+    @Autowired
+    private ConsumptionTransactionsMapper transactionsMapper;
+
+    /**
+     * 월별 거래내역 조회
+     */
+    public List<TransactionDTO> getMonthlyTransactions(String userId, String yearMonth) {
+        return transactionsMapper.getMonthlyTransactions(userId, yearMonth);
+    }
+
+    //카테고리 상세 거래 내역
+    public List<TransactionDTO> getTransactionsByCategory(String userId, String category) {
+        return transactionsMapper.getTransactionsByCategory(userId, category);
+    }
+
+    // 오늘의 거래 내역
+    public List<TransactionDTO> getTodayTransactions(String userId, String today) {
+        return transactionsMapper.getTodayTransactions(userId, today);
+    }
+
+    //오늘 소비 카테고리별 상세 거래 내역 조회
+    public List<TransactionDTO> getTodayTransactionsByCategory(String userId, String today, String category) {
+        return transactionsMapper.getTodayTransactionsByCategory(userId, today, category);
+    }
+
+
+}

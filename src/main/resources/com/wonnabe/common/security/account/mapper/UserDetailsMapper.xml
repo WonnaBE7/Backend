@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.common.security.account.mapper.UserDetailsMapper">
+
+    <!-- 이메일(email)을 기준으로 사용자 정보를 조회합니다. 로그인 시 사용됩니다. -->
+    <select id="findByEmail" resultType="com.wonnabe.common.security.account.domain.UserVO">
+        SELECT
+            user_id,
+            name,
+            email,
+            password_hash
+        FROM User_Profile
+        WHERE email = #{email}
+          AND deleted_at IS NULL
+    </select>
+    <!-- 사용자 고유 ID(UUID)를 기준으로 사용자 정보를 조회합니다. JWT 인증 후 사용자 정보를 불러올 때 사용됩니다. -->
+    <select id="findByUserUUID" resultType="com.wonnabe.common.security.account.domain.UserVO">
+        SELECT
+            user_id AS userId,
+            name,
+            email,
+            password_hash
+        FROM User_Profile
+        WHERE user_id = #{userUUID}
+          AND deleted_at IS NULL
+    </select>
+
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.product.mapper.CardMapper">
+
+    <select id="findById" resultType="CardProductVO">
+        SELECT *
+        from card_product
+        where product_id = #{productId}
+    </select>
+
+    <select id="findUserCardByproductId" resultType="UserCardVO">
+        SELECT *
+        FROM User_Card
+        WHERE product_id = #{productId} and user_id = #{userId}
+    </select>
+
+    <!-- resultMap 정의 -->
+    <resultMap id="userCardWithConsumptionsMap" type="UserCardDTO">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id" javaType="java.lang.String"/>
+        <result property="productId" column="product_id"/>
+        <result property="monthlyUsage" column="monthly_usage"/>
+        <result property="issueDate" column="issue_date"/>
+        <result property="expiryDate" column="expiry_date"/>
+        <result property="performanceCondition" column="performance_condition"/>
+        <result property="cardNumber" column="card_number"/>
+        <result property="cardName" column="card_name"/>
+        <result property="cardCompany" column="card_company"/>
+
+        <collection property="consumptions" ofType="com.wonnabe.product.dto.MonthlyConsumptionDTO">
+            <result property="month" column="month"/>
+            <result property="amount" column="amount"/>
+        </collection>
+    </resultMap>
+
+
+    <select id="findUserCardDetailById" resultMap="userCardWithConsumptionsMap">
+        SELECT uc.id,
+               uc.user_id,
+               uc.product_id,
+               uc.monthly_usage,
+               uc.issue_date,
+               uc.expiry_date,
+               uc.performance_condition,
+               uc.card_number,
+               cp.card_name,
+               cp.card_company,
+               DATE_FORMAT(ct.transaction_date, '%Y-%m') AS month,
+               SUM(ct.amount)                            AS amount
+        FROM user_card uc
+                 JOIN card_product cp ON uc.product_id = cp.product_id
+                 LEFT JOIN card_transactions ct ON uc.id = ct.card_id
+        WHERE uc.product_id = #{productId}
+          AND uc.user_id = #{userId}
+          AND ct.transaction_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
+        GROUP BY uc.id, month
+        ORDER BY month DESC
+    </select>
+
+
+
+</mapper>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.user.mapper.UserMapper">
+    <!-- 사용자의 이름과 비밀번호를 수정하는 쿼리 -->
+    <update id="updateUser">
+        UPDATE User_Profile
+        SET name = #{name},
+        password_hash = #{passwordHash}
+        WHERE user_id = #{userId}
+    </update>
+</mapper>
