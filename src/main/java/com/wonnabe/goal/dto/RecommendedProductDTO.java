@@ -22,7 +22,7 @@ public class RecommendedProductDTO {
     private String category; // 예금, 적금
     private BigDecimal interestRate;
     private Integer achievementRate;
-    private BigDecimal monthlyDepositAmount;
+    private BigDecimal saveAmount;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private LocalDate expectedAchievementDate;
     private BigDecimal expectedTotalAmount;
@@ -39,7 +39,7 @@ public class RecommendedProductDTO {
                                 ? vo.getAchievementRate().intValue()
                                 : null
                 )
-                .monthlyDepositAmount(vo.getMonthlyDepositAmount())
+                .saveAmount(vo.getSaveAmount())
                 .expectedAchievementDate(vo.getExpectedAchievementDate())
                 .expectedTotalAmount(vo.getExpectedTotalAmount())
                 .build();

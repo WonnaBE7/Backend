@@ -47,7 +47,7 @@
         <result property="currentAmount" column="current_amount"/>
         <result property="goalDurationMonths" column="goal_duration_months"/>
         <result property="remainingMonths" column="remaining_months"/>
-        <result property="monthlySaveAmount" column="monthly_save_amount"/>
+        <result property="saveAmount" column="save_amount"/>
         <result property="futureMeMessage" column="result_summary"/>
         <result property="selectedProductId" column="selected_product_id"/>
     </resultMap>
@@ -60,7 +60,7 @@
                g.target_amount,
                g.current_amount,
                g.goal_duration_months,
-               g.monthly_save_amount,
+               g.save_amount,
                g.result_summary,
                g.selected_product_id,
                TIMESTAMPDIFF(MONTH, NOW(), g.target_date)           AS remaining_months,
@@ -79,7 +79,7 @@
                grp.bank_name                 AS bankName,
                grp.interest_rate             AS interestRate,
                grp.achievement_rate          AS achievementRate,
-               grp.monthly_deposit_amount    AS monthlyDepositAmount,
+               grp.save_amount               AS saveAmount,
                grp.expected_achievement_date AS expectedAchievementDate,
                grp.expected_total_amount     AS expectedTotalAmount
         FROM goal_recommended_product grp
@@ -142,13 +142,13 @@
 
     <insert id="insertRecommendedProductList">
         INSERT INTO goal_recommended_product(goal_id, product_id, product_name, bank_name, interest_rate,
-        achievement_rate, monthly_deposit_amount, expected_achievement_date,
+        achievement_rate, save_amount, expected_achievement_date,
         expected_total_amount)
         VALUES
         <foreach collection="recommendations" item="item" separator=",">
             (
             #{item.goalId}, #{item.productId}, #{item.productName}, #{item.bankName},
-            #{item.interestRate}, #{item.achievementRate}, #{item.monthlyDepositAmount},
+            #{item.interestRate}, #{item.achievementRate}, #{item.saveAmount},
             #{item.expectedAchievementDate}, #{item.expectedTotalAmount}
             )
         </foreach>

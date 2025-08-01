@@ -22,7 +22,7 @@ public class GoalDetailResponseDTO {
     private BigDecimal currentAmount;
     private Integer goalDurationMonths;
     private Integer remainingMonths;
-    private BigDecimal monthlySaveAmount;
+    private BigDecimal saveAmount;
     private String futureMeMessage;
     private Long selectedProductId;
     private List<RecommendedProductDTO> recommendedProducts;

@@ -88,7 +88,7 @@ public class GoalController {
         } catch (IllegalArgumentException e) {
             return JsonResponse.error(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
-            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.");
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다. " + e.getMessage());
         }
     }
 }

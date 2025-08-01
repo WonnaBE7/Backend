@@ -21,7 +21,7 @@ public class RecommendedProductVO {
     private String bankName;
     private BigDecimal interestRate;
     private BigDecimal achievementRate;
-    private BigDecimal monthlyDepositAmount;
+    private BigDecimal saveAmount;
     private LocalDate expectedAchievementDate;
     private BigDecimal expectedTotalAmount;
     private LocalDateTime createdAt;

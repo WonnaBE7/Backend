@@ -119,6 +119,7 @@ public class GoalServiceImpl implements GoalService {
         if (existingGoal == null) {
             throw new NoSuchElementException("목표 (ID: " + goalId + ")를 찾을 수 없습니다.");
         }
+        // TODO: selectedProductId 유효성 예외처리
 
         // TODO: 선택한 상품에 따른 user_goal의 monthly_save_amount, expected_total_amount 업데이트 필요
         goalMapper.updateGoalStatusToPublished(goalId, selectedProductId);
@@ -194,7 +195,7 @@ public class GoalServiceImpl implements GoalService {
                         .bankName(product.getBankName())
                         .interestRate(maxRate)
                         .achievementRate(achievementRate)
-                        .monthlyDepositAmount(monthlyDepositAmount)
+                        .saveAmount(monthlyDepositAmount)
                         .expectedAchievementDate(LocalDate.now().plusMonths(actualJoinPeriod))
                         .expectedTotalAmount(expectedTotalAmount)
                         .build());
@@ -224,7 +225,7 @@ public class GoalServiceImpl implements GoalService {
                         .bankName(product.getBankName())
                         .interestRate(maxRate)
                         .achievementRate(achievementRate)
-                        .monthlyDepositAmount(initialPrincipal)
+                        .saveAmount(initialPrincipal)
                         .expectedAchievementDate(LocalDate.now().plusMonths(actualJoinPeriod))
                         .expectedTotalAmount(expectedTotalAmount)
                         .build());
@@ -233,7 +234,7 @@ public class GoalServiceImpl implements GoalService {
 
         return recommendations.stream()
                 .sorted(Comparator.comparing(RecommendedProductVO::getInterestRate).reversed()  // 1. 이자 높은 순
-                        .thenComparing(RecommendedProductVO::getMonthlyDepositAmount))          // 2. 납입액 적은 순
+                        .thenComparing(RecommendedProductVO::getSaveAmount))                    // 2. 납입액 적은 순
                 .limit(5)
                 .collect(Collectors.toList());
     }

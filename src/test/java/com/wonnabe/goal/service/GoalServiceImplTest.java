@@ -89,7 +89,7 @@ class GoalServiceImplTest {
         assertThat(cDeposit.getProductName(), equalTo("C Deposit"));
         // 계산식: P = A / (1 + rt)
         // P = 10,000,000 / (1 + 0.06 * 1) = 9433962.26... -> CEILING -> 9433963
-        assertThat(cDeposit.getMonthlyDepositAmount(), comparesEqualTo(new BigDecimal("9433963")));
+        assertThat(cDeposit.getSaveAmount(), comparesEqualTo(new BigDecimal("9433963")));
         assertThat(cDeposit.getAchievementRate(), comparesEqualTo(new BigDecimal("100.0000")));
 
         // [D Deposit] 복리 예금
@@ -97,21 +97,21 @@ class GoalServiceImplTest {
         assertThat(dDeposit.getProductName(), equalTo("D Deposit"));
         // 계산식: P = A / (1 + r)^t
         // P = 10,000,000 / (1.055)^1 = 9478672.98... -> CEILING -> 9478673
-        assertThat(dDeposit.getMonthlyDepositAmount(), comparesEqualTo(new BigDecimal("9478673")));
+        assertThat(dDeposit.getSaveAmount(), comparesEqualTo(new BigDecimal("9478673")));
 
         // [A Savings] 단리 적금
         RecommendedProductVO aSavings = recommendations.get(2);
         assertThat(aSavings.getProductName(), equalTo("A Savings"));
         // 계산식: 월납입금 = A / (n + r/12 * n(n+1)/2)
         // 분모 = 12 + (0.05 / 12 * 12 * 13 / 2) = 12.325 -> 월납입금 = 10,000,000 / 12.325 = 811359.02... -> CEILING -> 811360
-        assertThat(aSavings.getMonthlyDepositAmount(), comparesEqualTo(new BigDecimal("811360")));
+        assertThat(aSavings.getSaveAmount(), comparesEqualTo(new BigDecimal("811360")));
 
         // [B Savings] 복리 적금
         RecommendedProductVO bSavings = recommendations.get(3);
         assertThat(bSavings.getProductName(), equalTo("B Savings"));
         // 계산식: 월납입금 = (A * i) / ((1 + i)^n - 1)
         // i = 0.048 / 12 = 0.004 -> 월납입금 = (10,000,000 * 0.004) / ((1.004)^12 - 1) = 815159.2... -> CEILING -> 815160
-        assertThat(bSavings.getMonthlyDepositAmount(), comparesEqualTo(new BigDecimal("815159")));
+        assertThat(bSavings.getSaveAmount(), comparesEqualTo(new BigDecimal("815159")));
     }
 
     @Test

@@ -25,7 +25,7 @@ public class GoalVO {
     private LocalDate targetDate;
     private Long selectedProductsId;
     private BigDecimal currentAmount;
-    private BigDecimal monthlySaveAmount;
+    private BigDecimal saveAmount;
     private BigDecimal expectedTotalAmount;
     private BigDecimal interestGain;
     private BigDecimal progressRate;
