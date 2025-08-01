@@ -82,6 +82,7 @@ public class GoalServiceImpl implements GoalService {
                 .goalDurationMonths(request.getGoalDurationMonths())
                 .startDate(LocalDate.now())
                 .targetDate(LocalDate.now().plusMonths(request.getGoalDurationMonths()))
+                .currentAmount(BigDecimal.valueOf(0))
                 .progressRate(BigDecimal.valueOf(0))
                 .isAchieved(false)
                 .resultSummary(futureMeMessage)

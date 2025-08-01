@@ -66,14 +66,15 @@
                TIMESTAMPDIFF(MONTH, NOW(), g.target_date)           AS remaining_months,
                ROUND((g.current_amount * 100 / g.target_amount), 0) AS progress_rate
         FROM user_goal g
-                 JOIN common_category c ON g.category_id = c.id
-                 JOIN financial_tendency_type ftt ON g.nowme_id = ftt.id
+                 LEFT JOIN common_category c ON g.category_id = c.id
+                 LEFT JOIN financial_tendency_type ftt ON g.nowme_id = ftt.id
         WHERE g.user_id = #{userId}
           AND g.id = #{goalId}
     </select>
 
     <select id="getRecommendedProductList" resultType="com.wonnabe.goal.domain.RecommendedProductVO">
         SELECT grp.id,
+               grp.product_id                AS productId,
                grp.product_name              AS productName,
                grp.bank_name                 AS bankName,
                grp.interest_rate             AS interestRate,
@@ -113,9 +114,7 @@
                                goal_duration_months,
                                start_date,
                                target_date,
-                               monthly_save_amount,
-                               expected_total_amount,
-                               interest_gain,
+                               current_amount,
                                progress_rate,
                                is_achieved,
                                achieved_date,
@@ -131,9 +130,7 @@
                 #{goalDurationMonths},
                 #{startDate},
                 #{targetDate},
-                #{monthlySaveAmount},
-                #{expectedTotalAmount},
-                #{interestGain},
+                #{currentAmount},
                 #{progressRate},
                 #{isAchieved},
                 null,
