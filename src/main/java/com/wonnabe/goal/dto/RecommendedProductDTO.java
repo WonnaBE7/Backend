@@ -19,6 +19,7 @@ public class RecommendedProductDTO {
     private Long id;
     private String name;
     private String bank;
+    private String category; // 예금, 적금
     private BigDecimal interestRate;
     private Integer achievementRate;
     private BigDecimal monthlyDepositAmount;
@@ -31,6 +32,7 @@ public class RecommendedProductDTO {
                 .id(vo.getId())
                 .name(vo.getProductName())
                 .bank(vo.getBankName())
+                .category(determineCategory(vo.getProductId()))
                 .interestRate(vo.getInterestRate())
                 .achievementRate(
                         vo.getAchievementRate() != null
@@ -47,5 +49,19 @@ public class RecommendedProductDTO {
         return voList == null ? null : voList.stream()
                 .map(RecommendedProductDTO::of)
                 .toList();
+    }
+
+    private static String determineCategory(Long productId) {
+        if (productId == null) {
+            return null;
+        }
+
+        if (productId >= 1000L && productId < 1500L) {
+            return "적금";
+        } else if (productId >= 1500L && productId < 2000L) {
+            return "예금";
+        }
+
+        return null;
     }
 }
