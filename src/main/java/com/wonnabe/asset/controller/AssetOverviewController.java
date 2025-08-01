@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/assets")
@@ -37,10 +39,18 @@ public class AssetOverviewController {
     public ResponseEntity<Object> getCategoryDetail(@AuthenticationPrincipal CustomUser customUser,
                                                     @RequestParam("assetCategory") String assetCategory) {
         String userId = customUser.getUser().getUserId();
+
+        if (!isValidAssetCategory(assetCategory)) {
+            throw new IllegalArgumentException("잘못된 자산 카테고리입니다: " + assetCategory);
+        }
+
         return JsonResponse.ok("자산 카테고리 상세 조회 성공",
                 assetOverviewService.getAccountDetailByCategory(userId, assetCategory));
     }
 
+    private boolean isValidAssetCategory(String category) {
+        return List.of("checking", "savings", "investment", "insurance", "pension", "other").contains(category);
+    }
 
 }
 

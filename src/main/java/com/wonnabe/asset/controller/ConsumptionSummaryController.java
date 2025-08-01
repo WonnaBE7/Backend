@@ -29,6 +29,11 @@ public class ConsumptionSummaryController {
     @GetMapping("/monthly")
     public ResponseEntity<Object> getMonthlyConsumption(@RequestParam("yearMonth") String yearMonth,
                                                         @AuthenticationPrincipal CustomUser customUser) {
+        // 유효성 검사 추가
+        if (!yearMonth.matches("^\\d{4}-\\d{2}$")) {
+            throw new IllegalArgumentException("형식이 잘못된 연월입니다. 예: 2025-08");
+        }
+
         String userId = customUser.getUser().getUserId();
         Map<String, Object> data = summaryService.getMonthlyConsumption(userId, yearMonth);
         return JsonResponse.ok("월별 소비 금액 조회 성공", data);
@@ -37,6 +42,10 @@ public class ConsumptionSummaryController {
     @GetMapping("/categories")
     public ResponseEntity<Object> getMonthlyCategorySummary(@RequestParam("yearMonth") String yearMonth,
                                                             @AuthenticationPrincipal CustomUser customUser) {
+        if (!yearMonth.matches("^\\d{4}-\\d{2}$")) {
+            throw new IllegalArgumentException("형식이 잘못된 연월입니다. 예: 2025-08");
+        }
+
         String userId = customUser.getUser().getUserId();
         List<Map<String, Object>> categories = summaryService.getMonthlyCategorySummary(userId, yearMonth);
         return JsonResponse.ok("월별 카테고리 소비비율 조회 성공",

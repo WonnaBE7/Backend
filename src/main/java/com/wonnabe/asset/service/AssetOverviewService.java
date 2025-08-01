@@ -76,7 +76,8 @@ public class AssetOverviewService {
             case "투자", "증권" -> "investment";
             case "보험" -> "insurance";
             case "연금" -> "pension";
-            default -> "other";
+            case "기타" -> "other";
+            default -> throw new IllegalArgumentException("유효하지 않은 자산 카테고리입니다: " + category);
         };
     }
 
@@ -148,8 +149,10 @@ public class AssetOverviewService {
             case "investment" -> "투자";
             case "insurance" -> "보험";
             case "pension" -> "연금";
-            default -> "기타";
+            case "other" -> "기타";
+            default -> throw new IllegalArgumentException("유효하지 않은 자산 카테고리입니다: " + input);
         };
     }
+
 
 }
