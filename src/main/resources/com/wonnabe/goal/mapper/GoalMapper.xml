@@ -203,4 +203,10 @@
                sp.rate_type
         FROM savings_product sp
     </select>
+
+    <select id="getCategoryNameById" resultType="java.lang.String">
+        SELECT name
+        FROM common_category
+        WHERE id = #{categoryId}
+    </select>
 </mapper>

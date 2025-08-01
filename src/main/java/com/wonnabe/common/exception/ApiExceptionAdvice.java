@@ -4,16 +4,30 @@ import com.wonnabe.common.util.JsonResponse;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.core.annotation.Order;
 
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Order(2)
 @Log4j2
 public class ApiExceptionAdvice {
+
+    // @Valid 어노테이션으로 인한 유효성 검사 실패 시 발생하는 예외 처리
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        // 에러 메시지를 하나로 합칩니다.
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .map(FieldError::getDefaultMessage)
+                .collect(Collectors.joining(", "));
+
+        return JsonResponse.error(HttpStatus.BAD_REQUEST, errorMessage);
+    }
 
     // 400 Bad Request - 잘못된 요청 값 처리
     @ExceptionHandler(IllegalArgumentException.class)

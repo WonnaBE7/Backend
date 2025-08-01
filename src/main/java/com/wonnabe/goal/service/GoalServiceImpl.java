@@ -31,6 +31,10 @@ public class GoalServiceImpl implements GoalService {
 
     @Override
     public GoalListResponseDTO getGoalList(String userId, String status) {
+        if (!status.equals("PUBLISHED") && !status.equals("ACHIEVED")) {
+            throw new IllegalArgumentException("유효하지 않은 상태 값입니다. (허용: PUBLISHED, ACHIEVED)");
+        }
+
         List<GoalSummaryResponseDTO> goalSummaries = goalMapper.getGoalList(userId, status);
 
         BigDecimal totalTargetAmount = goalSummaries.stream()
@@ -68,6 +72,12 @@ public class GoalServiceImpl implements GoalService {
         String nowmeName = null;
         if (nowmeId != null) {
             nowmeName = goalMapper.getNowmeNameByNowmeId(nowmeId);
+        }
+
+        // category 유효성 조회
+        String categoryName = goalMapper.getCategoryNameById(request.getCategoryId());
+        if (categoryName == null) {
+            throw new IllegalArgumentException("해당하는 카테고리가 존재하지 않습니다.");
         }
 
         // 미래의 나에게 보내는 메시지 생성

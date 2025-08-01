@@ -40,5 +40,7 @@ public interface GoalMapper {
 
     public String getNowmeNameByNowmeId(@Param("nowmeId") Integer nowmeId);
 
+    public String getCategoryNameById(@Param("categoryId") Integer categoryId);
+
     public List<SavingsProductVO> getSavingsProductList();
 }

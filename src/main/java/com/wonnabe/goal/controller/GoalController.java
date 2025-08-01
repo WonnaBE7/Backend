@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
+
 @RestController
 @RequestMapping("/api/goals")
 @Api(tags = "목표 관리")
@@ -28,10 +30,6 @@ public class GoalController {
             @AuthenticationPrincipal CustomUser customUser,
             @RequestParam(required = false, defaultValue = "PUBLISHED") String status
     ) {
-        if (!status.equals("PUBLISHED") && !status.equals("ACHIEVED")) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, "유효하지 않은 상태 값입니다. (허용: PUBLISHED, ACHIEVED)");
-        }
-
         String userId = customUser.getUser().getUserId();
         GoalListResponseDTO list = service.getGoalList(userId, status);
         return JsonResponse.ok("목표 리스트 조회 성공", list);
@@ -51,13 +49,8 @@ public class GoalController {
     @PostMapping("")
     public ResponseEntity<Object> createGoal(
             @AuthenticationPrincipal CustomUser customUser,
-            @RequestBody GoalCreateRequestDTO request
+            @Valid @RequestBody GoalCreateRequestDTO request
     ) {
-        // 목표 기간 0 이하 예외
-        if (request.getGoalDurationMonths() <= 0) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, "목표 기간(goalDurationMonths)은 1 이상이어야 합니다.");
-        }
-
         String userId = customUser.getUser().getUserId();
         GoalCreateResponseDTO create = service.createGoal(userId, request);
         return JsonResponse.ok("새 목표 생성 성공", create);
@@ -71,24 +64,18 @@ public class GoalController {
             @RequestBody GoalStatusUpdateRequestDTO request
     ) {
         String userId = customUser.getUser().getUserId();
-        try {
-            request.validate();
-            String status = request.getStatus();
-            GoalSummaryResponseDTO result;
+        request.validate();
+        String status = request.getStatus();
+        GoalSummaryResponseDTO result;
 
-            if ("PUBLISHED".equals(status)) {
-                result = service.publishAsReport(userId, goalId, request.getSelectedProductId());
-                return JsonResponse.ok("목표가 보고서로 성공적으로 저장되었습니다", result);
-            } else if ("ACHIEVED".equals(status)) {
-                result = service.achieveGoal(userId, goalId);
-                return JsonResponse.ok("목표가 완료처리 되었습니다", result);
-            } else {
-                return JsonResponse.error(HttpStatus.BAD_REQUEST, "유효하지 않은 상태 값입니다.");
-            }
-        } catch (IllegalArgumentException e) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (Exception e) {
-            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다. " + e.getMessage());
+        if ("PUBLISHED".equals(status)) {
+            result = service.publishAsReport(userId, goalId, request.getSelectedProductId());
+            return JsonResponse.ok("목표가 보고서로 성공적으로 저장되었습니다", result);
+        } else if ("ACHIEVED".equals(status)) {
+            result = service.achieveGoal(userId, goalId);
+            return JsonResponse.ok("목표가 완료처리 되었습니다", result);
+        } else {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, "유효하지 않은 상태 값입니다.");
         }
     }
 }
