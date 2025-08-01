@@ -16,5 +16,5 @@
         <package name="com.wonnabe.asset.domain"/>
         <package name="com.wonnabe.asset.dto"/>
     </typeAliases>
-    
+
 </configuration>

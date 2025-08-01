@@ -10,15 +10,37 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/assets/main")
+@RequestMapping("/api/assets")
 public class AssetOverviewController {
 
     private final AssetOverviewService assetOverviewService;
 
-    @GetMapping("/overview")
+    @GetMapping("/main/overview")
     public ResponseEntity<Object> getAssetOverview(@AuthenticationPrincipal CustomUser customUser) {
         String userId = customUser.getUser().getUserId();
         return JsonResponse.ok("총자산 현황 조회 성공", assetOverviewService.getAssetOverview(userId));
     }
+
+    @GetMapping("/categories")
+    public ResponseEntity<Object> getAssetCategoryRatio(@AuthenticationPrincipal CustomUser customUser) {
+        String userId = customUser.getUser().getUserId();
+        return JsonResponse.ok("총자산 카테고리 비율 조회 성공", assetOverviewService.getAssetCategoryRatio(userId));
+    }
+
+    @GetMapping("/detail")
+    public ResponseEntity<Object> getAssetDetail(@AuthenticationPrincipal CustomUser customUser) {
+        String userId = customUser.getUser().getUserId();
+        return JsonResponse.ok("자산 상세 내역 조회 성공", assetOverviewService.getAssetCategoryDetails(userId));
+    }
+
+    @GetMapping("/detail/assetCategory")
+    public ResponseEntity<Object> getCategoryDetail(@AuthenticationPrincipal CustomUser customUser,
+                                                    @RequestParam("assetCategory") String assetCategory) {
+        String userId = customUser.getUser().getUserId();
+        return JsonResponse.ok("자산 카테고리 상세 조회 성공",
+                assetOverviewService.getAccountDetailByCategory(userId, assetCategory));
+    }
+
+
 }
 
