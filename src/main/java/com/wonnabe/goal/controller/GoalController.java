@@ -28,6 +28,10 @@ public class GoalController {
             @AuthenticationPrincipal CustomUser customUser,
             @RequestParam(required = false, defaultValue = "PUBLISHED") String status
     ) {
+        if (!status.equals("PUBLISHED") && !status.equals("ACHIEVED")) {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, "유효하지 않은 상태 값입니다. (허용: PUBLISHED, ACHIEVED)");
+        }
+
         String userId = customUser.getUser().getUserId();
         GoalListResponseDTO list = service.getGoalList(userId, status);
         return JsonResponse.ok("목표 리스트 조회 성공", list);
@@ -49,6 +53,11 @@ public class GoalController {
             @AuthenticationPrincipal CustomUser customUser,
             @RequestBody GoalCreateRequestDTO request
     ) {
+        // 목표 기간 0 이하 예외
+        if (request.getGoalDurationMonths() <= 0) {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, "목표 기간(goalDurationMonths)은 1 이상이어야 합니다.");
+        }
+
         String userId = customUser.getUser().getUserId();
         GoalCreateResponseDTO create = service.createGoal(userId, request);
         return JsonResponse.ok("새 목표 생성 성공", create);
