@@ -1,8 +1,11 @@
 package com.wonnabe.product.dto;
 
-import lombok.Getter;
+import lombok.*;
 
-@Getter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CardApplyRequestDTO
 {
     String productType; // 상품의 종류
