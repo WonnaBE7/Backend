@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.nowme.mapper.NowMeMapper">
+
+    <!-- 1. 전체 소비 금액 (최근 1개월) -->
+    <select id="getTotalSpending" resultType="double">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+    </select>
+
+    <!-- 2. 필수소비 카테고리 합계 (최근 1개월) -->
+    <select id="getSpendingByCategories" resultType="double">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+        AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+        AND merchant_category IN
+        <foreach item="item" collection="categories" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 3. 가구원 수 -->
+    <select id="getHouseholdSize" resultType="int">
+        SELECT COALESCE(household_size, 1)
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 4. 선택소비 카테고리 종류 수 (최근 1개월) -->
+    <select id="getMonthlySelectableCategoryCount" resultType="int">
+        SELECT COUNT(DISTINCT merchant_category)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+          AND merchant_category NOT IN ('food', 'transport', 'living', 'fixcost')
+    </select>
+
+    <!-- 5. 연소득 -->
+    <select id="getAnnualIncome" resultType="double">
+        SELECT COALESCE(income_annual_amount, 0)
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 6. 주별 소비 표준편차 (최근 1개월) -->
+    <select id="getWeeklySpendingStdDev" resultType="double">
+        SELECT COALESCE(STDDEV(weekly_total), 0)
+        FROM (
+                 SELECT YEARWEEK(transaction_date) AS week_key,
+                        SUM(amount) AS weekly_total
+                 FROM Card_Transactions
+                 WHERE user_id = #{userId}
+                   AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+                 GROUP BY week_key
+             ) AS weekly_data
+    </select>
+
+</mapper>

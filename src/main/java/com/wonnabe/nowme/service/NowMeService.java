@@ -1,11 +1,12 @@
 package com.wonnabe.nowme.service;
 
+import com.wonnabe.nowme.domain.UserVector;
 import com.wonnabe.nowme.dto.NowMeRequestDTO;
 import com.wonnabe.nowme.dto.NowMeResponseDTO;
+import com.wonnabe.nowme.mapper.NowMeMapper;
 import com.wonnabe.nowme.utils.ScoreNormalizer;
 import com.wonnabe.nowme.utils.SimilarityCalculator;
 import com.wonnabe.nowme.utils.VectorCombiner;
-import com.wonnabe.nowme.mapper.NowMeMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,12 @@ public class NowMeService {
      */
     public NowMeResponseDTO diagnose(Long userId, NowMeRequestDTO request) {
 
+        /*
+        double quantScore = spendingEvaluator.calculateQuantScore(userId);
+        double qualScore = spendingEvaluator.calculateQualScore(requestDTO);
+        double finalScore = combineQuantAndQual(quantScore, qualScore);
+        * */
+
         // 1. 정량 점수 계산 (ex. 소비/저축/투자/대출 비율)
         double[] quantVector = getQuantitativeVector(userId);
 
@@ -63,9 +70,6 @@ public class NowMeService {
         // 6. 응답 생성
         return NowMeResponseDTO.builder()
                 .personaName(bestPersona)
-                .userVector(new UserVector(userVector))
-                .similarity(maxSimilarity)
-                .diagnosedAt(LocalDateTime.now())
                 .build();
     }
 
