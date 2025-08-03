@@ -62,13 +62,19 @@ public interface NowMeMapper {
     double getAvgSavingsRate(@Param("userId") Long userId);
 
 
-    // 🔹 [PlanningEvaluator] 계획방식 정량 평가용 (향후 확장)
+    // 🔹 [PlanningEvaluator] 계획방식 정량 평가용
 
-    // 목표 설정 개수
-    // int getGoalCount(@Param("userId") Long userId);
+    // 목표 관리 관련
+    int getGoalCount(@Param("userId") Long userId);
+    double getAverageGoalProgressRate(@Param("userId") Long userId);
 
-    // 평균 목표 진척률 (progress_rate 평균)
-    // double getAverageGoalProgressRate(@Param("userId") Long userId);
+    // 저축 계획 관련
+    double getPlannedMonthlySaving(@Param("userId") Long userId);
+    double getActualMonthlySaving(@Param("userId") Long userId);
+
+    // 소비 안정성 관련
+    double getMonthlySpendingStdDev(@Param("userId") Long userId);
+    double getMonthlySpendingAverage(@Param("userId") Long userId);
 
 
     // 🔹 [진단 결과 저장용] (향후 확장)

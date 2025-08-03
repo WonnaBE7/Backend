@@ -34,13 +34,16 @@ public class NowMeController {
      * @param request 클라이언트가 보낸 진단 설문 응답 DTO
      * @return 진단 결과 DTO (이름, 유형 등)
      */
-    @PostMapping("/diagnosis") // POST 요청 매핑 (ex. /api/nowme/diagnosis)
+    @PostMapping("/diagnosis")
     public NowMeResponseDTO diagnose(
-            @AuthenticationPrincipal CustomUser user, // 현재 로그인한 사용자 정보 추출
-            @RequestBody NowMeRequestDTO request // 클라이언트 요청 바디 → DTO 매핑
+            @AuthenticationPrincipal CustomUser user,
+            @RequestBody NowMeRequestDTO request
     ) {
-        // 진단 서비스 호출: 사용자 ID + 설문 응답 → 진단 결과 반환
-        return nowMeService.diagnose(user.getId(), request);
+        // user.getUser().getUserId()로 접근 후 Long으로 변환
+        String userIdStr = user.getUser().getUserId();
+        Long userId = Long.parseLong(userIdStr);
+
+        return nowMeService.diagnose(userId, request);
     }
 
     /*

@@ -49,7 +49,6 @@
              ) AS weekly_data
     </select>
 
-
     <!-- 🔹 [ActivityEvaluator] 금융활동성 정량 평가용 -->
 
     <!-- 5. 계좌 카테고리 수 (입출금, 투자, 연금 등 종류) -->
@@ -88,7 +87,6 @@
         WHERE user_id = #{userId}
           AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
     </select>
-
 
     <!-- 🔹 [RiskEvaluator] 리스크성향 정량 평가용 -->
 
@@ -129,6 +127,66 @@
         WHERE us.user_id = #{userId}
     </select>
 
+    <!-- 🔹 [PlanningEvaluator] 계획방식 정량 평가용 -->
+
+    <!-- 16. 목표 개수 -->
+    <select id="getGoalCount" resultType="int">
+        SELECT COUNT(*)
+        FROM user_goal
+        WHERE user_id = #{userId}
+          AND status = 'PUBLISHED'
+    </select>
+
+    <!-- 17. 평균 목표 진척률 (progress_rate 평균) -->
+    <select id="getAverageGoalProgressRate" resultType="double">
+        SELECT COALESCE(AVG(progress_rate), 0)
+        FROM user_goal
+        WHERE user_id = #{userId}
+          AND status = 'PUBLISHED'
+    </select>
+
+    <!-- 18. 계획된 월 저축 금액 합계 (목표 기준) -->
+    <select id="getPlannedMonthlySaving" resultType="double">
+        SELECT COALESCE(SUM(monthly_save_amount), 0)
+        FROM user_goal
+        WHERE user_id = #{userId}
+          AND status = 'PUBLISHED'
+          AND monthly_save_amount > 0
+    </select>
+
+    <!-- 19. 실제 월 저축 금액 합계 (User_Savings 기준) -->
+    <select id="getActualMonthlySaving" resultType="double">
+        SELECT COALESCE(SUM(monthly_payment), 0)
+        FROM User_Savings
+        WHERE user_id = #{userId}
+          AND monthly_payment > 0
+    </select>
+
+    <!-- 20. 월별 소비 표준편차 (최근 6개월, Summaries_Cache 활용) -->
+    <select id="getMonthlySpendingStdDev" resultType="double">
+        SELECT COALESCE(STDDEV(monthly_total), 0)
+        FROM (
+                 SELECT SUM(amount) AS monthly_total
+                 FROM Summaries_Cache
+                 WHERE user_id = #{userId}
+                   AND period_type = 'monthly'
+                   AND date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                 GROUP BY yearMonth
+             ) AS monthly_data
+    </select>
+
+    <!-- 21. 월별 소비 평균 (최근 6개월, Summaries_Cache 활용) -->
+    <select id="getMonthlySpendingAverage" resultType="double">
+        SELECT COALESCE(AVG(monthly_total), 0)
+        FROM (
+                 SELECT SUM(amount) AS monthly_total
+                 FROM Summaries_Cache
+                 WHERE user_id = #{userId}
+                   AND period_type = 'monthly'
+                   AND date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                 GROUP BY yearMonth
+             ) AS monthly_data
+    </select>
 
     <!-- 🔹 [공통 정보] -->
 
@@ -145,7 +203,6 @@
         FROM User_Info
         WHERE user_id = #{userId}
     </select>
-
 
     <!-- 🔹 [진단 결과 저장용] - 주석 처리 (향후 확장) -->
 

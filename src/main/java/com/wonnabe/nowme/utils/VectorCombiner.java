@@ -22,7 +22,6 @@ public class VectorCombiner {
 
         double[] combined = new double[quantVector.length];
         for (int i = 0; i < combined.length; i++) {
-            // 🔴 수정: qualVector에는 qualWeight 적용
             combined[i] = (quantVector[i] * quantWeight) + (qualVector[i] * qualWeight);
         }
 
