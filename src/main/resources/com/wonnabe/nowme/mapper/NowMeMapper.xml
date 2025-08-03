@@ -5,6 +5,8 @@
 
 <mapper namespace="com.wonnabe.nowme.mapper.NowMeMapper">
 
+    <!-- 🔹 [소비패턴 정량 평가용] -->
+
     <!-- 1. 전체 소비 금액 (최근 1개월) -->
     <select id="getTotalSpending" resultType="double">
         SELECT COALESCE(SUM(amount), 0)
@@ -13,7 +15,7 @@
           AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
     </select>
 
-    <!-- 2. 필수소비 카테고리 합계 (최근 1개월) -->
+    <!-- 2. 필수소비 카테고리 합계 -->
     <select id="getSpendingByCategories" resultType="double">
         SELECT COALESCE(SUM(amount), 0)
         FROM Card_Transactions
@@ -25,14 +27,7 @@
         </foreach>
     </select>
 
-    <!-- 3. 가구원 수 -->
-    <select id="getHouseholdSize" resultType="int">
-        SELECT COALESCE(household_size, 1)
-        FROM User_Info
-        WHERE user_id = #{userId}
-    </select>
-
-    <!-- 4. 선택소비 카테고리 종류 수 (최근 1개월) -->
+    <!-- 3. 선택소비 카테고리 종류 수 -->
     <select id="getMonthlySelectableCategoryCount" resultType="int">
         SELECT COUNT(DISTINCT merchant_category)
         FROM Card_Transactions
@@ -41,14 +36,7 @@
           AND merchant_category NOT IN ('food', 'transport', 'living', 'fixcost')
     </select>
 
-    <!-- 5. 연소득 -->
-    <select id="getAnnualIncome" resultType="double">
-        SELECT COALESCE(income_annual_amount, 0)
-        FROM User_Info
-        WHERE user_id = #{userId}
-    </select>
-
-    <!-- 6. 주별 소비 표준편차 (최근 1개월) -->
+    <!-- 4. 주별 소비 표준편차 (최근 1개월) -->
     <select id="getWeeklySpendingStdDev" resultType="double">
         SELECT COALESCE(STDDEV(weekly_total), 0)
         FROM (
@@ -60,5 +48,71 @@
                  GROUP BY week_key
              ) AS weekly_data
     </select>
+
+
+    <!-- 🔹 [금융활동성 정량 평가용] -->
+
+    <!-- 5. 계좌 카테고리 수 (입출금, 투자 등) -->
+    <select id="getAccountCategoryCount" resultType="int">
+        SELECT COUNT(DISTINCT category)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 6. 저축상품 가입 수 -->
+    <select id="getSavingsProductCount" resultType="int">
+        SELECT COUNT(*)
+        FROM User_Savings
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 7. 보험상품 가입 수 -->
+    <select id="getInsuranceProductCount" resultType="int">
+        SELECT COUNT(*)
+        FROM User_Insurance
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 8. 최근 1개월 거래 건수 -->
+    <select id="getMonthlyTransactionCount" resultType="int">
+        SELECT COUNT(*)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+    </select>
+
+    <!-- 9. 최근 1개월 소비처 다양성 (merchant_category 기준) -->
+    <select id="getMonthlyMerchantCategoryCount" resultType="int">
+        SELECT COUNT(DISTINCT merchant_category)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+    </select>
+
+
+    <!-- 🔹 [공통 정보] -->
+
+    <!-- 10. 사용자 가구원 수 -->
+    <select id="getHouseholdSize" resultType="int">
+        SELECT COALESCE(household_size, 1)
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 11. 연소득 -->
+    <select id="getAnnualIncome" resultType="double">
+        SELECT COALESCE(income_annual_amount, 0)
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+
+    <!-- 🔹 [진단 결과 저장] -->
+
+<!--    &lt;!&ndash; 12. 진단 이력 저장 &ndash;&gt;-->
+<!--    <insert id="insertDiagnosisHistory" parameterType="com.wonnabe.nowme.domain.DiagnosisHistory">-->
+<!--        INSERT INTO Diagnosis_History (user_id, persona_name, similarity, diagnosed_at)-->
+<!--        VALUES (#{userId}, #{personaName}, #{similarity}, #{diagnosedAt})-->
+<!--    </insert>-->
 
 </mapper>
