@@ -1,0 +1,23 @@
+package com.wonnabe.product.mapper;
+
+import com.wonnabe.product.domain.UserInsuranceVO;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+/**
+ * 사용자의 보유 보험 상품 정보에 접근하는 MyBatis Mapper 인터페이스.
+ */
+@Mapper
+public interface UserInsuranceMapper {
+
+    /**
+     * 사용자의 특정 보유 보험 상품 상세 정보를 조회합니다.
+     *
+     * @param userId 사용자의 고유 ID
+     * @param productId 조회할 사용자의 보험 가입 ID
+     * @return {@link UserInsuranceVO} 객체. 가입 정보와 상품 상세 정보를 포함합니다.
+     */
+    UserInsuranceVO findDetailByProductId(@Param("userId") String userId,
+                                    @Param("productId") Long productId);
+}
+
