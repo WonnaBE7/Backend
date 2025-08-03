@@ -8,7 +8,7 @@ import java.util.Set;
 @Mapper
 public interface NowMeMapper {
 
-    // 🔹 [SpendingEvaluator] 소비 정량 평가용
+    // 🔹 [SpendingEvaluator] 소비패턴 정량 평가용
 
     // 총 소비 금액 (최근 1개월)
     double getTotalSpending(@Param("userId") Long userId);
@@ -47,8 +47,32 @@ public interface NowMeMapper {
     int getMonthlyMerchantCategoryCount(@Param("userId") Long userId);
 
 
-//    // 🔹 [진단 결과 저장용]
-//
-//    // 진단 결과 저장 (DiagnosisHistory insert용)
-//    void insertDiagnosisHistory(@Param("history") com.wonnabe.nowme.domain.DiagnosisHistory history);
+    // 🔹 [RiskEvaluator] 리스크성향 정량 평가용
+
+    // 전체 계좌 잔액 합계
+    double getTotalBalance(@Param("userId") Long userId);
+
+    // 특정 카테고리 계좌들의 잔액 합계 (예: 투자, 주식, 펀드 등)
+    double getBalanceByCategories(@Param("userId") Long userId, @Param("categories") Set<String> categories);
+
+    // 특정 카테고리 계좌 수 (예: 투자상품의 개수)
+    int getAccountCountByCategories(@Param("userId") Long userId, @Param("categories") Set<String> categories);
+
+    // 가입한 저축상품의 평균 max_rate
+    double getAvgSavingsRate(@Param("userId") Long userId);
+
+
+    // 🔹 [PlanningEvaluator] 계획방식 정량 평가용 (향후 확장)
+
+    // 목표 설정 개수
+    // int getGoalCount(@Param("userId") Long userId);
+
+    // 평균 목표 진척률 (progress_rate 평균)
+    // double getAverageGoalProgressRate(@Param("userId") Long userId);
+
+
+    // 🔹 [진단 결과 저장용] (향후 확장)
+
+    // 진단 결과 저장 (DiagnosisHistory insert용)
+    // void insertDiagnosisHistory(@Param("history") com.wonnabe.nowme.domain.DiagnosisHistory history);
 }

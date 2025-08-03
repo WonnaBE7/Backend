@@ -5,7 +5,7 @@
 
 <mapper namespace="com.wonnabe.nowme.mapper.NowMeMapper">
 
-    <!-- 🔹 [소비패턴 정량 평가용] -->
+    <!-- 🔹 [SpendingEvaluator] 소비패턴 정량 평가용 -->
 
     <!-- 1. 전체 소비 금액 (최근 1개월) -->
     <select id="getTotalSpending" resultType="double">
@@ -15,7 +15,7 @@
           AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
     </select>
 
-    <!-- 2. 필수소비 카테고리 합계 -->
+    <!-- 2. 필수소비 카테고리 합계 (food, transport, living, fixcost) -->
     <select id="getSpendingByCategories" resultType="double">
         SELECT COALESCE(SUM(amount), 0)
         FROM Card_Transactions
@@ -27,7 +27,7 @@
         </foreach>
     </select>
 
-    <!-- 3. 선택소비 카테고리 종류 수 -->
+    <!-- 3. 선택소비 카테고리 종류 수 (필수소비 제외) -->
     <select id="getMonthlySelectableCategoryCount" resultType="int">
         SELECT COUNT(DISTINCT merchant_category)
         FROM Card_Transactions
@@ -50,9 +50,9 @@
     </select>
 
 
-    <!-- 🔹 [금융활동성 정량 평가용] -->
+    <!-- 🔹 [ActivityEvaluator] 금융활동성 정량 평가용 -->
 
-    <!-- 5. 계좌 카테고리 수 (입출금, 투자 등) -->
+    <!-- 5. 계좌 카테고리 수 (입출금, 투자, 연금 등 종류) -->
     <select id="getAccountCategoryCount" resultType="int">
         SELECT COUNT(DISTINCT category)
         FROM User_Accounts
@@ -90,16 +90,56 @@
     </select>
 
 
+    <!-- 🔹 [RiskEvaluator] 리스크성향 정량 평가용 -->
+
+    <!-- 10. 전체 계좌 잔액 합계 -->
+    <select id="getTotalBalance" resultType="double">
+        SELECT COALESCE(SUM(balance), 0)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 11. 특정 카테고리 계좌들의 잔액 합계 (투자, 주식, 펀드 등) -->
+    <select id="getBalanceByCategories" resultType="double">
+        SELECT COALESCE(SUM(balance), 0)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+        AND category IN
+        <foreach item="item" collection="categories" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 12. 특정 카테고리 계좌 수 (투자상품 다양성용) -->
+    <select id="getAccountCountByCategories" resultType="int">
+        SELECT COUNT(DISTINCT account_name)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+        AND category IN
+        <foreach item="item" collection="categories" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 13. 가입한 저축상품의 평균 max_rate (고금리 선호 경향) -->
+    <select id="getAvgSavingsRate" resultType="double">
+        SELECT COALESCE(AVG(sp.max_rate), 0)
+        FROM User_Savings us
+                 JOIN Savings_Product sp ON us.product_id = sp.product_id
+        WHERE us.user_id = #{userId}
+    </select>
+
+
     <!-- 🔹 [공통 정보] -->
 
-    <!-- 10. 사용자 가구원 수 -->
+    <!-- 14. 사용자 가구원 수 -->
     <select id="getHouseholdSize" resultType="int">
         SELECT COALESCE(household_size, 1)
         FROM User_Info
         WHERE user_id = #{userId}
     </select>
 
-    <!-- 11. 연소득 -->
+    <!-- 15. 연소득 -->
     <select id="getAnnualIncome" resultType="double">
         SELECT COALESCE(income_annual_amount, 0)
         FROM User_Info
@@ -107,12 +147,13 @@
     </select>
 
 
-    <!-- 🔹 [진단 결과 저장] -->
+    <!-- 🔹 [진단 결과 저장용] - 주석 처리 (향후 확장) -->
 
-<!--    &lt;!&ndash; 12. 진단 이력 저장 &ndash;&gt;-->
-<!--    <insert id="insertDiagnosisHistory" parameterType="com.wonnabe.nowme.domain.DiagnosisHistory">-->
-<!--        INSERT INTO Diagnosis_History (user_id, persona_name, similarity, diagnosed_at)-->
-<!--        VALUES (#{userId}, #{personaName}, #{similarity}, #{diagnosedAt})-->
-<!--    </insert>-->
+    <!--
+    <insert id="insertDiagnosisHistory" parameterType="com.wonnabe.nowme.domain.DiagnosisHistory">
+        INSERT INTO Diagnosis_History (user_id, persona_name, similarity, diagnosed_at)
+        VALUES (#{userId}, #{personaName}, #{similarity}, #{diagnosedAt})
+    </insert>
+    -->
 
 </mapper>
