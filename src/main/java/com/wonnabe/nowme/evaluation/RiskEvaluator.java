@@ -36,7 +36,7 @@ public class RiskEvaluator {
      * 🔹 리스크성향 정량 점수 계산 (0~1)
      * - 위험자산 비율, 투자상품 다양성, 기대수익률 평균 → 3개 항목 평균
      */
-    public double calculateQuantScore(Long userId) {
+    public double calculateQuantScore(String userId) {
         try {
             log.debug("🔍 리스크성향 정량 계산 시작 - userId: {}", userId);
 
@@ -102,7 +102,7 @@ public class RiskEvaluator {
     /**
      * 🔹 리스크성향 최종 점수 계산 (정량 60% + 정성 40%)
      */
-    public double calculateFinalScore(Long userId, NowMeRequestDTO requestDTO) {
+    public double calculateFinalScore(String userId, NowMeRequestDTO requestDTO) {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);

@@ -35,15 +35,23 @@ public class NowMeController {
      * @return 진단 결과 DTO (이름, 유형 등)
      */
     @PostMapping("/diagnosis")
-    public NowMeResponseDTO diagnose(
-            @AuthenticationPrincipal CustomUser user,
-            @RequestBody NowMeRequestDTO request
-    ) {
-        // user.getUser().getUserId()로 접근 후 Long으로 변환
-        String userIdStr = user.getUser().getUserId();
-        Long userId = Long.parseLong(userIdStr);
-
-        return nowMeService.diagnose(userId, request);
+//    public NowMeResponseDTO diagnose(
+//            @AuthenticationPrincipal CustomUser user,
+//            @RequestBody NowMeRequestDTO request
+//    ) {
+//        // user.getUser().getUserId()로 접근 후 Long으로 변환
+//        String userIdStr = user.getUser().getUserId();
+//        Long userId = Long.parseLong(userIdStr);
+//
+//        return nowMeService.diagnose(userId, request);
+//    }
+    public NowMeResponseDTO diagnose(@RequestBody NowMeRequestDTO request) {
+        // 실제 DB 사용자 ID (String)
+//        String testUserId = "f6789012-3456-7890-abcd-mn12op34qr56";
+//        String testUserId = "a1b2c3d4-e5f6-7890-ab12-cd34ef56gh78";
+//        String testUserId = "b2c3d4e5-f678-9012-abcd-ef12gh34ij56";
+        String testUserId = "h8901234-5678-9012-abcd-qr56st78uv90";
+        return nowMeService.diagnose(testUserId, request);
     }
 
     /*

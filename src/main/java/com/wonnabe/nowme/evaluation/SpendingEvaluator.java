@@ -33,7 +33,7 @@ public class SpendingEvaluator {
      * 🔹 소비 성향 정량 점수 계산 (0~1)
      * - 소비 기록 기반 4개 항목 점수 → 평균
      */
-    public double calculateQuantScore(Long userId) {
+    public double calculateQuantScore(String userId) {
         try {
             log.debug("🔍 소비패턴 정량 계산 시작 - userId: {}", userId);
 
@@ -97,7 +97,7 @@ public class SpendingEvaluator {
     /**
      * 🔹 소비패턴 최종 점수 계산 (정량 60% + 정성 40%)
      */
-    public double calculateFinalScore(Long userId, NowMeRequestDTO requestDTO) {
+    public double calculateFinalScore(String userId, NowMeRequestDTO requestDTO) {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);

@@ -24,7 +24,7 @@ public class ActivityEvaluator {
     /**
      * 금융활동성 정량 점수 계산
      */
-    public double calculateQuantScore(Long userId) {
+    public double calculateQuantScore(String userId) {
         try {
             log.debug("🔍 금융활동성 정량 계산 시작 - userId: {}", userId);
 
@@ -93,7 +93,7 @@ public class ActivityEvaluator {
     /**
      * 🔹 금융활동성 최종 점수 계산 (정량 60% + 정성 40%)
      */
-    public double calculateFinalScore(Long userId, NowMeRequestDTO requestDTO) {
+    public double calculateFinalScore(String userId, NowMeRequestDTO requestDTO) {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);

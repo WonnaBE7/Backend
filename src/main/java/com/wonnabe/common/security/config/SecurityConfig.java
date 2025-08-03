@@ -140,23 +140,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         // 한글 인코딩 필터 설정
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
-            .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class) // JWT 예외 감지 후 JSON 에러 응답
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Authorization 헤더에 access token이 있으면 자동으로 검증 & 사용자 인증을 처리
-            .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 로그인 시도 처리
+                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class) // JWT 예외 감지 후 JSON 에러 응답
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Authorization 헤더에 access token이 있으면 자동으로 검증 & 사용자 인증을 처리
+                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 로그인 시도 처리
 
         // 인증 및 권한 실패 시 처리 핸들러 설정
         http.exceptionHandling()
-            .authenticationEntryPoint(authenticationEntryPoint)
-            .accessDeniedHandler(accessDeniedHandler);
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler);
 
         // 인가 정책 설정
         http.authorizeRequests()
-            .antMatchers(HttpMethod.OPTIONS).permitAll()
-            .anyRequest().permitAll();
+                .antMatchers(HttpMethod.OPTIONS).permitAll()
+                .anyRequest().permitAll();
 
         http.httpBasic().disable() // 기본 HTTP 인증 비활성화
-            .csrf().disable() // CSRF 비활성화
-            .formLogin().disable() // formLogin 비활성화  관련 필터 해제
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 세션 생성 모드 설정
+                .csrf().disable() // CSRF 비활성화
+                .formLogin().disable() // formLogin 비활성화  관련 필터 해제
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 세션 생성 모드 설정
     }
 }

@@ -27,7 +27,7 @@ public class PlanningEvaluator {
      * 🔹 계획방식 정량 점수 계산 (0~1)
      * - 목표 관리 능력, 저축 계획 준수율, 소비 패턴 안정성 → 3개 항목 평균
      */
-    public double calculateQuantScore(Long userId) {
+    public double calculateQuantScore(String userId) {
         try {
             log.debug("🔍 계획방식 정량 계산 시작 - userId: {}", userId);
 
@@ -82,7 +82,7 @@ public class PlanningEvaluator {
     /**
      * 🔹 계획방식 최종 점수 계산 (정량 60% + 정성 40%)
      */
-    public double calculateFinalScore(Long userId, NowMeRequestDTO requestDTO) {
+    public double calculateFinalScore(String userId, NowMeRequestDTO requestDTO) {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
@@ -105,7 +105,7 @@ public class PlanningEvaluator {
      * 🔸 목표 관리 능력 계산
      * - 목표 설정 여부 + 목표 진척률 평균
      */
-    private double calculateGoalManagementScore(Long userId) {
+    private double calculateGoalManagementScore(String userId) {
         try {
             // 목표 개수 확인
             int goalCount = nowMeMapper.getGoalCount(userId);
@@ -133,7 +133,7 @@ public class PlanningEvaluator {
      * 🔸 저축 계획 준수율 계산
      * - user_goal의 monthly_save_amount vs User_Savings의 monthly_payment 비교
      */
-    private double calculateSavingsDisciplineScore(Long userId) {
+    private double calculateSavingsDisciplineScore(String userId) {
         try {
             // 목표한 월 저축 금액 합계
             double plannedMonthlySaving = nowMeMapper.getPlannedMonthlySaving(userId);
@@ -165,7 +165,7 @@ public class PlanningEvaluator {
      * 🔸 소비 패턴 안정성 계산
      * - Summaries_Cache의 monthly 데이터로 변동계수(CV) 계산
      */
-    private double calculateSpendingStabilityScore(Long userId) {
+    private double calculateSpendingStabilityScore(String userId) {
         try {
             // 최근 6개월 월별 소비 금액 표준편차
             double monthlySpendingStdDev = nowMeMapper.getMonthlySpendingStdDev(userId);

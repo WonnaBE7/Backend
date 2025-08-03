@@ -98,11 +98,11 @@ public class NowMeService {
 
     /**
      * 🔹 NowMe 페르소나 진단 수행
-     * @param userId 사용자 ID
+     * @param userId 사용자 ID (String)
      * @param requestDTO 설문 응답 데이터
      * @return 진단 결과 (페르소나명)
      */
-    public NowMeResponseDTO diagnose(Long userId, NowMeRequestDTO requestDTO) {
+    public NowMeResponseDTO diagnose(String userId, NowMeRequestDTO requestDTO) {
         try {
             log.info("🚀 NowMe 진단 시작 - userId: {}", userId);
 
@@ -121,7 +121,16 @@ public class NowMeService {
             updateUserNowmeId(userId, matchResult.personaName);
 
             // 5. 진단 결과 반환
-            return NowMeResponseDTO.success(matchResult.personaName);
+//            return NowMeResponseDTO.success(matchResult.personaName);
+            double[] scores = userVector.toArray();
+            return NowMeResponseDTO.successWithScores(
+                    matchResult.personaName,
+                    scores[0], // activityScore
+                    scores[1], // spendingScore
+                    scores[2], // planningScore
+                    scores[3], // riskScore
+                    matchResult.similarity
+            );
 
         } catch (Exception e) {
             log.error("❗ NowMe 진단 실패 - userId: {}", userId, e);
@@ -132,7 +141,7 @@ public class NowMeService {
     /**
      * 🔸 사용자 벡터 계산 (4개 축 점수)
      */
-    private UserVector calculateUserVector(Long userId, NowMeRequestDTO requestDTO) {
+    private UserVector calculateUserVector(String userId, NowMeRequestDTO requestDTO) {
         // 각 축별 정량 + 정성 점수 계산
         double activityScore = activityEvaluator.calculateFinalScore(userId, requestDTO);
         double spendingScore = spendingEvaluator.calculateFinalScore(userId, requestDTO);
@@ -181,7 +190,7 @@ public class NowMeService {
     /**
      * 🔸 진단 결과 저장
      */
-    private void saveDiagnosisHistory(Long userId, UserVector userVector, String personaName, double similarity) {
+    private void saveDiagnosisHistory(String userId, UserVector userVector, String personaName, double similarity) {
         try {
             // 페르소나명 → ID 변환
             Integer nowmeId = PERSONA_NAME_TO_ID.get(personaName);
@@ -195,10 +204,9 @@ public class NowMeService {
             String userVectorJson = String.format("[%.3f,%.3f,%.3f,%.3f]",
                     vectorArray[0], vectorArray[1], vectorArray[2], vectorArray[3]);
 
-
-            // 진단 이력 저장
+            // 진단 이력 저장 (String userId 직접 사용)
             nowMeMapper.insertDiagnosisHistory(
-                    userId.toString(),
+                    userId,  // toString() 제거!
                     nowmeId,
                     similarity,
                     userVectorJson
@@ -216,11 +224,11 @@ public class NowMeService {
     /**
      * 🔸 User_Info의 nowme_id 업데이트
      */
-    private void updateUserNowmeId(Long userId, String personaName) {
+    private void updateUserNowmeId(String userId, String personaName) {
         try {
             Integer nowmeId = PERSONA_NAME_TO_ID.get(personaName);
             if (nowmeId != null) {
-                nowMeMapper.updateUserNowmeId(userId.toString(), nowmeId);
+                nowMeMapper.updateUserNowmeId(userId, nowmeId);  // toString() 제거!
                 log.info("🔄 User_Info 업데이트 완료 - userId: {}, nowmeId: {}", userId, nowmeId);
             }
         } catch (Exception e) {
