@@ -204,13 +204,30 @@
         WHERE user_id = #{userId}
     </select>
 
-    <!-- 🔹 [진단 결과 저장용] - 주석 처리 (향후 확장) -->
+    <!-- 🔹 [진단 결과 저장용] -->
 
-    <!--
-    <insert id="insertDiagnosisHistory" parameterType="com.wonnabe.nowme.domain.DiagnosisHistory">
-        INSERT INTO Diagnosis_History (user_id, persona_name, similarity, diagnosed_at)
-        VALUES (#{userId}, #{personaName}, #{similarity}, #{diagnosedAt})
+    <!-- 22. 진단 이력 저장 -->
+    <insert id="insertDiagnosisHistory">
+        INSERT INTO diagnosis_history (
+            user_id,
+            nowme_id,
+            similarity,
+            user_vector,
+            diagnosed_at
+        ) VALUES (
+                     #{userId},
+                     #{nowmeId},
+                     #{similarity},
+                     #{userVector},
+                     NOW()
+                 )
     </insert>
-    -->
+
+    <!-- 23. User_Info의 nowme_id 업데이트 -->
+    <update id="updateUserNowmeId">
+        UPDATE User_Info
+        SET nowme_id = #{nowmeId}
+        WHERE user_id = #{userId}
+    </update>
 
 </mapper>

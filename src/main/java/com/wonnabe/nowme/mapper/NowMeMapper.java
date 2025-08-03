@@ -28,7 +28,6 @@ public interface NowMeMapper {
     // 최근 1개월 주별 소비 표준편차
     double getWeeklySpendingStdDev(@Param("userId") Long userId);
 
-
     // 🔹 [ActivityEvaluator] 금융활동성 정량 평가용
 
     // 계좌 유형 수 (입출금, 투자, 연금, 기타 등)
@@ -46,7 +45,6 @@ public interface NowMeMapper {
     // 최근 1개월 서로 다른 소비처(MCC) 수
     int getMonthlyMerchantCategoryCount(@Param("userId") Long userId);
 
-
     // 🔹 [RiskEvaluator] 리스크성향 정량 평가용
 
     // 전체 계좌 잔액 합계
@@ -60,7 +58,6 @@ public interface NowMeMapper {
 
     // 가입한 저축상품의 평균 max_rate
     double getAvgSavingsRate(@Param("userId") Long userId);
-
 
     // 🔹 [PlanningEvaluator] 계획방식 정량 평가용
 
@@ -76,9 +73,19 @@ public interface NowMeMapper {
     double getMonthlySpendingStdDev(@Param("userId") Long userId);
     double getMonthlySpendingAverage(@Param("userId") Long userId);
 
+    // 🔹 [진단 결과 저장용]
 
-    // 🔹 [진단 결과 저장용] (향후 확장)
+    // 진단 이력 저장
+    void insertDiagnosisHistory(
+            @Param("userId") String userId,
+            @Param("nowmeId") Integer nowmeId,
+            @Param("similarity") Double similarity,
+            @Param("userVector") String userVector
+    );
 
-    // 진단 결과 저장 (DiagnosisHistory insert용)
-    // void insertDiagnosisHistory(@Param("history") com.wonnabe.nowme.domain.DiagnosisHistory history);
+    // User_Info의 nowme_id 업데이트
+    void updateUserNowmeId(
+            @Param("userId") String userId,
+            @Param("nowmeId") Integer nowmeId
+    );
 }
