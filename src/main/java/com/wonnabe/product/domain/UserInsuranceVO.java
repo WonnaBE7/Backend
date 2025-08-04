@@ -7,10 +7,8 @@ import java.sql.Date;
 
 /**
  * 사용자가 가입한 보험 상품의 정보를 담는 VO(Value Object) 클래스.
- * <p>
  * user_insurance 테이블의 데이터를 나타내며,
- * 보험 상품의 상세 정보를 담고 있는 {@link InsuranceProductVO}를 포함합니다.
- * </p>
+ * 보험 상품의 상세 정보를 담고 있는 {@link InsuranceProductVO}를 포함
  */
 @Data
 public class UserInsuranceVO {
