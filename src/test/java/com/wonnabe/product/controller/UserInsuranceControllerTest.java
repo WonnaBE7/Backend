@@ -24,11 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import static org.springframework.test.util.AssertionErrors.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @ExtendWith(SpringExtension.class)
 @WebAppConfiguration
@@ -47,9 +47,10 @@ class UserInsuranceControllerTest {
 
     @Autowired
     private UserInsuranceService userInsuranceService; //  서비스 자동 주입
+
     // DB존재 데이터
-    private final String userId = "a1b2c3d4-e5f6-7890-ab12-cd34ef56gh78";
-    private final Long productId = 3001L;
+    private final String userId = "b2c3d4e5-f678-9012-abcd-ef12gh34ij56";
+    private final Long productId = 3002L;
 
     @BeforeEach
     public void setup() {

@@ -37,7 +37,7 @@ class UserInsuranceServiceImplTest {
         mockUserInsurance = new UserInsuranceVO();
         mockUserInsurance.setId(1L);
         mockUserInsurance.setUserId("user123");
-        mockUserInsurance.setProductId(1L); // productId 설정
+        mockUserInsurance.setProductId(3001L); // productId 설정
         mockUserInsurance.setMonthlyPremium(new BigDecimal("100000"));
         mockUserInsurance.setProduct(mockProduct);
     }
