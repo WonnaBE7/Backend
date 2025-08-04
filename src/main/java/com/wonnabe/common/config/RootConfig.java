@@ -17,19 +17,10 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"com.wonnabe"})
+@MapperScan(basePackages = {"com.wonnabe.**.mapper"})
 @ComponentScan(basePackages={ "com.wonnabe" })
 
 // ‼️Test 진행시 SwaggerConfig.class 빼기
-@ComponentScan(
-        basePackages = {"com.wonnabe"},
-        excludeFilters = {
-                @ComponentScan.Filter(
-                        type = FilterType.ASSIGNABLE_TYPE,
-                        classes = SwaggerConfig.class
-                )
-        }
-)
 @ComponentScan(
         basePackages = {"com.wonnabe"},
         excludeFilters = {
