@@ -49,5 +49,22 @@
             ui.user_id = #{userId} AND ui.product_id = #{productId}
     </select>
 
+    <!-- Transaction에서 userId랑 Category로 가져오는 것 -->
+    <select id="findMonthlyTransactionSums" resultType="com.wonnabe.product.dto.TransactionSummaryDto">
+        SELECT
+            DATE_FORMAT(transaction_date, '%Y-%m') as month,
+            SUM(amount) as totalSavings
+        FROM
+            User_Transactions
+        WHERE
+            user_id = #{userId}
+          AND asset_category = '보험'
+          AND transaction_date >= #{startDate}
+        GROUP BY
+            month
+        ORDER BY
+            month ASC
+    </select>
+
 </mapper>
 
