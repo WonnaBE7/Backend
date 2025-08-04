@@ -1,6 +1,7 @@
 package com.wonnabe.product.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.common.util.JsonResponse;
 import com.wonnabe.product.dto.InsuranceRecommendationResponseDTO;
 import com.wonnabe.product.service.InsuranceRecommendationService;
 import lombok.extern.log4j.Log4j2;
@@ -31,7 +32,7 @@ public class RecommendInsuranceController {
      * @return {@link InsuranceRecommendationResponseDTO} 추천된 보험 상품 목록
      */
     @GetMapping
-    public ResponseEntity<InsuranceRecommendationResponseDTO> recommendInsurance(
+    public ResponseEntity<Object> recommendInsurance(
             @RequestParam(defaultValue = "5") int topN,
             @AuthenticationPrincipal CustomUser customUser) {
 
@@ -39,6 +40,7 @@ public class RecommendInsuranceController {
 
         InsuranceRecommendationResponseDTO recommendations = insuranceRecommendationService.recommendInsurance(userId, topN);
 
-        return ResponseEntity.ok(recommendations);
+        // JsonResponse 수정
+        return JsonResponse.ok("성공적으로 추천 보험상품을 반환하였습니다.",recommendations);
     }
 }
