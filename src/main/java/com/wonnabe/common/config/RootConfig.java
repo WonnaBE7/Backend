@@ -18,6 +18,18 @@ import javax.sql.DataSource;
 @Configuration
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {"com.wonnabe"})
+@ComponentScan(basePackages={ "com.wonnabe" })
+
+// ‼️Test 진행시 SwaggerConfig.class 빼기
+@ComponentScan(
+        basePackages = {"com.wonnabe"},
+        excludeFilters = {
+                @ComponentScan.Filter(
+                        type = FilterType.ASSIGNABLE_TYPE,
+                        classes = SwaggerConfig.class
+                )
+        }
+)
 @ComponentScan(
         basePackages = {"com.wonnabe"},
         excludeFilters = {
@@ -54,7 +66,11 @@ public class RootConfig {
         SqlSessionFactoryBean sqlSessionFactory = new SqlSessionFactoryBean();
         sqlSessionFactory.setConfigLocation(applicationContext.getResource("classpath:/mybatis-config.xml"));
         sqlSessionFactory.setDataSource(dataSource());
-        return (SqlSessionFactory) sqlSessionFactory.getObject();
+
+        // DTO 별칭 자동 등록 (여러 패키지 한 번에 스캔 가능)
+        sqlSessionFactory.setTypeAliasesPackage("com.wonnabe.asset.dto");
+
+        return sqlSessionFactory.getObject();
     }
 
     @Bean
