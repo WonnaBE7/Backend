@@ -3,8 +3,12 @@ package com.wonnabe.product.service;
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
 import com.wonnabe.product.dto.CardApplyRequestDTO;
+import static com.wonnabe.product.dto.CardRecommendationResponseDTO.*;
+
+import com.wonnabe.product.dto.CardRecommendationResponseDTO;
 import com.wonnabe.product.dto.UserCardDTO;
 import com.wonnabe.product.dto.UserCardDetailDTO;
+import com.wonnabe.product.dto.UserInfoForCardDTO;
 import com.wonnabe.product.mapper.CardMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -15,6 +19,11 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -25,6 +34,157 @@ public class CardServiceImpl implements CardService {
 
     private final CardMapper cardMapper;
 
+    // 페르소나 이름 매핑
+    private static final Map<Integer, String> PERSONA_NAMES = Map.ofEntries(
+        Map.entry(1, "자린고비형"),
+        Map.entry(2, "소확행형"),
+        Map.entry(3, "YOLO형"),
+        Map.entry(4, "경험 소중형"),
+        Map.entry(5, "새싹 투자형"),
+        Map.entry(6, "공격 투자형"),
+        Map.entry(7, "미래 준비형"),
+        Map.entry(8, "가족 중심형"),
+        Map.entry(9, "루틴러형"),
+        Map.entry(10, "현상 유지형"),
+        Map.entry(11, "균형 성장형"),
+        Map.entry(12, "대문자P형")
+    );
+
+    private static final Map<Integer, double[]> PERSONA_WEIGHTS = new HashMap<>() {{
+        put(1, new double[]{0.05, 0.10, 0.30, 0.05, 0.50});   // 자린고비형
+        put(2, new double[]{0.20, 0.30, 0.20, 0.10, 0.20});   // 소확행형
+        put(3, new double[]{0.30, 0.35, 0.05, 0.20, 0.10});   // YOLO형
+        put(4, new double[]{0.25, 0.40, 0.10, 0.15, 0.10});   // 경험 소비형
+        put(5, new double[]{0.05, 0.10, 0.40, 0.05, 0.40});   // 새싹 투자형
+        put(6, new double[]{0.35, 0.30, 0.05, 0.20, 0.10});   // 공격 투자형
+        put(7, new double[]{0.20, 0.30, 0.15, 0.20, 0.15});   // 미래 준비형
+        put(8, new double[]{0.15, 0.30, 0.20, 0.10, 0.25});   // 가족 중심형
+        put(9, new double[]{0.10, 0.30, 0.20, 0.25, 0.15});   // 루틴러형
+        put(10, new double[]{0.05, 0.10, 0.30, 0.10, 0.45});  // 현상 유지형
+        put(11, new double[]{0.20, 0.20, 0.20, 0.20, 0.20});  // 균형 성장형
+        put(12, new double[]{0.25, 0.25, 0.05, 0.35, 0.10});  // 대문자P형
+    }};
+
+
+
+    @Override
+    public CardRecommendationResponseDTO recommendCards(String userId, int topN) {
+        // 1. 사용자 정보 조회 (소득, 소비, 워너비 ID 등)
+        UserInfoForCardDTO userInfo = cardMapper.findUserInfoForCardRecommend(userId);
+        if (userInfo == null || userInfo.getSelectedWonnabeIds() == null || userInfo.getSelectedWonnabeIds().isEmpty()) {
+            throw new NoSuchElementException("추천을 위한 사용자 정보가 부족합니다."); // 404
+        }
+
+        // 내가 보유한 카드 ID 리스트
+        List<Long> myCardIds = userInfo.getMyCardIds();
+        List<Long> myProductId = cardMapper.findProductIdsByUserCardIds(myCardIds);
+
+        // 2. 카드 상품 목록 조회
+        List<CardProductVO> cardProducts = cardMapper.findAllCardProducts();
+        if (cardProducts == null || cardProducts.isEmpty()) {
+            throw new NoSuchElementException("추천할 카드 상품이 없습니다."); // 404
+        }
+
+        // 3. 응답 객체
+        CardRecommendationResponseDTO response = new CardRecommendationResponseDTO();
+        response.setUserId(userId);
+        response.setRecommendationsByPersona(new ArrayList<>());
+
+        // 4. 각 워너비에 대해 추천
+        for (Integer wannabeId : userInfo.getPersonaIds()) {
+            double[] baseWeights = PERSONA_WEIGHTS.get(wannabeId).clone();
+            double[] adjustedWeights = adjustWeightsByIncome(baseWeights, userInfo.getIncomeAnnualAmount());
+
+            List<ProductWithScore> scoredCards = new ArrayList<>();
+            for (CardProductVO card : cardProducts) {
+                // 내가 가진 카드는 추천에서 제외
+                if (myProductId != null && myProductId.contains((Long) card.getProductId())) {
+                    continue;
+                }
+
+                // matchedFilters에 현재 워너비 ID가 없으면 제외 (1차 필터링)
+                if (!card.getMatchedFilters().contains(wannabeId)) {
+                    continue;
+                }
+
+                double score = calculateScore(card, adjustedWeights, userInfo.getPreviousConsumption());
+                scoredCards.add(new ProductWithScore(card, score));
+            }
+
+            // 점수 내림차순 정렬
+            scoredCards.sort((a, b) -> Double.compare(b.score, a.score));
+
+            // 결과 객체 구성
+            PersonaRecommendation personaRec = new PersonaRecommendation();
+            personaRec.setPersonaId(wannabeId);
+            personaRec.setPersonaName(PERSONA_NAMES.get(wannabeId));
+            personaRec.setProducts(new ArrayList<>());
+
+            for (int i = 0; i < Math.min(topN, scoredCards.size()); i++) {
+                CardProductVO card = scoredCards.get(i).card;
+                RecommendedCard item = RecommendedCard.builder()
+                    .productType("card")
+                    .cardId(Long.toString(card.getProductId()))
+                    .cardName(card.getCardName())
+                    .cardCompany(card.getCardCompany())
+                    .cardType(card.getCardTypeLabel())
+                    .matchScore((int) scoredCards.get(i).score)
+                    .mainBenefit(card.getBenefitLimit())
+                    .annualFeeDomestic(card.getAnnualFeeDomestic())
+                    .annualFeeOverSeas(card.getAnnualFeeOverSeas())
+                    .build();
+                personaRec.getProducts().add(item);
+            }
+
+            response.getRecommendationsByPersona().add(personaRec);
+        }
+
+        return response;
+    }
+
+    // 소득/고용상태에 따른 가중치 조정
+    private double[] adjustWeightsByIncome(double[] weights, double incomeAnnualAmount) {
+        double[] adjusted = weights.clone();
+
+        // 소득원별 조정
+        if (incomeAnnualAmount >= 48000000.00) {
+            adjusted[0] += 0.05;  // 확장성
+            adjusted[1] += 0.05;  // 혜택 범위
+            adjusted[2] -= 0.05; // 전월 실적
+            adjusted[4] -= 0.05; // 연회비
+        } else if (incomeAnnualAmount < 24000000.00) {
+            adjusted[0] -= 0.05;  // 확장성
+            adjusted[1] -= 0.05;  // 혜택 범위
+            adjusted[2] += 0.05; // 전월 실적
+            adjusted[4] += 0.05; // 연회비
+        }
+
+        // 정규화 (합 = 1)
+        return normalizeWeights(adjusted);
+    }
+
+    // 가중치 정규화
+    private double[] normalizeWeights(double[] weights) {
+        double sum = Arrays.stream(weights).sum();
+        if (sum == 0) {
+            return weights;
+        }
+        return Arrays.stream(weights).map(w -> w / sum).toArray();
+    }
+
+    // 점수 계산
+    private double calculateScore(CardProductVO card, double[] weights, double amount) {
+        List<Integer> score = card.getCardScores();
+        int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
+        score.set(3, performanceRate);
+        String updatedScore = score.toString();  // 예: [2, 3, 5, 4, 5]
+        card.setCardScore(updatedScore);
+        return (weights[0] * score.get(0) +
+            weights[1] * score.get(1) +
+            weights[2] * score.get(2) +
+            weights[3] * score.get(3) +
+            weights[4] * score.get(4)) * 20;
+    }
 
     // 카드 계약기간을 계산함
     public int calculateTerm(LocalDate issueDate, LocalDate expiryDate) {
@@ -114,6 +274,17 @@ public class CardServiceImpl implements CardService {
         // 비워 있을 시 등록 실패 반환
         if (cardCheck == null && myCardIds.isEmpty()) {
             throw new IllegalStateException("카드 등록에 실패했습니다.");
+        }
+    }
+
+    // 내부 클래스: 상품과 점수
+    private static class ProductWithScore {
+        CardProductVO card;
+        double score;
+
+        ProductWithScore(CardProductVO card, double score) {
+            this.card = card;
+            this.score = score;
         }
     }
 }
