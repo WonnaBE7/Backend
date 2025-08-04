@@ -24,7 +24,7 @@ public class UserInsuranceVO {
 
     /**
      * 이 가입 정보에 해당하는 보험 상품의 상세 정보.
-     * MyBatis의 resultMap을 통해 조인된 결과가 매핑됩니다.
+     * MyBatis의 resultMap을 통해 조인된 결과가 매핑.
      */
     private InsuranceProductVO product;
 }
