@@ -7,6 +7,7 @@ import com.wonnabe.goal.mapper.GoalMapper;
 import com.wonnabe.product.domain.SavingsProductVO;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,9 +20,12 @@ import java.util.stream.Collectors;
 
 @Service("goalServiceImpl")
 @RequiredArgsConstructor
+@Log4j2
 public class GoalServiceImpl implements GoalService {
 
     private final GoalMapper goalMapper;
+
+    private final OpenAiService openAiService;
 
     // 상품 ID 범위 상수
     private static final long SAVINGS_PRODUCT_ID_START = 1000L;
@@ -70,8 +74,10 @@ public class GoalServiceImpl implements GoalService {
         // nowmeId 조회
         Integer nowmeId = goalMapper.getNowmeIdByUserId(userId);
         String nowmeName = null;
+        String nowmeDescription = null;
         if (nowmeId != null) {
             nowmeName = goalMapper.getNowmeNameByNowmeId(nowmeId);
+            nowmeDescription = goalMapper.getNowmeDescriptionByNowmeId(nowmeId);
         }
 
         // category 유효성 조회
@@ -81,7 +87,7 @@ public class GoalServiceImpl implements GoalService {
         }
 
         // 미래의 나에게 보내는 메시지 생성
-        String futureMeMessage = generateFutureMeMessage(nowmeName);
+        String futureMeMessage = generateFutureMeMessage(nowmeName, nowmeDescription, request.getGoalName(), request.getTargetAmount());
 
         GoalVO goalToInsert = GoalVO.builder()
                 .userId(userId)
@@ -155,10 +161,40 @@ public class GoalServiceImpl implements GoalService {
         return goalMapper.getGoalSummaryById(goalId);
     }
 
-    private String generateFutureMeMessage(String nowmeName) {
-        // TODO: GPT API
-        if (nowmeName == null) return "지금의 당신도 멋져요!";
-        return nowmeName + "님, 목표를 꼭 달성하고 미래의 나에게 칭찬을 아끼지 마세요!";
+    private String generateFutureMeMessage(String nowmeName, String nowmeDescription, String goalName, BigDecimal targetAmount) {
+        String name = (nowmeName != null) ? nowmeName : "나";
+        String description = (nowmeDescription != null) ? nowmeDescription : "";
+
+        // 1. GPT에 전달할 프롬프트(지시어)
+        String prompt = String.format(
+                "역할: **'%s'** 목표를 통해 **%s원**을 달성한 미래의 **%s**\n" +
+                        "현재 금융 성향: %s\n\n" +
+                        "임무: 과거의 나에게 보내는 300자 이내 메시지 작성\n\n" +
+                        "반드시 포함할 내용:\n" +
+                        "- '안녕, 과거의 나야'로 시작\n" +
+                        "- '%s' 목표 달성 언급\n" +
+                        "- '%s원' 금액 언급 (3자리마다 콤마 포함)\n" +
+                        "- 달성 후 변화된 삶\n" +
+                        "- 현재의 나에게 주는 격려\n\n" +
+                        "작성 스타일: 따뜻하고 구체적이며 개인적인 톤으로, 입력받은 정보를 정확히 활용하여 작성",
+                goalName, targetAmount.toPlainString(), name,
+                description, goalName, targetAmount.toPlainString()
+        );
+        log.info("prompt: {}", prompt);
+
+        // 2. OpenAI 서비스 호출
+        try {
+            String gptMessage = openAiService.getGptResponse(prompt);
+
+            if (gptMessage != null && !gptMessage.isEmpty()) {
+                return gptMessage;
+            } else {
+                return "목표를 꼭 달성하고 미래의 나에게 칭찬을 아끼지 마세요!";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "목표를 꼭 이룰 수 있을 거에요!";
+        }
     }
 
     private List<RecommendedProductVO> calculateRecommendedProductList(
