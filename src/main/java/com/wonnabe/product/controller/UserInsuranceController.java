@@ -24,7 +24,7 @@ public class UserInsuranceController {
 
     private final UserInsuranceService userInsuranceService;
 
-    public UserInsuranceController(@Qualifier("userInsuranceServiceImpl") UserInsuranceService userInsuranceService) {
+    public UserInsuranceController(@Qualifier("UserInsuranceServiceImpl") UserInsuranceService userInsuranceService) {
         this.userInsuranceService = userInsuranceService;
     }
 
