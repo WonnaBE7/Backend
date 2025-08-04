@@ -39,6 +39,7 @@ class UserInsuranceServiceImplTest {
         mockUserInsurance.setUserId("user123");
         mockUserInsurance.setProductId(3001L); // productId 설정
         mockUserInsurance.setMonthlyPremium(new BigDecimal("100000"));
+        mockUserInsurance.setStartDate(java.sql.Date.valueOf(java.time.LocalDate.now().minusMonths(6))); // 시작일 설정
         mockUserInsurance.setProduct(mockProduct);
     }
 
