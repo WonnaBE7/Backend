@@ -157,21 +157,21 @@ class RecommendInsuranceControllerTest {
                     .andDo(print()) // MockMvc 요청/응답 전체 내용을 콘솔에 출력합니다.
                     .andExpect(status().isOk()) // HTTP 상태 코드가 200 OK인지 검증합니다.
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8)) // 응답 Content-Type이 application/json;charset=UTF-8인지 검증합니다.
-                    .andExpect(jsonPath("$.userId").value(userId)) // 응답 JSON의 userId 필드 값이 예상 userId와 일치하는지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona").exists()) // recommendationsByPersona 필드가 존재하는지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona").isArray()) // recommendationsByPersona가 배열인지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].personaId").value(1)) // 첫 번째 페르소나의 ID가 1인지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].personaName").value("자린고비형")) // 첫 번째 페르소나의 이름이 "자린고비형"인지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products").isArray()) // 첫 번째 페르소나의 products가 배열인지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products.length()").value(5)) // 첫 번째 페르소나의 추천 상품 개수가 5개인지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].productId").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].productName").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].providerName").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].coverageLimit").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].note").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].myMoney").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].totalScore").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].productType").value("insurance"));
+                    .andExpect(jsonPath("$.data.userId").value(userId)) // 응답 JSON의 userId 필드 값이 예상 userId와 일치하는지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona").exists()) // recommendationsByPersona 필드가 존재하는지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona").isArray()) // recommendationsByPersona가 배열인지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].personaId").value(1)) // 첫 번째 페르소나의 ID가 1인지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].personaName").value("자린고비형")) // 첫 번째 페르소나의 이름이 "자린고비형"인지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products").isArray()) // 첫 번째 페르소나의 products가 배열인지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products.length()").value(5)) // 첫 번째 페르소나의 추천 상품 개수가 5개인지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productId").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productName").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].providerName").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].coverageLimit").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].note").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].myMoney").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].totalScore").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productType").value("insurance"));
 
             log.info("--- [recommendInsurance_success] API 호출 및 응답 검증 완료 ---");
             log.info("  - 예상 HTTP 상태: 200 OK, 실제 HTTP 상태: {}", result.andReturn().getResponse().getStatus());
@@ -223,17 +223,17 @@ class RecommendInsuranceControllerTest {
                     .andDo(print()) // MockMvc 요청/응답 전체 내용을 콘솔에 출력합니다.
                     .andExpect(status().isOk()) // HTTP 상태 코드가 200 OK인지 검증합니다.
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8)) // 응답 Content-Type이 application/json;charset=UTF-8인지 검증합니다.
-                    .andExpect(jsonPath("$.userId").value(userId)) // 응답 JSON의 userId 필드 값이 예상 userId와 일치하는지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona").exists()) // recommendationsByPersona 필드가 존재하는지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products.length()").value(topN)) // 첫 번째 페르소나의 추천 상품 개수가 topN과 일치하는지 검증합니다.
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].productId").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].productName").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].providerName").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].coverageLimit").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].note").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].myMoney").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].totalScore").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].productType").value("insurance"));
+                    .andExpect(jsonPath("$.data.userId").value(userId)) // 응답 JSON의 userId 필드 값이 예상 userId와 일치하는지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona").exists()) // recommendationsByPersona 필드가 존재하는지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products.length()").value(topN)) // 첫 번째 페르소나의 추천 상품 개수가 topN과 일치하는지 검증합니다.
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productId").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productName").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].providerName").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].coverageLimit").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].note").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].myMoney").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].totalScore").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productType").value("insurance"));
 
             log.info("--- [recommendInsurance_success_withTopN] API 호출 및 응답 검증 완료 ---");
             log.info("  - 예상 HTTP 상태: 200 OK, 실제 HTTP 상태: {}", result.andReturn().getResponse().getStatus());
@@ -299,10 +299,10 @@ class RecommendInsuranceControllerTest {
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
-                    .andExpect(jsonPath("$.userId").value(userId))
-                    .andExpect(jsonPath("$.recommendationsByPersona").exists())
-                    .andExpect(jsonPath("$.recommendationsByPersona").isArray())
-                    .andExpect(jsonPath("$.recommendationsByPersona.length()").value(0));
+                    .andExpect(jsonPath("$.data.userId").value(userId))
+                    .andExpect(jsonPath("$.data.recommendationsByPersona").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona").isArray())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona.length()").value(0));
 
             verify(mockInsuranceRecommendationService, times(1)).recommendInsurance(eq(userId), anyInt());
             log.info("빈 결과 테스트 성공");
