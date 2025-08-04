@@ -1,12 +1,18 @@
 package com.wonnabe.product.mapper;
 
+import java.util.List;
+
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
 import com.wonnabe.product.dto.CardApplyRequestDTO;
 import com.wonnabe.product.dto.UserCardDTO;
+import com.wonnabe.product.dto.UserInfoForCardDTO;
+
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.security.core.parameters.P;
 
+@Mapper
 public interface CardMapper {
     /**
      * 카드 ID로 카드 정보를 가져옴
@@ -76,4 +82,24 @@ public interface CardMapper {
      * @return 최근에 입력된 카드의 숫자
      */
     String findLastCardNumber();
+
+    /**
+     * 카드 추천을 위한 사용자 정보 조회
+     * @param userId 사용자 id
+     * @return 추천에 필요한 사용자 정보
+     */
+    UserInfoForCardDTO findUserInfoForCardRecommend(String userId);
+
+    /**
+     * 모든 카드 상품 조회
+     * @return 카드 상품 리스트
+     */
+    List<CardProductVO> findAllCardProducts();
+
+    /**
+     * 사용자가 보유 중인 카드 상품 번호 조회
+     * @param userCardIds 사용자 카드 아이디
+     * @return 사용자 카드 상품 번호
+     */
+    List<Long> findProductIdsByUserCardIds(@Param("userCardIds") List<Long> userCardIds);
 }

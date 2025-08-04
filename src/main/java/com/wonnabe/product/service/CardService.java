@@ -1,5 +1,6 @@
 package com.wonnabe.product.service;
 
+import com.wonnabe.product.dto.CardRecommendationResponseDTO;
 import com.wonnabe.product.domain.UserCardVO;
 import com.wonnabe.product.dto.CardApplyRequestDTO;
 import com.wonnabe.product.dto.UserCardDetailDTO;
@@ -15,6 +16,14 @@ public interface CardService {
      * @return
      */
     UserCardDetailDTO findUserCardDetail(long productId, String userId);
+
+    /**
+     * 사용자에게 필요한 카드를 추천
+     * @param userId 사용자 아이디
+     * @param topN 최대 몇개의 카드를 볼 것 인지
+     * @return 워너비별 카드 추천 상품 목록
+     */
+    CardRecommendationResponseDTO recommendCards(String userId, int topN);
 
     /**
      * 카드 신청
