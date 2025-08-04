@@ -1,34 +1,38 @@
 package com.wonnabe.product.domain;
 
-import lombok.Data;
+import lombok.*;
+
+import java.math.BigDecimal;
 
 /**
- * 보험 상품의 상세 정보를 담는 VO(Value Object) 클래스.
- * insurance_product 테이블의 데이터를 나타냅니다.
- * 보유 상품 조회, 추천 등 다양한 곳에서 재사용.
+ * InsuranceProduct 테이블과 매핑되는 VO 클래스
+ * 예적금 상품의 기본 정보를 담는 객체
  */
-@Data
-public class InsuranceProductVO {
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class InsuranceProductVO {
     private Long productId;
     private String providerName;
     private String productName;
+
     private Integer minAge;
     private Integer maxAge;
-
-    private Integer femalePremium;
-    private Integer malePremium;
+    private BigDecimal femalePremium;
+    private BigDecimal malePremium;
 
     private String coverageType;
     private String coverageDesc;
     private String coverageLimit;
-
     private String note;
     private String myMoney;
 
-    private Integer scorePriceCompetitiveness;
-    private Integer scoreCoverageLimit;
-    private Integer scoreCoverageScope;
-    private Integer scoreDeductibleLevel;
-    private Integer scoreRefundScope;
+    // Recommend를 위한 Score
+    private Float priceCompetitivenessScore; // 가격 경쟁력 점수
+    private Float coverageLimitScore; // 보장 한도 점수
+    private Float coverageScopeScore; // 보장 범위 점수
+    private Float deductibleScore; // 자기 부담금 점수
+    private Float refundScopeScore; // 환급 범위 점수
 }
