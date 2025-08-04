@@ -1,6 +1,7 @@
 package com.wonnabe.product.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.common.util.JsonResponse;
 import com.wonnabe.product.dto.UserInsuranceDetailDTO;
 import com.wonnabe.product.service.CardService;
 import com.wonnabe.product.service.UserInsuranceService;
@@ -36,7 +37,7 @@ public class UserInsuranceController {
      * @return {@link UserInsuranceDetailDTO} 형태의 상세 정보. 데이터가 없으면 404 Not Found.
      */
     @GetMapping("/{productId}")
-    public ResponseEntity<UserInsuranceDetailDTO> getMyInsuranceDetail(
+    public ResponseEntity<Object> getMyInsuranceDetail(
             @PathVariable Long productId,
             @AuthenticationPrincipal CustomUser customUser) {
 
@@ -46,10 +47,6 @@ public class UserInsuranceController {
         // Service에서 만든 함수로 DTO를 가져옴
         UserInsuranceDetailDTO responseDTO = userInsuranceService.getDetailByProductId(userId, productId);
 
-        if (responseDTO == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(responseDTO);
+        return JsonResponse.ok("내 보험 정보 조회 성공", responseDTO);
     }
 }
