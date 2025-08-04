@@ -44,19 +44,19 @@ dependencies {
     implementation 'javax.servlet:jstl:1.2'
 
     // SLF4J + Log4J2 구성 (SLF4J 1.7.x 기반)
-    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.slf4j:slf4j-api:1.7.36'                          // ✅ SLF4J 버전 1.7로 통일
     implementation 'org.apache.logging.log4j:log4j-api:2.18.0'
     implementation 'org.apache.logging.log4j:log4j-core:2.18.0'
-    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.18.0' // SLF4J → Log4J2
+    implementation 'org.apache.logging.log4j:log4j-slf4j-impl:2.18.0'
 
     // log4jdbc (SQL 로그)
     implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'
 
     // SLF4J API (log4j2와 호환 가능)
-    implementation 'org.slf4j:slf4j-api:2.0.9'
+    //implementation 'org.slf4j:slf4j-api:2.0.9'
 
     // jcl-over-slf4j: commons-logging 제거하고 SLF4J로 대체
-    runtimeOnly 'org.slf4j:jcl-over-slf4j:2.0.9'
+    runtimeOnly 'org.slf4j:jcl-over-slf4j:1.7.36'
 
     // ❌ 아래 항목은 충돌 방지 위해 제거
     // runtimeOnly 'org.slf4j:slf4j-log4j12:2.0.9'  → [충돌 위험]
