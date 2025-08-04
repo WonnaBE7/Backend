@@ -17,6 +17,8 @@ public interface CommunityMapper {
     //회원 수 기준 상위 3개 커뮤니티 조회
     List<CommunityDTO> selectTop3Communities();
 
+    // CommunityDTO selectCommunityById(@Param("communityId") int communityId);
+
     //좋아요 수 기준 상위 3개 게시글 조회
     List<BoardDTO> selectTop3Boards(@Param("userId") String userId);
 
