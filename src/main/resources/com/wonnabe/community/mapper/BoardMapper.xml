@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.community.mapper.BoardMapper">
+
+    <!--  게시판 전체 글 조회 - 페이지네이션   -->
+    <select id="selectBoardsByCommunityId" resultType="com.wonnabe.community.dto.board.BoardDTO">
+        SELECT
+        b.id AS boardId,
+        b.title,
+        b.content,
+        u.name AS userName,
+        f.id AS categoryId,
+        f.name AS categoryName,
+        (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
+        (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+        EXISTS (
+        SELECT 1 FROM board_scrap
+        WHERE board_id = b.id AND user_id = #{userId}
+        ) AS isScraped,
+        EXISTS (
+        SELECT 1 FROM board_like
+        WHERE board_id = b.id AND user_id = #{userId}
+        ) AS isLiked,
+        DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+        FROM board b
+        JOIN user_profile u ON b.user_id = u.user_id
+        JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
+        WHERE b.financial_tendency_type_id = #{communityId}
+        AND b.is_deleted = 0
+        <if test="lastBoardId != null">
+            AND b.id &lt; #{lastBoardId}
+        </if>
+        ORDER BY b.id DESC
+        LIMIT #{pageSize}
+    </select>
+
+    <!-- 게시글 생성  -->
+    <insert id="insertBoard">
+        INSERT INTO board (
+            financial_tendency_type_id,
+            user_id,
+            title,
+            content,
+            view_count,
+            created_at,
+            is_deleted
+        ) VALUES (
+                     #{communityId},
+                     #{userId},
+                     #{title},
+                     #{content},
+                     0,
+                     NOW(),
+                     0
+                 )
+    </insert>
+
+
+</mapper>
