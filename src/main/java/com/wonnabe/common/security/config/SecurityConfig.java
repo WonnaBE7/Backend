@@ -102,15 +102,30 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 정적 리소스 및 Swagger 관련 URL을 보안 필터링에서 제외합니다.
-     *
-     * @param web WebSecurity
-     * @throws Exception 예외 발생 시
      */
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/assets/**", "/*", "/api/member/**",
+        web.ignoring().antMatchers(
+                "/assets/**",
+                "/*",
+                "/api/member/**",
+                "/api/nowme/**",        // ‼️‼️‼️‼️‼️
+//                "/api/nowme/diagnosis", // ‼️‼️‼️‼️‼️
+                "/api/auth/kakao/**", // ‼️‼️‼️‼️‼️
+                // 나중엔 아래 코드로 바꾸기
+                /*
+                // 이 줄을 삭제하고, 아래에서 세밀하게 제어
+                "/api/auth/kakao/**",   // ❌ 삭제
+                // 대신 configure(HttpSecurity http) 메서드에서:
+                .antMatchers("/api/auth/kakao/login-url").permitAll()    // 로그인 URL만 허용
+                .antMatchers("/api/auth/kakao/callback").permitAll()     // 콜백만 허용
+                .antMatchers("/api/auth/kakao/login").permitAll()        // POST 로그인만 허용
+                * */
                 // Swagger 관련 url은 보안에서 제외
-                "/swagger-ui.html", "/webjars/**", "/swagger-resources/**", "/v2/api-docs"
+                "/swagger-ui.html",
+                "/webjars/**",
+                "/swagger-resources/**",
+                "/v2/api-docs"
         );
     }
 
@@ -128,35 +143,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     /**
      * 전체 보안 설정을 구성합니다.
-     * - 필터 체인 구성: 인코딩 필터 → 에러 필터 → JWT 필터 → 로그인 필터
-     * - 예외 처리 핸들러 등록
-     * - 세션 비활성화 및 폼 로그인/기본 로그인 해제
-     *
-     * @param http HttpSecurity
-     * @throws Exception 예외 발생 시
      */
     @Override
     public void configure(HttpSecurity http) throws Exception {
 
         // 한글 인코딩 필터 설정
         http.addFilterBefore(encodingFilter(), CsrfFilter.class)
-                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class) // JWT 예외 감지 후 JSON 에러 응답
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Authorization 헤더에 access token이 있으면 자동으로 검증 & 사용자 인증을 처리
-                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 로그인 시도 처리
+                .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         // 인증 및 권한 실패 시 처리 핸들러 설정
         http.exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler);
 
-        // 인가 정책 설정
+        // 🔥 인가 정책 설정 - NowMe API 명시적 허용
         http.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
+                .antMatchers("/api/nowme/**").permitAll()      // 🔥 추가 보장
+                .antMatchers("/api/nowme/diagnosis").permitAll() // 🔥 명시적 허용
                 .anyRequest().permitAll();
 
-        http.httpBasic().disable() // 기본 HTTP 인증 비활성화
-                .csrf().disable() // CSRF 비활성화
-                .formLogin().disable() // formLogin 비활성화  관련 필터 해제
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 세션 생성 모드 설정
+        http.httpBasic().disable()
+                .csrf().disable()
+                .formLogin().disable()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 }

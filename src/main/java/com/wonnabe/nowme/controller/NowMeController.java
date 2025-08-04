@@ -13,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * NowMe 진단 API 컨트롤러
  * - 사용자의 금융 성향을 분석하는 NowMe 진단 결과를 응답하는 API 엔드포인트
@@ -39,20 +42,58 @@ public class NowMeController {
 //            @AuthenticationPrincipal CustomUser user,
 //            @RequestBody NowMeRequestDTO request
 //    ) {
-//        // user.getUser().getUserId()로 접근 후 Long으로 변환
-//        String userIdStr = user.getUser().getUserId();
-//        Long userId = Long.parseLong(userIdStr);
-//
+//        // 실제 운영시 사용할 코드 (String userId 직접 사용)
+//        String userId = user.getUser().getUserId();
 //        return nowMeService.diagnose(userId, request);
 //    }
     public NowMeResponseDTO diagnose(@RequestBody NowMeRequestDTO request) {
         // 실제 DB 사용자 ID (String)
-//        String testUserId = "f6789012-3456-7890-abcd-mn12op34qr56";
+        String testUserId = "f6789012-3456-7890-abcd-mn12op34qr56";
 //        String testUserId = "a1b2c3d4-e5f6-7890-ab12-cd34ef56gh78";
 //        String testUserId = "b2c3d4e5-f678-9012-abcd-ef12gh34ij56";
-        String testUserId = "h8901234-5678-9012-abcd-qr56st78uv90";
+        System.out.println("⭐⭐⭐⭐⭐ NowMe API 호출됨!");
+//        String testUserId = "h8901234-5678-9012-abcd-qr56st78uv90";
+//        String testUserId = "111";
         return nowMeService.diagnose(testUserId, request);
     }
+
+    /**
+     * 🔸 모든 사용자 한번에 테스트
+     */
+    @PostMapping("/test/all")
+    public Map<String, NowMeResponseDTO> testAllUsers(@RequestBody NowMeRequestDTO request) {
+        Map<String, NowMeResponseDTO> results = new HashMap<>();
+
+        String[] userIds = {"111", "222", "333", "444", "555"};
+        String[] userNames = {"자린고비형", "YOLO형", "공격투자형", "소확행형", "느긋한관망형"};
+
+        for (int i = 0; i < userIds.length; i++) {
+            try {
+                NowMeResponseDTO result = nowMeService.diagnose(userIds[i], request);
+                results.put(userNames[i] + "(" + userIds[i] + ")", result);
+                System.out.println("✅ " + userNames[i] + ": " + result.getPersonaName());
+            } catch (Exception e) {
+                System.out.println("❌ " + userNames[i] + " 테스트 실패: " + e.getMessage());
+            }
+        }
+        return results;
+    }
+
+//    public NowMeResponseDTO diagnose(@RequestBody NowMeRequestDTO request) {
+//        System.out.println("🔥🔥🔥 API 호출됨!"); // 강력한 로그
+//        String testUserId = "h8901234-5678-9012-abcd-qr56st78uv90";
+//
+//        try {
+//            System.out.println("🔥🔥🔥 서비스 호출 전");
+//            NowMeResponseDTO result = nowMeService.diagnose(testUserId, request);
+//            System.out.println("🔥🔥🔥 서비스 호출 후: " + result.getPersonaName());
+//            return result;
+//        } catch (Exception e) {
+//            System.out.println("🔥🔥🔥 에러 발생: " + e.getMessage());
+//            e.printStackTrace();
+//            return NowMeResponseDTO.failure();
+//        }
+//    }
 
     /*
     프로토타입용 (Security 적용 X)
@@ -62,6 +103,8 @@ public class NowMeController {
 }
 
     * */
+
+
 }
 
 /*

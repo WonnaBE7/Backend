@@ -25,9 +25,9 @@ public class SpendingEvaluator {
     private static final Set<String> ESSENTIAL_CATEGORIES = Set.of("food", "transport", "living", "fixcost");
 
     // 🔸 상수값 외부화
-    private static final double DIVERSITY_BASELINE = 8.2;
-    private static final double SPENDING_RATE_BASELINE = 0.673;
-    private static final double CONSISTENCY_BASELINE = 67000.0;
+    private static final double DIVERSITY_BASELINE = 4.0; // ‼️‼️‼️‼️‼️ 원래는 8.2
+    private static final double SPENDING_RATE_BASELINE = 0.4; // ‼️‼️‼️‼️‼️ 원래는 0.673
+    private static final double CONSISTENCY_BASELINE = 35000; // ‼️‼️‼️‼️‼️ 원래는 67000.0
 
     /**
      * 🔹 소비 성향 정량 점수 계산 (0~1)
@@ -101,6 +101,8 @@ public class SpendingEvaluator {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
+
+            System.out.println("🔍 [Activity] 정량: " + quantScore + ", 정성: " + qualScore);
 
             double finalScore = (quantScore * 0.6) + (qualScore * 0.4);
 

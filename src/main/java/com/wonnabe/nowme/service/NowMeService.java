@@ -55,27 +55,27 @@ public class NowMeService {
      * [금융활동성, 소비패턴, 계획방식, 리스크성향] 순서 (0~1 범위)
      */
     private static final List<PersonaVector> PERSONA_VECTORS = Arrays.asList(
-            // 계획적 + 안정형
-            new PersonaVector("가족중심형", new double[]{0.4, 0.2, 0.9, 0.1}),     // 낮은활동성, 필수소비, 매우계획적, 안전투자
-            new PersonaVector("루틴러형", new double[]{0.3, 0.1, 0.8, 0.2}),      // 낮은활동성, 고정소비, 계획적, 안전투자
-            new PersonaVector("미래계획형", new double[]{0.6, 0.3, 0.9, 0.4}),    // 중간활동성, 목적소비, 매우계획적, 중간투자
-            new PersonaVector("자린고비형", new double[]{0.2, 0.0, 0.8, 0.1}),    // 낮은활동성, 최소소비, 계획적, 초안전투자
+            // 계획적 + 안전형 (Planning 높음, Risk 낮음)
+            new PersonaVector("자린고비형", new double[]{0.1, 0.0, 0.9, 0.0}),    // 극도로 보수적
+            new PersonaVector("가족중심형", new double[]{0.3, 0.2, 0.9, 0.1}),     // 가족 중심 계획
+            new PersonaVector("루틴러형", new double[]{0.2, 0.1, 0.8, 0.1}),      // 고정 패턴
+            new PersonaVector("미래계획형", new double[]{0.6, 0.3, 1.0, 0.3}),    // 장기 계획
 
-            // 계획적 + 적극형
-            new PersonaVector("균형 성장형", new double[]{0.7, 0.5, 0.7, 0.6}),   // 높은활동성, 균형소비, 계획적, 적극투자
-            new PersonaVector("새싹 투자자형", new double[]{0.5, 0.4, 0.6, 0.5}), // 중간활동성, 중간소비, 중간계획, 학습투자
+            // 계획적 + 적극형 (Planning 높음, Risk 중간~높음)
+            new PersonaVector("균형 성장형", new double[]{0.8, 0.5, 0.8, 0.7}),   // 균형잡힌 성장
+            new PersonaVector("공격투자형", new double[]{1.0, 0.6, 0.8, 1.0}),    // 최고 리스크
 
-            // 즉흥적 + 안정형
-            new PersonaVector("느긋한 관망형", new double[]{0.1, 0.3, 0.3, 0.0}), // 최소활동성, 소극소비, 즉흥적, 현금보유
-            new PersonaVector("소확행형", new double[]{0.3, 0.6, 0.2, 0.2}),      // 낮은활동성, 감성소비, 즉흥적, 안전투자
+            // 중간형 (모든 축 중간값 - 하나만 남기고 차별화)
+            new PersonaVector("새싹 투자자형", new double[]{0.7, 0.3, 0.5, 0.6}), // 학습형 (중간 전체)
 
-            // 즉흥적 + 적극형
-            new PersonaVector("경험소비형", new double[]{0.5, 0.8, 0.4, 0.3}),    // 중간활동성, 체험소비, 중간계획, 중간투자
-            new PersonaVector("YOLO형", new double[]{0.4, 0.9, 0.1, 0.4}),       // 중간활동성, 최대소비, 즉흥적, 중간투자
-            new PersonaVector("무계획형", new double[]{0.2, 0.7, 0.0, 0.2}),     // 낮은활동성, 충동소비, 무계획, 안전투자
+            // 즉흥적 + 안전형 (Planning 낮음, Risk 낮음)
+            new PersonaVector("느긋한 관망형", new double[]{0.0, 0.3, 0.1, 0.0}), // 극도로 수동적
+            new PersonaVector("소확행형", new double[]{0.3, 0.7, 0.2, 0.2}),      // 감성 소비 특화
 
-            // 고위험 추구형
-            new PersonaVector("공격투자형", new double[]{0.9, 0.6, 0.7, 0.9})     // 최고활동성, 중간소비, 계획적, 고위험투자
+            // 즉흥적 + 적극형 (Planning 낮음, Risk 중간~높음)
+            new PersonaVector("무계획형", new double[]{0.1, 0.9, 0.0, 0.2}),     // 극도로 무계획
+            new PersonaVector("YOLO형", new double[]{0.4, 1.0, 0.0, 0.5}),       // 최고 소비
+            new PersonaVector("경험소비형", new double[]{0.6, 0.9, 0.3, 0.4})    // 체험 중심
     );
 
     /**
@@ -150,6 +150,12 @@ public class NowMeService {
 
         log.debug("📈 축별 최종점수 - 활동성: {}, 소비패턴: {}, 계획방식: {}, 리스크: {}",
                 activityScore, spendingScore, planningScore, riskScore);
+        // 🔥 상세 분석 로그 추가 ‼️️️‼️️️‼️️️‼️️️‼️️️
+        System.out.println("=== 축별 점수 분석 ===");
+        System.out.println("Activity: " + activityScore);
+        System.out.println("Spending: " + spendingScore);
+        System.out.println("Planning: " + planningScore);
+        System.out.println("Risk: " + riskScore);
 
         return new UserVector(activityScore, spendingScore, planningScore, riskScore);
     }
@@ -170,6 +176,8 @@ public class NowMeService {
             double cosineSim = SimilarityCalculator.cosineSimilarity(userArray, personaArray);
             double euclideanSim = SimilarityCalculator.euclideanSimilarity(userArray, personaArray);
             double finalSimilarity = (cosineSim * 0.6) + (euclideanSim * 0.4); // 코사인 60%, 유클리드 40%
+
+            System.out.println(persona.getPersonaName() + ": " + finalSimilarity);
 
             log.debug("🔍 {} - 코사인: {}, 유클리드: {}, 최종: {}",
                     persona.getPersonaName(),
@@ -220,6 +228,40 @@ public class NowMeService {
             // 저장 실패해도 진단 결과는 반환
         }
     }
+//    private void saveDiagnosisHistory(String userId, UserVector userVector, String personaName, double similarity) {
+//        try {
+//            System.out.println("🔥🔥🔥 진단 이력 저장 시작 - userId: " + userId);
+//
+//            // 페르소나명 → ID 변환
+//            Integer nowmeId = PERSONA_NAME_TO_ID.get(personaName);
+//            if (nowmeId == null) {
+//                System.out.println("❗ 알 수 없는 페르소나명: " + personaName);
+//                nowmeId = 1; // 기본값 (자린고비형)
+//            }
+//
+//            // UserVector를 JSON 배열로 변환
+//            double[] vectorArray = userVector.toArray();
+//            String userVectorJson = String.format("[%.3f,%.3f,%.3f,%.3f]",
+//                    vectorArray[0], vectorArray[1], vectorArray[2], vectorArray[3]);
+//
+//            System.out.println("🔥🔥🔥 DB 저장 시도 - nowmeId: " + nowmeId + ", vector: " + userVectorJson);
+//
+//            // 진단 이력 저장 (String userId 직접 사용)
+//            nowMeMapper.insertDiagnosisHistory(
+//                    userId,
+//                    nowmeId,
+//                    similarity,
+//                    userVectorJson
+//            );
+//
+//            System.out.println("🔥🔥🔥 진단 이력 저장 성공!");
+//
+//        } catch (Exception e) {
+//            System.out.println("🔥🔥🔥 진단 이력 저장 실패: " + e.getMessage());
+//            e.printStackTrace();
+//            // 저장 실패해도 진단 결과는 반환
+//        }
+//    }
 
     /**
      * 🔸 User_Info의 nowme_id 업데이트

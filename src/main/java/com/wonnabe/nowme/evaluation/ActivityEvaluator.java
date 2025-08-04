@@ -98,6 +98,8 @@ public class ActivityEvaluator {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
 
+            System.out.println("🔍 [Activity] 정량: " + quantScore + ", 정성: " + qualScore);
+
             double finalScore = (quantScore * 0.6) + (qualScore * 0.4);
 
             log.info("✅ 금융활동성 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",

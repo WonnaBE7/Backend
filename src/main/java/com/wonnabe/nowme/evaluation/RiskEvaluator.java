@@ -107,6 +107,8 @@ public class RiskEvaluator {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
 
+            System.out.println("🔍 [Activity] 정량: " + quantScore + ", 정성: " + qualScore);
+
             double finalScore = (quantScore * 0.6) + (qualScore * 0.4);
 
             log.info("✅ 리스크성향 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
