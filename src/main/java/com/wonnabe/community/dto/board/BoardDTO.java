@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({
         "boardId", "title", "content", "userName",
-        "categoryID", "categoryName", "likeCount", "commentCount",
+        "categoryId", "categoryName", "likeCount", "commentCount",
         "isScraped", "isLiked", "createdAt"
 })
 public class BoardDTO {
@@ -15,7 +15,7 @@ public class BoardDTO {
     private String content;
     private String userName;
 
-    @JsonProperty("categoryID")
+    @JsonProperty("categoryId")
     private Integer categoryId;
 
     private String categoryName;

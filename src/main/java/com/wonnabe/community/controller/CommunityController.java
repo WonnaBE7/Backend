@@ -46,4 +46,21 @@ public class CommunityController {
         Map<String, Integer> result = communityService.getUserBoardAndScrapCounts(userId);
         return JsonResponse.ok("좋아요 스크랩 조회 성공", result);
     }
+
+    //사용자가 스크랩한 게시글을 조회
+    @GetMapping("/user/scraped")
+    public ResponseEntity<Object> getUserScrapedBoards(@AuthenticationPrincipal CustomUser customUser) {
+        String userId = customUser.getUser().getUserId();
+        List<BoardDTO> scrapedBoards = communityService.getScrapedBoards(userId);
+        return JsonResponse.ok("스크랩된 게시글을 조회에 성공했습니다.", Map.of("boards", scrapedBoards));
+    }
+
+    //사용자가 작성한 글 목록 조회
+    @GetMapping("/user/writed")
+    public ResponseEntity<Object> getUserWrittenBoards(@AuthenticationPrincipal CustomUser customUser) {
+        String userId = customUser.getUser().getUserId();
+        List<BoardDTO> writtenBoards = communityService.getWrittenBoards(userId);
+        return JsonResponse.ok("작성한 게시글 조회에 성공했습니다.", Map.of("boards", writtenBoards));
+    }
+
 }

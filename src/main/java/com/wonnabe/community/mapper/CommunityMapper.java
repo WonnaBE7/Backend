@@ -27,4 +27,10 @@ public interface CommunityMapper {
     //사용자가 스크랩한 게시글 수 반환
     int countUserScraps(@Param("userId") String userId);
 
+    //사용자가 스크랩한 게시글을 조회
+    List<BoardDTO> selectScrapedBoards(@Param("userId") String userId);
+
+    //사용자가 작성한 글 목록 조회
+    List<BoardDTO> selectWrittenBoards(@Param("userId") String userId);
+
 }

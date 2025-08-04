@@ -48,4 +48,15 @@ public class CommunityService {
 
         return result;
     }
+
+    //사용자가 스크랩한 게시글을 조회
+    public List<BoardDTO> getScrapedBoards(String userId) {
+        return communityMapper.selectScrapedBoards(userId);
+    }
+
+    //사용자가 작성한 글 목록 조회
+    public List<BoardDTO> getWrittenBoards(String userId) {
+        return communityMapper.selectWrittenBoards(userId);
+    }
+
 }
