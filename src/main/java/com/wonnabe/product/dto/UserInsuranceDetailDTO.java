@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 import java.sql.Date;
 
+import java.util.List;
+
 /**
  * 보유 보험 상품 상세 조회 API의 응답을 위한 DTO(Data Transfer Object) 클래스.
  */
@@ -33,6 +35,9 @@ public class UserInsuranceDetailDTO {
     private Date endDate;
     private BigDecimal totalPaid;
 
+    // 월별 차트 데이터
+    private List<MonthlyChartDto> monthlyChart;
+
     /**
      * UserInsuranceVO 객체를 UserInsuranceDetailDTO로 변환하는 정적 메소드.
      * @param vo 변환할 VO 객체
@@ -48,7 +53,7 @@ public class UserInsuranceDetailDTO {
                 .coverageType(product.getCoverageType())
                 .coverageDesc(product.getCoverageDesc())
                 .coverageLimit(product.getCoverageLimit())
-                .productId(vo.getId())
+                .productId(vo.getProductId())
                 .monthlyPremium(vo.getMonthlyPremium())
                 .startDate(vo.getStartDate())
                 .endDate(vo.getEndDate())
