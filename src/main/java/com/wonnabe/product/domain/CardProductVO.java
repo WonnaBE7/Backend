@@ -7,7 +7,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -26,7 +28,34 @@ public class CardProductVO {
     private String annualFeeOverSeas; // 해외겸용 연회비
     private String performanceConditionDescription; // 실적 한도 글로
     private Long benefitLimitAmount; // 실적 한도 숫자
-    private List<String> mainCategories; // 카드 혜택 main 5개로 요약
-    private List<Integer> cardScore; // 카드 점수 - [확장성, 혜택범위, 전월 실적, 활용도, 연회비 부담]
-    private List<Long> matchedFilters; // 금융성향에 대한 1차 필터링 결과
+    private String mainCategories; // 카드 혜택 main 5개로 요약
+    private String cardScore; // 카드 점수 - [확장성, 혜택범위, 전월 실적, 활용도, 연회비 부담]
+    private String matchedFilters; // 금융성향에 대한 1차 필터링 결과
+
+    // 1차 필터링한 워너비 대상을 리스트로 변환
+    public List<Integer> getMatchedFilters() {
+        // 예: ["1", "2"] → List<Integer>로 변환
+        String ids = matchedFilters.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
+        return Arrays.stream(ids.split(","))
+            .filter(s -> !s.isEmpty())
+            .map(Integer::parseInt)
+            .collect(Collectors.toList());
+    }
+
+    // 카드 점수 리스트로 변환
+    public List<Integer> getCardScores() {
+        // 예: ["1", "2"] → List<Integer>로 변환
+        String ids = cardScore.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
+        return Arrays.stream(ids.split(","))
+            .filter(s -> !s.isEmpty())
+            .map(Integer::parseInt)
+            .collect(Collectors.toList());
+    }
+
+    // 카드 타입 라벨 얻기
+    public String getCardTypeLabel() {
+        // 예: 신용 → 신용카드
+        return cardType != null ? cardType.getLabel() + "카드" : "카드";
+    }
 }
+
