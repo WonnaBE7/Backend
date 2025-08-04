@@ -30,15 +30,6 @@ import javax.sql.DataSource;
                 )
         }
 )
-@ComponentScan(
-        basePackages = {"com.wonnabe"},
-        excludeFilters = {
-                @ComponentScan.Filter(
-                        type = FilterType.ASSIGNABLE_TYPE,
-                        classes = SwaggerConfig.class
-                )
-        }
-)
 @Log4j2
 @EnableTransactionManagement
 public class RootConfig {
