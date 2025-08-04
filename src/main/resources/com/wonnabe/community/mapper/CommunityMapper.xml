@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.community.mapper.CommunityMapper">
+
+    <!-- 게시판 전체 조회 -->
+    <select id="selectAllCommunities" resultType="CommunityDTO">
+        SELECT
+            c.id AS communityId,
+            c.name AS communityName,
+            c.simple_description AS simpleDescription,
+            (
+                SELECT COUNT(*)
+                FROM user_info u
+                WHERE u.nowme_id = c.id
+            ) AS memberCount,
+            (
+                SELECT b.title
+                FROM board b
+                WHERE b.financial_tendency_type_id = c.id
+                  AND b.is_deleted = 0
+                ORDER BY b.created_at DESC
+                LIMIT 1
+            ) AS latestBoard
+        FROM financial_tendency_type c
+    </select>
+
+
+    <!-- 게시판 인기 Top3 -->
+    <select id="selectTop3Communities" resultType="CommunityDTO">
+        SELECT
+            c.id AS communityId,
+            c.name AS communityName,
+            c.simple_description AS simpleDescription,
+            (
+                SELECT COUNT(*)
+                FROM user_info ui
+                WHERE ui.nowme_id = c.id
+            ) AS memberCount,
+            (
+                SELECT title
+                FROM board
+                WHERE financial_tendency_type_id = c.id AND is_deleted = 0
+                ORDER BY created_at DESC
+                LIMIT 1
+            ) AS latestBoard
+        FROM financial_tendency_type c
+        ORDER BY memberCount DESC
+            LIMIT 3
+    </select>
+
+    <!-- 인기 게시글 Top3 -->
+    <select id="selectTop3Boards" resultType="com.wonnabe.community.dto.board.BoardDTO">
+        SELECT
+            b.id AS boardId,
+            b.title,
+            b.content,
+            u.name AS userName,
+            f.id AS categoryId,
+            f.name AS categoryName,
+            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
+            (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+            EXISTS (
+                SELECT 1 FROM board_scrap
+                WHERE board_id = b.id AND user_id = #{userId}
+            ) AS isScraped,
+            EXISTS (
+                SELECT 1 FROM board_like
+                WHERE board_id = b.id AND user_id = #{userId}
+            ) AS isLiked,
+            DATE_FORMAT(b.created_at, '%Y-%m-%d') AS createdAt
+        FROM board b
+                 JOIN user_profile u ON b.user_id = u.user_id
+                 JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
+        WHERE b.is_deleted = 0
+        ORDER BY likeCount DESC
+            LIMIT 3
+    </select>
+
+    <!-- 내가 좋아요랑 스크랩 한 글 수 -->
+    <select id="countUserBoards" resultType="int">
+        SELECT COUNT(*) FROM board WHERE user_id = #{userId} AND is_deleted = 0
+    </select>
+
+    <select id="countUserScraps" resultType="int">
+        SELECT COUNT(*) FROM board_scrap WHERE user_id = #{userId}
+    </select>
+
+</mapper>
