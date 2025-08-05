@@ -2,9 +2,13 @@ package com.wonnabe.product.service;
 
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
+import com.wonnabe.product.dto.BasicUserInfo;
 import com.wonnabe.product.dto.CardApplyRequestDTO;
+
+import static com.wonnabe.product.dto.CardProductDetailResponseDTO.*;
 import static com.wonnabe.product.dto.CardRecommendationResponseDTO.*;
 
+import com.wonnabe.product.dto.CardProductDetailResponseDTO;
 import com.wonnabe.product.dto.CardRecommendationResponseDTO;
 import com.wonnabe.product.dto.UserCardDTO;
 import com.wonnabe.product.dto.UserCardDetailDTO;
@@ -25,7 +29,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Log4j2
 @Service("cardServiceImpl")
@@ -148,19 +154,28 @@ public class CardServiceImpl implements CardService {
 
         // 소득원별 조정
         if (incomeAnnualAmount >= 48000000.00) {
-            adjusted[0] += 0.05;  // 확장성
-            adjusted[1] += 0.05;  // 혜택 범위
-            adjusted[2] -= 0.05; // 전월 실적
-            adjusted[4] -= 0.05; // 연회비
+            adjusted[0] += 0.02;  // 확장성
+            adjusted[1] += 0.02;  // 혜택 범위
+            adjusted[2] -= 0.02; // 전월 실적
+            adjusted[4] -= 0.02; // 연회비
         } else if (incomeAnnualAmount < 24000000.00) {
-            adjusted[0] -= 0.05;  // 확장성
-            adjusted[1] -= 0.05;  // 혜택 범위
-            adjusted[2] += 0.05; // 전월 실적
-            adjusted[4] += 0.05; // 연회비
+            adjusted[0] -= 0.02;  // 확장성
+            adjusted[1] -= 0.02;  // 혜택 범위
+            adjusted[2] += 0.02; // 전월 실적
+            adjusted[4] += 0.02; // 연회비
         }
 
         // 정규화 (합 = 1)
         return normalizeWeights(adjusted);
+    }
+
+    // 카드 활용 점수 계산
+    int calculateUsageScore(int performanceRate) {
+        if (performanceRate >= 100) return 5;
+        if (performanceRate >= 80) return 4;
+        if (performanceRate >= 60) return 3;
+        if (performanceRate >= 40) return 2;
+        return 1;
     }
 
     // 가중치 정규화
@@ -176,7 +191,8 @@ public class CardServiceImpl implements CardService {
     private double calculateScore(CardProductVO card, double[] weights, double amount) {
         List<Integer> score = card.getCardScores();
         int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
-        score.set(3, performanceRate);
+        int usageScore = calculateUsageScore(performanceRate);
+        score.set(3, usageScore);
         String updatedScore = score.toString();  // 예: [2, 3, 5, 4, 5]
         card.setCardScore(updatedScore);
         return (weights[0] * score.get(0) +
@@ -286,5 +302,154 @@ public class CardServiceImpl implements CardService {
             this.card = card;
             this.score = score;
         }
+    }
+
+    private static final Map<String, String> CATEGORY_LABELS = Map.of(
+        "food", "식비",
+        "transport", "교통",
+        "shopping", "쇼핑",
+        "financial", "금융",
+        "other", "기타"
+    );
+
+    public static String translateCategories(List<String> mainCategories) {
+        return mainCategories.stream()
+            .map(CATEGORY_LABELS::get)
+            .filter(Objects::nonNull) // 혹시 매핑되지 않은 값 제외
+            .collect(Collectors.joining(", "));
+    }
+
+    @Override
+    public CardProductDetailResponseDTO findProductDetail(long productId, String userId) {
+        // 내가 보유 중인 카드 상품 id
+        List<Long> myCardIds = cardMapper.findProductIdsByUserId(userId);
+
+        // 선택한 카드 상품 조회
+        CardProductVO card = cardMapper.findById(productId);
+
+        // 없을 시 예외 처리
+        if (card == null) {
+            throw new NoSuchElementException("해당 카드 상품은 존재하지 않습니다.");
+        }
+
+        // 사용자 정보 조회
+        BasicUserInfo user = cardMapper.findBasicUserInfoById(userId);
+
+        if (user == null) {
+            throw new NoSuchElementException("사용자의 정보를 찾을 수 없습니다.");
+        }
+
+        // 현재 카드 상품에 대한 점수와 가중치 계산
+        double[] baseWeights = PERSONA_WEIGHTS.get(user.getNowMeId()).clone();
+        double[] adjustedWeights = adjustWeightsByIncome(baseWeights, user.getIncomeAnnualAmount());
+
+        // 카드 매칭 점수 계산
+        double cardScore = calculateScore(card, adjustedWeights, user.getPreviousConsumption());
+
+        // 내 카드 상품 정보를 가져옴
+
+        List<CardProductVO> myCards = new ArrayList<>();
+        if (myCardIds != null && !myCardIds.isEmpty()) {
+            myCards = cardMapper.findProductsByIds(myCardIds);
+        }
+
+        // 카드 상세 정보를 위한 DTO
+        CardProductDetailResponseDTO response = new CardProductDetailResponseDTO();
+
+        // 관심 상품 등록 여부 확인
+        boolean isWished = user.getMyFavorite().contains(productId);
+
+        // 내 카드 점수 업데이트
+        int cardPerformanceScore = calculatePerformanceRate(card.getPerformanceCondition(), user.getPreviousConsumption());
+        int cardUsageScore = calculateUsageScore(cardPerformanceScore);
+
+        List<Integer> scores = card.getCardScores();
+        scores.set(3, cardUsageScore);
+        String updatedScore = scores.stream()
+            .map( score -> score * 20)
+            .map(String::valueOf)
+            .collect(Collectors.joining(", ", "[", "]"));
+        card.setCardScore(updatedScore);
+
+        List<String> label = List.of(
+            "확장성",
+            "혜택 범위",
+            "전월 실적",
+            "카드 활용도",
+            "연회비 부담"
+        );
+
+        // 카드 상품 정보 저장
+        CardInfo cardInfo = CardInfo.builder()
+            .cardId(card.getProductId())
+            .cardName(card.getCardName())
+            .cardCompany(card.getCardCompany())
+            .matchScore((int)cardScore)
+            .mainBenefit(card.getBenefitLimit())
+            .cardType(card.getCardType().toValue())
+            .benefitSummary(card.getBenefitSummary())
+            .isWished(isWished)
+            .labels(label)
+            .currentUserData(card.getCardScores())
+            .build();
+
+        response.setCardInfo(cardInfo);
+
+        // 비교 차트
+        List<ComparisonChart> comparisonCharts = new ArrayList<>();
+
+        // 내 카드와 해당 상품 비교 차트에 대한 정보
+        for (CardProductVO myCard : myCards) {
+
+            // 카드 활용 점수 설정
+            int myPerformanceRate = calculatePerformanceRate(myCard.getPerformanceCondition(), user.getPreviousConsumption());
+            int myCardUsageScore = calculateUsageScore(myPerformanceRate);
+
+            List<Integer> myScores = myCard.getCardScores();
+            myScores.set(3, myCardUsageScore);
+            String updatedMyScore = myScores.stream()
+                .map( myScore -> myScore * 20)
+                .map(String::valueOf)
+                .collect(Collectors.joining(", ", "[", "]"));
+            myCard.setCardScore(updatedMyScore);
+
+            // 비교 차트 설정
+            ComparisonChart comparisonChart = ComparisonChart.builder()
+                .compareId(myCard.getProductId())
+                .compareName(myCard.getCardName())
+                .recommendedProductData(myCard.getCardScores())
+                .build();
+
+            comparisonCharts.add(comparisonChart);
+        }
+
+        if (!comparisonCharts.isEmpty()) {
+            response.setComparisonChart(comparisonCharts);
+        }
+
+        String mainCategory = translateCategories(card.getMainCategories());
+        String category = "혜택 적용 범위: " + mainCategory;
+        String usage = "";
+        if (!card.getAnnualFeeDomestic().equals("해당안함")) {
+            usage += "국내 전용";
+            if (!card.getAnnualFeeOverSeas().equals("해당안함")) {
+                usage += " / 해외 겸용";
+            }
+        } else {
+            usage += "해외 겸용";
+        }
+        String annual_fee = "국내 연회비: "+ card.getAnnualFeeDomestic()
+            + " / 해외 연회비: " + card.getAnnualFeeOverSeas();
+
+        Note note = Note.builder()
+            .category(category)
+            .previousMonthSpending(card.getPerformanceConditionDescription())
+            .usage(usage)
+            .annualFee(annual_fee)
+            .build();
+
+        response.setNote(note);
+
+        return response;
     }
 }
