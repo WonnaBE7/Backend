@@ -6,7 +6,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
 @EnableWebMvc
-@ComponentScan(basePackages = "com.wonnabe")
+@ComponentScan(basePackages = {"com.wonnabe"})
 public class ServletConfig implements WebMvcConfigurer {
 
     @Override
