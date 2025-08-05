@@ -59,4 +59,52 @@
     </insert>
 
 
+    <!--  게시글 조회  -->
+    <select id="selectBoardDetail" resultType="BoardDTO">
+        SELECT
+            b.id AS boardId,
+            b.title,
+            b.content,
+            u.name AS userName,
+            f.id AS categoryId,
+            f.name AS categoryName,
+            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
+            (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+            EXISTS (
+                SELECT 1 FROM board_scrap
+                WHERE board_id = b.id AND user_id = #{userId}
+            ) AS isScraped,
+            EXISTS (
+                SELECT 1 FROM board_like
+                WHERE board_id = b.id AND user_id = #{userId}
+            ) AS isLiked,
+            DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+        FROM board b
+                 JOIN user_profile u ON b.user_id = u.user_id
+                 JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
+        WHERE b.id = #{boardId}
+          AND b.financial_tendency_type_id = #{communityId}
+          AND b.is_deleted = 0
+    </select>
+
+    <!--    댓글 조회-->
+    <select id="selectCommentsByBoardId" resultType="CommentDTO">
+        SELECT
+            c.id AS commentId,
+            u.name AS userName,
+            f.name AS nowme,
+            c.content,
+            (SELECT COUNT(*) FROM comment_like cl WHERE cl.comment_id = c.id) AS likeCount
+        FROM comment c
+                 JOIN user_profile u ON c.user_id = u.user_id
+                 JOIN user_info i ON u.user_id = i.user_id
+                 JOIN financial_tendency_type f ON i.nowme_id = f.id
+        WHERE c.parent_comment_id = #{boardId} AND c.post_id = #{communityId}
+    </select>
+
+    <!-- 댓글 생성 -->
+    <insert id="insertComment">
+        INSERT INTO comment (post_id, user_id, content, created_at)
+        VALUES (#{boardId}, #{userId}, #{content}, NOW())
+    </insert>
 </mapper>

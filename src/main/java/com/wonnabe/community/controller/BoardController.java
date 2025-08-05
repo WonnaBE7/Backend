@@ -4,6 +4,8 @@ import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.community.dto.board.BoardCreateRequestDto;
 import com.wonnabe.community.dto.board.BoardDTO;
 import com.wonnabe.community.dto.board.BoardPageRequestDto;
+import com.wonnabe.community.dto.comment.CommentCreateRequestDto;
+import com.wonnabe.community.dto.comment.CommentDTO;
 import com.wonnabe.community.service.BoardService;
 import com.wonnabe.common.util.JsonResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +23,10 @@ public class BoardController {
 
     private final BoardService boardService;
 
-    @PostMapping("/{communityId}/board")
+    //게시판 전체 글 조회 - 페이지네이션
+    @PostMapping("/board")
     public ResponseEntity<Object> getBoardsByCommunity(
-            @PathVariable int communityId,
+            @RequestParam int communityId,
             @AuthenticationPrincipal CustomUser customUser,
             @RequestBody BoardPageRequestDto pageRequest) {
 
@@ -38,15 +41,47 @@ public class BoardController {
         return JsonResponse.ok("게시글을 성공적으로 가져왔습니다.", Map.of("boards", boards));
     }
 
-    @PostMapping("/{communityId}/board/create")
+    //게시글 생성
+    @PostMapping("/board/create")
     public ResponseEntity<Object> createBoard(
-            @PathVariable int communityId,
+            @RequestParam int communityId,
             @AuthenticationPrincipal CustomUser customUser,
             @RequestBody BoardCreateRequestDto requestDto
     ) {
         String userId = customUser.getUser().getUserId();
         boardService.createBoard(communityId, userId, requestDto);
         return JsonResponse.ok("게시글을 생성하였습니다.");
+    }
+
+    //게시글 조회
+    @GetMapping("/board")
+    public ResponseEntity<Object> getBoardDetail(
+            @RequestParam int communityId,
+            @RequestParam Long boardId,
+            @AuthenticationPrincipal CustomUser customUser) {
+
+        String userId = customUser.getUser().getUserId();
+        BoardDTO board = boardService.getBoardDetail(communityId, boardId, userId);
+        return JsonResponse.ok("게시글 조회에 성공하였습니다.", Map.of("data", board));
+    }
+
+    //댓글 조회
+    @GetMapping("/board/comment")
+    public ResponseEntity<Object> getComments(@RequestParam int communityId,
+                                              @RequestParam Long boardId) {
+        List<CommentDTO> comments = boardService.getCommentsByBoardId(communityId, boardId);
+        return JsonResponse.ok("댓글 조회에 성공하였습니다.", Map.of("comments", comments));
+    }
+
+    //댓글 생성
+    @PostMapping("/board/comment")
+    public ResponseEntity<Object> createComment(@AuthenticationPrincipal CustomUser customUser,
+                                                @RequestParam int communityId,
+                                                @RequestParam Long boardId,
+                                                @RequestBody CommentCreateRequestDto requestDto) {
+        String userId = customUser.getUser().getUserId();
+        boardService.createComment(userId, boardId, requestDto.getContent());
+        return JsonResponse.ok("댓글 작성에 성공하였습니다.", Map.of());
     }
 
 }

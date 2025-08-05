@@ -2,6 +2,7 @@ package com.wonnabe.community.service;
 
 import com.wonnabe.community.dto.board.BoardCreateRequestDto;
 import com.wonnabe.community.dto.board.BoardDTO;
+import com.wonnabe.community.dto.comment.CommentDTO;
 import com.wonnabe.community.mapper.BoardMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,8 +28,25 @@ public class BoardService {
         return boardMapper.selectBoardsByCommunityId(communityId, userId, pageSize, lastBoardId);
     }
 
+    //게시글 생성
     public void createBoard(int communityId, String userId, BoardCreateRequestDto requestDto) {
         boardMapper.insertBoard(communityId, userId, requestDto.getTitle(), requestDto.getContent());
+    }
+
+
+    //게시글 조회
+    public BoardDTO getBoardDetail(int communityId, Long boardId, String userId) {
+        return boardMapper.selectBoardDetail(communityId, boardId, userId);
+    }
+
+    //댓글 조회
+    public List<CommentDTO> getCommentsByBoardId(int communityId, Long boardId) {
+        return boardMapper.selectCommentsByBoardId(communityId, boardId);
+    }
+
+    // 댓글 생성
+    public void createComment(String userId, Long boardId, String content) {
+        boardMapper.insertComment(userId, boardId, content);
     }
 
 }
