@@ -18,6 +18,8 @@ import javax.sql.DataSource;
 @Configuration
 @PropertySource({"classpath:/application.properties"})
 @MapperScan(basePackages = {"com.wonnabe.**.mapper"})
+@ComponentScan(basePackages={ "com.wonnabe" })
+
 // ‼️Test 진행시 SwaggerConfig.class 빼기
 @ComponentScan(
         basePackages = {"com.wonnabe"},
