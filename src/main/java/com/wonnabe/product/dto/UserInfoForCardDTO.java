@@ -35,7 +35,7 @@ public class UserInfoForCardDTO {
 
 	// 내 카드 Id 리스트로 변환
 	public List<Long> getMyCardIds() {
-		// 예: ["1", "2"] → List<Integer>로 변환
+		// 예: ["1", "2"] → List<Long>로 변환
 		String ids = myCardIds.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
 		return Arrays.stream(ids.split(","))
 			.filter(s -> !s.isEmpty())
