@@ -4,9 +4,17 @@
         "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
     <settings>
-        <setting name="mapUnderscoreToCamelCase" value="true" />
+        <!-- DB 컬럼명이 스네이크 케이스일 때, 카멜케이스로 매핑 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
     </settings>
+
+    <!-- VO/도메인 클래스 별칭 등록 -->
     <typeAliases>
-        <package name="org.scoula.board.domain" />
+        <!-- 약칭 사용할 수 있게 설정 -->
+        <package name="com.wonnabe.product.domain" />
+        <package name="com.wonnabe.product.dto" />
+        <package name="com.wonnabe.asset.domain"/>
+        <package name="com.wonnabe.asset.dto"/>
     </typeAliases>
+
 </configuration>

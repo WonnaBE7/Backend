@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.product.mapper.SavingsMapper">
+
+    <!--  특정 예적금 상품 정보 조회  -->
+    <select id="findById" resultType="com.wonnabe.product.domain.SavingsProductVO">
+        SELECT *
+        FROM Savings_Product
+        WHERE product_id = #{productId}
+    </select>
+
+    <!--  사용자가 신청한 예적금 등록  -->
+    <insert id="insertUserSavings" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO User_Savings (user_id, product_id, principal_amount, start_date, maturity_date, monthly_payment)
+        VALUES (#{userId}, #{productId}, #{principalAmount}, #{startDate}, #{maturityDate}, #{monthlyPayment})
+    </insert>
+
+    <!--  사용자 보유 예적금 목록 최신화 (my_savings_ids 컬럼 사용) -->
+    <update id="updateUserSavingsInfo">
+        UPDATE User_Info
+        SET my_savings_ids =
+                CASE
+                    WHEN JSON_VALID(my_savings_ids) = 0 OR my_savings_ids IS NULL THEN JSON_ARRAY(#{savingsId})
+                    ELSE JSON_ARRAY_APPEND(my_savings_ids, '$', CAST(#{savingsId} AS UNSIGNED))
+                    END
+        WHERE user_id = #{userId}
+    </update>
+
+    <!--  사용자가 등록한 예적금 정보 조회 (최신 1건) -->
+    <select id="findUserSavingsByProductId" resultType="com.wonnabe.product.domain.UserSavingsVO">
+        SELECT *
+        FROM User_Savings
+        WHERE product_id = #{productId} AND user_id = #{userId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <!--  사용자의 예적금 ID 목록 조회  -->
+    <select id="getMySavingsIdsJson" resultType="java.lang.String">
+        SELECT my_savings_ids
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+</mapper>
