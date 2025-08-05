@@ -58,6 +58,15 @@
                  )
     </insert>
 
+    <!--  게시글 삭제  -->
+    <update id="markBoardAsDeleted">
+        UPDATE board
+        SET is_deleted = 1
+        WHERE id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+          AND user_id = #{userId}
+    </update>
+
 
     <!--  게시글 조회  -->
     <select id="selectBoardDetail" resultType="BoardDTO">
@@ -87,4 +96,47 @@
           AND b.is_deleted = 0
     </select>
 
+    <!--  게시글 스크랩  -->
+    <select id="getScrapStatus" resultType="int">
+        SELECT is_deleted
+        FROM board_scrap
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </select>
+
+    <insert id="insertBoardScrap">
+        INSERT INTO board_scrap (user_id, board_id, financial_tendency_type_id)
+        VALUES (#{userId}, #{boardId}, #{communityId})
+    </insert>
+
+    <update id="updateScrapStatus">
+        UPDATE board_scrap
+        SET is_deleted = #{isDeleted}
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </update>
+
+    <!--  좋아요 생성 - 게시글  -->
+    <select id="getBoardLikeStatus" resultType="int">
+        SELECT is_deleted
+        FROM board_like
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </select>
+
+    <insert id="insertBoardLike">
+        INSERT INTO board_like (user_id, board_id, financial_tendency_type_id)
+        VALUES (#{userId}, #{boardId}, #{communityId})
+    </insert>
+
+    <update id="updateBoardLikeStatus">
+        UPDATE board_like
+        SET is_deleted = #{isDeleted}
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </update>
 </mapper>

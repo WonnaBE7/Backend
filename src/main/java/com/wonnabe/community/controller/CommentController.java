@@ -54,4 +54,18 @@ public class CommentController {
         commentService.deleteComment(commentId, boardId, userId);
         return JsonResponse.ok("댓글 삭제에 성공하였습니다.", Map.of());
     }
+
+    //좋아요 생성 -댓글
+    @PatchMapping("/board/comment/like")
+    public ResponseEntity<Object> toggleCommentLike(
+            @AuthenticationPrincipal CustomUser customUser,
+            @RequestParam("communityId") int communityId,
+            @RequestParam("boardId") Long boardId,
+            @RequestParam("commentId") Long commentId
+    ) {
+        String userId = customUser.getUser().getUserId();
+        commentService.toggleCommentLike(userId, boardId, commentId, communityId);
+        return JsonResponse.ok("댓글 좋아요 상태가 변경되었습니다.");
+    }
+
 }

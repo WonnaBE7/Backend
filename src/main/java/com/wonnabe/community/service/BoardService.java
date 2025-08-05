@@ -33,10 +33,42 @@ public class BoardService {
         boardMapper.insertBoard(communityId, userId, requestDto.getTitle(), requestDto.getContent());
     }
 
+    //게시글 삭제
+    public void deleteBoard(Long boardId, int communityId, String userId) {
+        boardMapper.markBoardAsDeleted(boardId, communityId, userId);
+    }
 
     //게시글 조회
     public BoardDTO getBoardDetail(int communityId, Long boardId, String userId) {
         return boardMapper.selectBoardDetail(communityId, boardId, userId);
     }
+
+    //게시글 스크랩
+    public void toggleBoardScrap(String userId, Long boardId, int communityId) {
+        Integer currentStatus = boardMapper.getScrapStatus(userId, boardId, communityId);
+
+        if (currentStatus == null) {
+            boardMapper.insertBoardScrap(userId, boardId, communityId); // 새로 추가
+        } else {
+            int newStatus = (currentStatus == 0) ? 1 : 0;
+            boardMapper.updateScrapStatus(userId, boardId, communityId, newStatus); // 상태 토글
+        }
+    }
+
+    //좋아요 생성 - 게시글
+    public void toggleBoardLike(String userId, Long boardId, int communityId) {
+        Integer status = boardMapper.getBoardLikeStatus(userId, boardId, communityId);
+
+        if (status == null) {
+            boardMapper.insertBoardLike(userId, boardId, communityId);
+        } else {
+            int newStatus = (status == 0) ? 1 : 0;
+            boardMapper.updateBoardLikeStatus(userId, boardId, communityId, newStatus);
+        }
+    }
+
+
+
+
 
 }

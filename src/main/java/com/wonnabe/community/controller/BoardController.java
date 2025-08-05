@@ -53,7 +53,21 @@ public class BoardController {
         return JsonResponse.ok("게시글을 생성하였습니다.");
     }
 
-    //게시글 조회
+
+    //게시글 삭제
+    @PatchMapping("/board/delete")
+    public ResponseEntity<Object> deleteBoard(
+            @AuthenticationPrincipal CustomUser customUser,
+            @RequestParam("communityId") int communityId,
+            @RequestParam("boardId") Long boardId
+    ) {
+        String userId = customUser.getUser().getUserId();
+        boardService.deleteBoard(boardId, communityId, userId);
+        return JsonResponse.ok("게시글이 삭제되었습니다.");
+    }
+
+
+    //게시글  정보 조회
     @GetMapping("/board")
     public ResponseEntity<Object> getBoardDetail(
             @RequestParam int communityId,
@@ -63,6 +77,30 @@ public class BoardController {
         String userId = customUser.getUser().getUserId();
         BoardDTO board = boardService.getBoardDetail(communityId, boardId, userId);
         return JsonResponse.ok("게시글 조회에 성공하였습니다.", Map.of("data", board));
+    }
+
+    //게시글 스크랩
+    @PatchMapping("/board/scrap")
+    public ResponseEntity<Object> toggleBoardScrap(
+            @AuthenticationPrincipal CustomUser customUser,
+            @RequestParam("communityId") int communityId,
+            @RequestParam("boardId") Long boardId
+    ) {
+        String userId = customUser.getUser().getUserId();
+        boardService.toggleBoardScrap(userId, boardId, communityId);
+        return JsonResponse.ok("스크랩 상태가 변경되었습니다.");
+    }
+
+    //좋아요 생성 - 게시글
+    @PatchMapping("/board/like")
+    public ResponseEntity<Object> toggleBoardLike(
+            @AuthenticationPrincipal CustomUser customUser,
+            @RequestParam("communityId") int communityId,
+            @RequestParam("boardId") Long boardId
+    ) {
+        String userId = customUser.getUser().getUserId();
+        boardService.toggleBoardLike(userId, boardId, communityId);
+        return JsonResponse.ok("게시글 좋아요 상태가 변경되었습니다.");
     }
 
 }

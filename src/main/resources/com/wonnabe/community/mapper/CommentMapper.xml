@@ -36,4 +36,28 @@
     </update>
 
 
+    <!--  좋아요 생성 -댓글  -->
+    <select id="getCommentLikeStatus" resultType="int">
+        SELECT is_deleted
+        FROM comment_like
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND comment_id = #{commentId}
+          AND financial_tendency_type_id = #{communityId}
+    </select>
+
+    <insert id="insertCommentLike">
+        INSERT INTO comment_like (user_id, board_id, comment_id, financial_tendency_type_id)
+        VALUES (#{userId}, #{boardId}, #{commentId}, #{communityId})
+    </insert>
+
+    <update id="updateCommentLikeStatus">
+        UPDATE comment_like
+        SET is_deleted = #{isDeleted}
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND comment_id = #{commentId}
+          AND financial_tendency_type_id = #{communityId}
+    </update>
+
 </mapper>

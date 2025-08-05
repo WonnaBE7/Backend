@@ -27,4 +27,17 @@ public class CommentService {
     public void deleteComment(Long commentId, Long boardId, String userId) {
         commentMapper.markCommentAsDeleted(commentId, boardId, userId);
     }
+
+    //좋아요 생성 -댓글
+    public void toggleCommentLike(String userId, Long boardId, Long commentId, int communityId) {
+        Integer status = commentMapper.getCommentLikeStatus(userId, boardId, commentId, communityId);
+
+        if (status == null) {
+            commentMapper.insertCommentLike(userId, boardId, commentId, communityId);
+        } else {
+            int newStatus = (status == 0) ? 1 : 0;
+            commentMapper.updateCommentLikeStatus(userId, boardId, commentId, communityId, newStatus);
+        }
+    }
+
 }

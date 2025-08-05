@@ -23,4 +23,22 @@ public interface CommentMapper {
     void markCommentAsDeleted(@Param("commentId") Long commentId,
                               @Param("boardId") Long boardId,
                               @Param("userId") String userId);
+
+    //좋아요 생성 -댓글
+    Integer getCommentLikeStatus(@Param("userId") String userId,
+                                 @Param("boardId") Long boardId,
+                                 @Param("commentId") Long commentId,
+                                 @Param("communityId") int communityId);
+
+    void insertCommentLike(@Param("userId") String userId,
+                           @Param("boardId") Long boardId,
+                           @Param("commentId") Long commentId,
+                           @Param("communityId") int communityId);
+
+    void updateCommentLikeStatus(@Param("userId") String userId,
+                                 @Param("boardId") Long boardId,
+                                 @Param("commentId") Long commentId,
+                                 @Param("communityId") int communityId,
+                                 @Param("isDeleted") int isDeleted);
+
 }
