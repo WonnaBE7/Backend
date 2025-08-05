@@ -8,6 +8,7 @@ import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.product.domain.UserCardVO;
 import com.wonnabe.product.dto.CardApplyRequestDTO;
+import com.wonnabe.product.dto.CardProductDetailResponseDTO;
 import com.wonnabe.product.dto.CardRecommendationResponseDTO;
 import com.wonnabe.product.dto.UserCardDetailDTO;
 import com.wonnabe.product.mapper.CardMapper;
@@ -59,7 +60,7 @@ class CardServiceImplTest {
                 .builder()
                 .cardType("check")
                 .productType("card")
-                .cardId("2003")
+                .cardId("2005")
                 .linkedAccount("222-2222-2222")
                 .build();
 
@@ -92,6 +93,26 @@ class CardServiceImplTest {
 
         try {
             String json = mapper.writeValueAsString(recommendCards);
+            log.info("\n{}", json);
+        } catch (Exception e) {
+            log.error("recommendCards JSON 변환 실패", e);
+        }
+    }
+
+    @Test
+    @DisplayName("[성공] 추천 카드 정보 상세 조회")
+    void getRecommendCardsDetail() {
+        CardProductDetailResponseDTO cardDetail = cardService.findProductDetail(2300, userId);
+        assertNotNull(cardDetail);
+        assertNotNull(cardDetail.getCardInfo());
+        assertNotNull(cardDetail.getNote());
+		assertEquals(2300, cardDetail.getCardInfo().getCardId());
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT); // 줄바꿈 및 들여쓰기 설정
+        log.info("cardDetail = " + cardDetail);
+        try {
+            String json = mapper.writeValueAsString(cardDetail);
             log.info("\n{}", json);
         } catch (Exception e) {
             log.error("recommendCards JSON 변환 실패", e);

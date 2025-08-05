@@ -4,6 +4,7 @@ import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
+import com.wonnabe.product.dto.BasicUserInfo;
 import com.wonnabe.product.dto.MonthlyConsumptionDTO;
 import com.wonnabe.product.dto.UserCardDTO;
 import com.wonnabe.product.dto.UserInfoForCardDTO;
@@ -19,11 +20,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -79,7 +79,7 @@ public class CardMapperTest {
         System.out.println("accountId = " + accountId);
         UserCardVO card = UserCardVO.builder()
                 .userId("1469a2a3-213d-427e-b29f-f79d58f51190")
-                .productId(2003L)
+                .productId(2005L)
                 .monthlyUsage(0)
                 .issueDate(new Date())
                 .expiryDate(calendar.getTime())
@@ -123,7 +123,7 @@ public class CardMapperTest {
     }
 
     @Test
-    @DisplayName("[성공] 사용자가 보유한 카드 상품 Id 조회")
+    @DisplayName("[성공] 사용자가 보유중인 카드 목록 배열로 사용자가 보유한 카드 상품 Id 조회")
     void findProductIdsByUserCardId() {
         // given
         List<Long> myCardIds = List.of(1L, 14L);
@@ -137,4 +137,45 @@ public class CardMapperTest {
         log.info("myProductIds = " + myProductIds);
 
     }
+
+    @Test
+    @DisplayName("[성공] 사용자 Id로 사용자가 보유한 카드 상품 Id 조회")
+    void findProductIdByUserId() {
+        // when
+        List<Long> myProductIds = cardMapper.findProductIdsByUserId(userId);
+
+        // then
+        assertNotNull(myProductIds);
+
+        log.info("myProductIds = " + myProductIds);
+    }
+
+    @Test
+    @DisplayName("[성공] 사용자가 보유 중인 카드상품 조회")
+    void findProductByProductIds() {
+        // given
+        List<Long> myCardIds = List.of(2000L, 2500L);
+
+        // when
+        List<CardProductVO> cardProducts = cardMapper.findProductsByIds(myCardIds);
+
+        // then
+        assertNotNull(cardProducts);
+
+        log.info("cardProducts = " + cardProducts);
+    }
+
+    @Test
+    @DisplayName("[성공] 사용자의 기본 정보를 조회")
+    void findUserBasic() {
+        // when
+        BasicUserInfo user = cardMapper.findBasicUserInfoById(userId);
+
+        // then
+        assertNotNull(user);
+
+        log.info("user = " + user);
+    }
+
+
 }
