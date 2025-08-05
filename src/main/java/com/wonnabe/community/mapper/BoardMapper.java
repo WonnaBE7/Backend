@@ -26,13 +26,5 @@ public interface BoardMapper {
                                @Param("boardId") Long boardId,
                                @Param("userId") String userId);
 
-    //댓글 조회
-    List<CommentDTO> selectCommentsByBoardId(@Param("communityId") int communityId,
-                                             @Param("boardId") Long boardId);
 
-
-    // 댓글 생성
-    void insertComment(@Param("userId") String userId,
-                       @Param("boardId") Long boardId,
-                       @Param("content") String content);
 }

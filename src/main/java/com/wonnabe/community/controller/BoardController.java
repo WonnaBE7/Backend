@@ -65,23 +65,4 @@ public class BoardController {
         return JsonResponse.ok("게시글 조회에 성공하였습니다.", Map.of("data", board));
     }
 
-    //댓글 조회
-    @GetMapping("/board/comment")
-    public ResponseEntity<Object> getComments(@RequestParam int communityId,
-                                              @RequestParam Long boardId) {
-        List<CommentDTO> comments = boardService.getCommentsByBoardId(communityId, boardId);
-        return JsonResponse.ok("댓글 조회에 성공하였습니다.", Map.of("comments", comments));
-    }
-
-    //댓글 생성
-    @PostMapping("/board/comment")
-    public ResponseEntity<Object> createComment(@AuthenticationPrincipal CustomUser customUser,
-                                                @RequestParam int communityId,
-                                                @RequestParam Long boardId,
-                                                @RequestBody CommentCreateRequestDto requestDto) {
-        String userId = customUser.getUser().getUserId();
-        boardService.createComment(userId, boardId, requestDto.getContent());
-        return JsonResponse.ok("댓글 작성에 성공하였습니다.", Map.of());
-    }
-
 }

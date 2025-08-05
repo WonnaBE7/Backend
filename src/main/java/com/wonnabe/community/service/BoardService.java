@@ -39,14 +39,4 @@ public class BoardService {
         return boardMapper.selectBoardDetail(communityId, boardId, userId);
     }
 
-    //댓글 조회
-    public List<CommentDTO> getCommentsByBoardId(int communityId, Long boardId) {
-        return boardMapper.selectCommentsByBoardId(communityId, boardId);
-    }
-
-    // 댓글 생성
-    public void createComment(String userId, Long boardId, String content) {
-        boardMapper.insertComment(userId, boardId, content);
-    }
-
 }
