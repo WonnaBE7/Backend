@@ -19,7 +19,6 @@ import lombok.extern.log4j.Log4j2;
 
 @RestController
 @RequestMapping("/api/recommendations/cards")
-@Log4j2
 public class CardRecommendController {
 
 	private final CardService cardService;

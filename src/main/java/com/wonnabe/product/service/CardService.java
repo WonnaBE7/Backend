@@ -1,5 +1,6 @@
 package com.wonnabe.product.service;
 
+import com.wonnabe.product.dto.CardProductDetailResponseDTO;
 import com.wonnabe.product.dto.CardRecommendationResponseDTO;
 import com.wonnabe.product.domain.UserCardVO;
 import com.wonnabe.product.dto.CardApplyRequestDTO;
@@ -32,4 +33,12 @@ public interface CardService {
      * @throws Exception 사용자 카드를 삽입 후 id를 가져오지 못하면 예외 처리
      */
     void applyUserCard(CardApplyRequestDTO cardApplyRequestDTO, String userId);
+
+    /**
+     * 카드 상품 상세 정보 조회
+     * @param productId 카드 상품 Id
+     * @param userId 사용자 Id
+     * @return
+     */
+    CardProductDetailResponseDTO findProductDetail(long productId, String userId);
 }
