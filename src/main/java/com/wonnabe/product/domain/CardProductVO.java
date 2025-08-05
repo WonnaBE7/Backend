@@ -21,7 +21,7 @@ public class CardProductVO {
     private String cardCompany; // 카드사
     private CardType cardType; // 카드의 종류 - (신용, 체크)
     private String benefitSummary; // 혜택 요약
-    private List<BenefitCategory> benefitCategories; // 혜택 카테고리
+    private String benefitCategories; // 혜택 카테고리
     private String benefitLimit; // 혜택 한도
     private long performanceCondition; // 실적 조건
     private String annualFeeDomestic; // 국내전용 연회비
@@ -49,6 +49,16 @@ public class CardProductVO {
         return Arrays.stream(ids.split(","))
             .filter(s -> !s.isEmpty())
             .map(Integer::parseInt)
+            .collect(Collectors.toList());
+    }
+
+    // 주요 혜택 리스트로 변환
+    public List<String> getMainCategories() {
+        // 예: ["1", "2"] → List<String>로 변환
+        String ids = cardScore.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
+        return Arrays.stream(ids.split(","))
+            .filter(s -> !s.isEmpty())
+            .map(String::toString)
             .collect(Collectors.toList());
     }
 
