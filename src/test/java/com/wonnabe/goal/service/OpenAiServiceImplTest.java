@@ -2,6 +2,7 @@ package com.wonnabe.goal.service;
 
 import com.wonnabe.common.config.RootConfig;
 import lombok.extern.log4j.Log4j2;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +23,8 @@ class OpenAiServiceImplTest {
     private OpenAiService openAiService;
 
     @Test
-    @DisplayName("실제 GPT API 프롬프트 확인 테스트 (과금 있음)")
+    @DisplayName("실제 GPT API 프롬프트 확인 테스트 (수동 실행용)")
+    @Disabled("과금 방지를 위해 기본적으로 비활성화")
     void getGptResponse() {
         String aiResponse = openAiService.getGptResponse("안녕?");
 
