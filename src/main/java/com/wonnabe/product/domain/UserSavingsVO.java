@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.util.Date;
-import java.util.UUID;
 
 /**
  * User_Savings 테이블과 매핑되는 VO 클래스
