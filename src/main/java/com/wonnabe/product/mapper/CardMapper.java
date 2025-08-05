@@ -4,13 +4,12 @@ import java.util.List;
 
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
-import com.wonnabe.product.dto.CardApplyRequestDTO;
+import com.wonnabe.product.dto.BasicUserInfo;
 import com.wonnabe.product.dto.UserCardDTO;
 import com.wonnabe.product.dto.UserInfoForCardDTO;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.springframework.security.core.parameters.P;
 
 @Mapper
 public interface CardMapper {
@@ -102,4 +101,26 @@ public interface CardMapper {
      * @return 사용자 카드 상품 번호
      */
     List<Long> findProductIdsByUserCardIds(@Param("userCardIds") List<Long> userCardIds);
+
+    /**
+     * 사용자가 보유 중인 카드 상품 번호 조회
+     * @param userId 사용자 아이디
+     * @return 사용자가 보유한 카드 상품 번호
+     */
+    List<Long> findProductIdsByUserId(@Param("userId") String userId);
+
+    /**
+     * 카드 상품 목록 조회
+     * @param productIds 조회할 상품 아이디들
+     * @return 카등 상품 목록
+     */
+    List<CardProductVO> findProductsByIds(@Param("productIds") List<Long> productIds);
+
+    /**
+     * 카드 추천 상품의 상세 정보 조회를 위한 사용자 정보
+     * @param userId 사용자 아이디
+     * @return 사용자 기본 정보
+     */
+    BasicUserInfo findBasicUserInfoById(@Param("userId") String userId);
+
 }
