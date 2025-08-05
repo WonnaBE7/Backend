@@ -3,9 +3,7 @@ package com.wonnabe.product.controller;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.util.JsonResponse;
 import com.wonnabe.product.dto.UserInsuranceDetailDTO;
-import com.wonnabe.product.service.CardService;
 import com.wonnabe.product.service.UserInsuranceService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +23,8 @@ public class UserInsuranceController {
 
     private final UserInsuranceService userInsuranceService;
 
-    public UserInsuranceController(@Qualifier("UserInsuranceServiceImpl") UserInsuranceService userInsuranceService) {
+    public UserInsuranceController(
+            @Qualifier("UserInsuranceServiceImpl") UserInsuranceService userInsuranceService) {
         this.userInsuranceService = userInsuranceService;
     }
 
@@ -46,6 +45,11 @@ public class UserInsuranceController {
 
         // Service에서 만든 함수로 DTO를 가져옴
         UserInsuranceDetailDTO responseDTO = userInsuranceService.getDetailByProductId(userId, productId);
+
+        // Test를 위한 예외처리
+        if (responseDTO == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         return JsonResponse.ok("내 보험 정보 조회 성공", responseDTO);
     }

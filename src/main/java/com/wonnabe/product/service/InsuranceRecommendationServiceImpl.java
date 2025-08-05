@@ -1,0 +1,228 @@
+package com.wonnabe.product.service;
+
+import com.wonnabe.product.domain.InsuranceProductVO;
+import com.wonnabe.product.domain.UserIncomeInfoVO;
+import com.wonnabe.product.dto.InsuranceRecommendationResponseDTO;
+import com.wonnabe.product.dto.InsuranceRecommendationResponseDTO.PersonaRecommendation;
+import com.wonnabe.product.dto.InsuranceRecommendationResponseDTO.RecommendedInsurance;
+import com.wonnabe.product.mapper.InsuranceRecommendationMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Log4j2
+@Service("InsuranceRecommendationServiceImpl")
+@RequiredArgsConstructor
+public class InsuranceRecommendationServiceImpl implements InsuranceRecommendationService {
+
+    private final InsuranceRecommendationMapper recommendationMapper;
+
+    // ----------------------------
+    // Persona 매핑
+    // ----------------------------
+    private static final Map<Integer, String> PERSONA_NAMES = Map.ofEntries(
+            Map.entry(1, "자린고비형"),
+            Map.entry(2, "소확행형"),
+            Map.entry(3, "YOLO형"),
+            Map.entry(4, "경험 소중형"),
+            Map.entry(5, "새싹 투자형"),
+            Map.entry(6, "공격 투자형"),
+            Map.entry(7, "미래 준비형"),
+            Map.entry(8, "가족 중심형"),
+            Map.entry(9, "루틴러형"),
+            Map.entry(10, "현상 유지형"),
+            Map.entry(11, "균형 성장형"),
+            Map.entry(12, "대문자P형")
+    );
+
+    // ----------------------------
+    // 보험 Persona별 가중치
+    // ----------------------------
+    private static final Map<String, Map<String, Double>> PERSONA_WEIGHTS_INSURANCE = new HashMap<>() {{
+        put("자린고비형", new HashMap<>() {{ put("가격_경쟁력", 0.45); put("보장한도", 0.15); put("보장범위", 0.15); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("소확행형", new HashMap<>() {{ put("가격_경쟁력", 0.35); put("보장한도", 0.20); put("보장범위", 0.20); put("자기부담금", 0.10); put("환급범위", 0.15); }});
+        put("YOLO형", new HashMap<>() {{ put("가격_경쟁력", 0.30); put("보장한도", 0.20); put("보장범위", 0.25); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("경험 소중형", new HashMap<>() {{ put("가격_경쟁력", 0.25); put("보장한도", 0.25); put("보장범위", 0.25); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("새싹 투자형", new HashMap<>() {{ put("가격_경쟁력", 0.30); put("보장한도", 0.20); put("보장범위", 0.20); put("자기부담금", 0.20); put("환급범위", 0.10); }});
+        put("공격 투자형", new HashMap<>() {{ put("가격_경쟁력", 0.40); put("보장한도", 0.20); put("보장범위", 0.15); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("미래 준비형", new HashMap<>() {{ put("가격_경쟁력", 0.20); put("보장한도", 0.30); put("보장범위", 0.30); put("자기부담금", 0.10); put("환급범위", 0.10); }});
+        put("가족 중심형", new HashMap<>() {{ put("가격_경쟁력", 0.20); put("보장한도", 0.30); put("보장범위", 0.25); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("루틴러형", new HashMap<>() {{ put("가격_경쟁력", 0.25); put("보장한도", 0.25); put("보장범위", 0.25); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("현상 유지형", new HashMap<>() {{ put("가격_경쟁력", 0.30); put("보장한도", 0.25); put("보장범위", 0.20); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("균형 성장형", new HashMap<>() {{ put("가격_경쟁력", 0.25); put("보장한도", 0.25); put("보장범위", 0.25); put("자기부담금", 0.15); put("환급범위", 0.10); }});
+        put("대문자P형", new HashMap<>() {{ put("가격_경쟁력", 0.30); put("보장한도", 0.20); put("보장범위", 0.20); put("자기부담금", 0.20); put("환급범위", 0.10); }});
+    }};
+
+    @Override
+    public InsuranceRecommendationResponseDTO recommendInsurance(String userId, int topN) {
+        // 1. 사용자 정보 조회
+        UserIncomeInfoVO userIncomeInfo = recommendationMapper.getUserHealthInfo(userId);
+        if (userIncomeInfo == null || userIncomeInfo.getPersonaIds() == null || userIncomeInfo.getPersonaIds().isEmpty()) {
+            log.warn("사용자 건강 정보 또는 페르소나 ID가 없어 보험 추천을 진행할 수 없습니다. userId: {}", userId);
+            return new InsuranceRecommendationResponseDTO(userId, new ArrayList<>());
+        }
+
+        // 2. 모든 보험 상품과 점수 조회
+        List<InsuranceProductVO> allInsuranceProducts = recommendationMapper.getAllInsuranceScores();
+        if (allInsuranceProducts == null || allInsuranceProducts.isEmpty()) {
+            log.warn("추천할 보험 상품이 없어 보험 추천을 진행할 수 없습니다.");
+            return new InsuranceRecommendationResponseDTO(userId, new ArrayList<>());
+        }
+
+        // 3. 결과 객체 생성
+        InsuranceRecommendationResponseDTO response = new InsuranceRecommendationResponseDTO();
+        response.setUserId(userId);
+        response.setRecommendationsByPersona(new ArrayList<>());
+
+        // 4. 각 페르소나별로 추천
+        for (Integer personaId : userIncomeInfo.getPersonaIds()) {
+            String personaName = PERSONA_NAMES.get(personaId);
+            if (personaName == null) {
+                log.warn("알 수 없는 페르소나 ID: {}", personaId);
+                continue;
+            }
+
+            // 기본 가중치 가져오기
+            Map<String, Double> baseWeights = new HashMap<>(PERSONA_WEIGHTS_INSURANCE.get(personaName));
+
+            // 건강/생활습관으로 가중치 조정
+            Map<String, Double> adjustedWeights = adjustWeightsByHealthAndLifestyle(
+                    baseWeights,
+                    userIncomeInfo.getSmokingStatus(),
+                    userIncomeInfo.getFamilyMedicalHistory(),
+                    userIncomeInfo.getPastMedicalHistory(),
+                    userIncomeInfo.getExerciseFrequency(),
+                    userIncomeInfo.getDrinkingFrequency()
+            );
+
+            // 각 상품의 점수 계산
+            List<ProductWithScore<InsuranceProductVO>> scoredProducts = new ArrayList<>();
+            for (InsuranceProductVO product : allInsuranceProducts) {
+                double totalScore = calculateInsuranceScore(product, adjustedWeights);
+                scoredProducts.add(new ProductWithScore<>(product, totalScore));
+            }
+
+            // 점수 순으로 정렬
+            scoredProducts.sort((a, b) -> Double.compare(b.score, a.score));
+
+            // 상위 N개 선택
+            PersonaRecommendation personaRec = new PersonaRecommendation();
+            personaRec.setPersonaId(personaId);
+            personaRec.setPersonaName(personaName);
+            personaRec.setProducts(new ArrayList<>());
+
+            for (int i = 0; i < Math.min(topN, scoredProducts.size()); i++) {
+                ProductWithScore<InsuranceProductVO> item = scoredProducts.get(i);
+                InsuranceProductVO product = item.product;
+
+                RecommendedInsurance rec = new RecommendedInsurance();
+                rec.setProductId(String.valueOf(product.getProductId()));
+                rec.setProductName(product.getProductName());
+                rec.setProviderName(product.getProviderName());
+                rec.setProductType("insurance");
+
+                rec.setCoverageLimit(product.getCoverageLimit());
+                rec.setNote(product.getNote());
+                rec.setMyMoney(product.getMyMoney());
+
+                rec.setTotalScore(item.score);
+
+                personaRec.getProducts().add(rec);
+            }
+
+            response.getRecommendationsByPersona().add(personaRec);
+        }
+
+        return response;
+    }
+
+    // 건강/생활습관에 따른 가중치 조정
+    private Map<String, Double> adjustWeightsByHealthAndLifestyle(
+            Map<String, Double> weights,
+            String smokingStatus,
+            String familyMedicalHistory,
+            String pastMedicalHistory,
+            String exerciseFrequency,
+            String drinkingFrequency) {
+
+        Map<String, Double> adjusted = new HashMap<>(weights);
+
+        // 흡연 여부
+        if ("Y".equalsIgnoreCase(smokingStatus)) {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v - 0.05 : -0.05);
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+        }
+
+        // 가족 병력
+        if (familyMedicalHistory != null) {
+            if (familyMedicalHistory.contains("고혈압") || familyMedicalHistory.contains("당뇨")) {
+                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
+                adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+            }
+            if (familyMedicalHistory.contains("암")) {
+                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);
+            }
+        }
+
+        // 과거 병력
+        if ("Y".equalsIgnoreCase(pastMedicalHistory)) {
+            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+        }
+
+        // 운동 빈도
+        if ("매일".equalsIgnoreCase(exerciseFrequency)) {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+        } else if ("안함".equalsIgnoreCase(exerciseFrequency)) {
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+        }
+
+        // 음주 빈도
+        if ("자주".equalsIgnoreCase(drinkingFrequency)) {
+            adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
+        } else if ("안함".equalsIgnoreCase(drinkingFrequency)) {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+        }
+
+        // 정규화 (합 = 1)
+        return normalizeWeights(adjusted);
+    }
+
+    // 점수 계산
+    private double calculateInsuranceScore(InsuranceProductVO product, Map<String, Double> weights) {
+        double score = 0.0;
+        score += weights.getOrDefault("가격_경쟁력", 0.0) * (product.getPriceCompetitivenessScore() != null ? product.getPriceCompetitivenessScore() : 0.0f);
+        score += weights.getOrDefault("보장한도", 0.0) * (product.getCoverageLimitScore() != null ? product.getCoverageLimitScore() : 0.0f);
+        score += weights.getOrDefault("보장범위", 0.0) * (product.getCoverageScopeScore() != null ? product.getCoverageScopeScore() : 0.0f);
+        score += weights.getOrDefault("자기부담금", 0.0) * (product.getDeductibleScore() != null ? product.getDeductibleScore() : 0.0f);
+        score += weights.getOrDefault("환급범위", 0.0) * (product.getRefundScopeScore() != null ? product.getRefundScopeScore() : 0.0f);
+        return score * 10;
+    }
+
+    // 가중치 정규화
+    private Map<String, Double> normalizeWeights(Map<String, Double> weights) {
+        double sum = weights.values().stream().mapToDouble(Double::doubleValue).sum();
+        if (sum == 0) {
+            return weights;
+        }
+        return weights.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() / sum));
+    }
+
+    // 내부 클래스: 상품과 점수
+    private static class ProductWithScore<T> {
+        T product;
+        double score;
+
+        ProductWithScore(T product, double score) {
+            this.product = product;
+            this.score = score;
+        }
+    }
+}

@@ -22,7 +22,7 @@ public interface UserInsuranceMapper {
      * @return {@link UserInsuranceVO} 객체. 가입 정보와 상품 상세 정보를 포함합니다.
      */
     UserInsuranceVO findDetailByProductId(@Param("userId") String userId,
-                                    @Param("productId") Long productId);
+                                          @Param("productId") Long productId);
 
     /**
      * 특정 사용자의 보험 관련 거래 내역을 월별로 합산하여 조회합니다.
@@ -34,4 +34,3 @@ public interface UserInsuranceMapper {
     List<TransactionSummaryDto> findMonthlyTransactionSums(@Param("userId") String userId,
                                                            @Param("startDate") Date startDate);
 }
-

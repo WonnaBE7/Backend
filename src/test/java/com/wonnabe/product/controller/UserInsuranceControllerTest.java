@@ -77,8 +77,8 @@ class UserInsuranceControllerTest {
         // when & then
         mockMvc.perform(get("/api/user/insurances/{productId}", productId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.productId").value(productId.toString()))
-                .andExpect(jsonPath("$.productName").exists())
+                .andExpect(jsonPath("$.data.productId").value(productId.toString()))
+                .andExpect(jsonPath("$.data.productName").exists())
                 .andDo(print());
 
         // 컨텍스트 비우기

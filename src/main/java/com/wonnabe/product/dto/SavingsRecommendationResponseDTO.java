@@ -38,5 +38,6 @@ public class SavingsRecommendationResponseDTO {
         private double baseRate;
         private double maxRate;
         private double totalScore;
+        private String productType;
     }
 }
