@@ -74,7 +74,7 @@ class UserProductControllerTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         // 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/user/products/3001"))
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/user/products/2001"))
                 .andExpect(status().isOk())
                 .andReturn();
 

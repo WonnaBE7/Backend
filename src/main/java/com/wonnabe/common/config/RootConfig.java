@@ -1,4 +1,5 @@
 package com.wonnabe.common.config;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.log4j.Log4j2;
@@ -16,7 +17,10 @@ import javax.sql.DataSource;
 
 @Configuration
 @PropertySource({"classpath:/application.properties"})
-@MapperScan(basePackages = {"com.wonnabe","com.wonnabe.product.mapper"})
+@MapperScan(basePackages = {"com.wonnabe.**.mapper"})
+@ComponentScan(basePackages={ "com.wonnabe" })
+
+// ‼️Test 진행시 SwaggerConfig.class 빼기
 @ComponentScan(
         basePackages = {"com.wonnabe"},
         excludeFilters = {
@@ -41,7 +45,8 @@ public class RootConfig {
         config.setJdbcUrl(url);
         config.setUsername(username);
         config.setPassword(password);
-        return new HikariDataSource(config);
+        HikariDataSource dataSource = new HikariDataSource(config);
+        return dataSource;
     }
 
     @Autowired
@@ -60,7 +65,13 @@ public class RootConfig {
     }
 
     @Bean
-    public DataSourceTransactionManager transactionManager() {
-        return new DataSourceTransactionManager(dataSource());
+    public DataSourceTransactionManager transactionManager(){
+        DataSourceTransactionManager manager = new DataSourceTransactionManager(dataSource());
+        return manager;
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }

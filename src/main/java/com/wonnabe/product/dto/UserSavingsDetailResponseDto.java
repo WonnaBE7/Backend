@@ -21,23 +21,15 @@ public class UserSavingsDetailResponseDto {
 
     /** 상품의 고유 ID */
     private String productId;
-
-    /** 상품명 */
     private String productName;
 
-    /** 은행명 (예: "워너은행") */
     private String bankName;
 
     /** 상품 유형 ("예금" 또는 "적금") */
     private String productType;
 
-    /** 가입일 (형식: "yyyy-MM-dd") */
     private String startDate;
-
-    /** 만기일 (형식: "yyyy-MM-dd") */
     private String maturityDate;
-
-    /** 가입 기간 (형식: "12개월") */
     private String term;
 
     /** 현재까지의 총 잔액 */

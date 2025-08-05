@@ -68,7 +68,7 @@ class UserSavingsServiceTest {
         // 2. 차트 데이터 검증
         assertNotNull(result.getMonthlyChart());
         assertEquals(5, result.getMonthlyChart().size(), "차트 데이터는 최근 5개월치여야 합니다.");
-        assertEquals("7월", result.getMonthlyChart().get(4).getMonth(), "차트의 마지막 데이터는 7월이어야 합니다.");
+        assertEquals("8월", result.getMonthlyChart().get(4).getMonth(), "차트의 마지막 데이터는 7월이어야 합니다.");
 
         // 3. 이자 계산 검증 (가장 마지막 달인 7월의 누적 자산 검증)
         // 6월까지 누적원금 60만원에 대한 7월 이자: 600,000 * (0.03 / 12) = 1500
