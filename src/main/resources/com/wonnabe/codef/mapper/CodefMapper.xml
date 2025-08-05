@@ -19,4 +19,41 @@
           AND institution_code = #{institutionCode}
     </update>
 
+    <select id="getApiParamsByUserId" parameterType="string" resultType="com.wonnabe.codef.dto.CodefAuthParam">
+        SELECT
+            b.id,
+            b.user_id,
+            b.institution_code,
+            b.birth_date,
+            b.account,
+            b.account_password,
+            b.card_no,
+            b.card_password,
+            b.card_name,
+            b.duplicate_card_idx,
+            b.start_date,
+            b.end_date,
+            b.order_by,
+            b.inquiry_type,
+            b.member_store_info_type,
+            b.withdraw_account_no,
+            b.withdraw_account_password,
+            b.sub_account_id,
+            b.sub_account_password,
+            b.inquiry_purpose,
+            b.endpoint,
+            a.access_token,
+            a.connected_id
+        FROM Codef_Auth a
+                 JOIN Codef_API b
+                      ON a.institution_code = b.institution_code AND a.user_id = b.user_id
+        WHERE a.user_id = #{userId}
+          AND b.is_active = 1
+    </select>
+
+    <select id="getAuthByUserAndInstitution" resultType="com.wonnabe.codef.dto.CodefAuthParam">
+        SELECT * FROM Codef_Auth
+        WHERE user_id = #{userId} AND institution_code = #{institutionCode}
+    </select>
+
 </mapper>

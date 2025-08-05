@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.codef.mapper.AssetMapper">
+
+    <insert id="upsert" parameterType="com.wonnabe.codef.domain.UserAccount">
+        INSERT INTO User_Accounts (
+        user_id,
+        account_number,
+        account_name,
+        category,
+        balance,
+        last_updated,
+        institution_code
+        ) VALUES (
+        #{account.userId},
+        #{account.accountNumber},
+        #{account.accountName},
+        '입출금', <!-- category가 없으므로 기본값 고정 -->
+        #{account.accountBalance},
+        NOW(),
+        #{account.institutionCode}
+        )
+        ON DUPLICATE KEY UPDATE
+        account_name = VALUES(account_name),
+        category = VALUES(category),
+        balance = VALUES(balance),
+        last_updated = NOW(),
+        institution_code = VALUES(institution_code)
+    </insert>
+
+</mapper>

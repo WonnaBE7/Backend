@@ -9,13 +9,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class CodefService {
+public class CodefAuthService {
 
     private final CodefManager accessTokenManager;
 
-    public void refreshAllExpiredTokens(String userId) {
+    public void syncUserCodef(String userId) {
         try {
-            accessTokenManager.validateAndRefreshTokens(userId);
+            accessTokenManager.refreshCodefIfExpired(userId);
         } catch (Exception e) {
             log.warn("⚠️ CODEF 토큰 갱신 중 오류 발생 - userId: {}, message: {}", userId, e.getMessage());
         }

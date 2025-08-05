@@ -23,7 +23,7 @@ public class CodefManager {
      * 주어진 유저의 모든 기관별 accessToken을 점검하고 필요한 경우 재발급하여 DB 갱신
      * @param userId 사용자 UUID
      */
-    public void validateAndRefreshTokens(String userId) {
+    public void refreshCodefIfExpired(String userId) {
         List<CodefAuthEntity> authList = assetMapper.findByUserId(userId);
         LocalDateTime now = LocalDateTime.now();
 
