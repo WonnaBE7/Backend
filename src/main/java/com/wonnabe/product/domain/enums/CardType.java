@@ -25,4 +25,9 @@ public enum CardType {
         }
         return null;
     }
+
+    // 영어 코드 소문자로 반환
+    public String toValue() {
+        return this.name().toLowerCase(); // CREDIT → "credit", DEBIT → "debit"
+    }
 }

@@ -40,6 +40,6 @@ public class CardApplyController {
 
         cardService.applyUserCard(cardApplyRequestDTO, userId);
 
-        return JsonResponse.ok("카드 신청을 완료되었습니다");
+        return JsonResponse.ok("카드 신청이 완료되었습니다");
     }
 }
