@@ -11,4 +11,23 @@
         password_hash = #{passwordHash}
         WHERE user_id = #{userId}
     </update>
+
+    <!-- 사용자의 워너비 선택 정보를 수정하는 쿼리 -->
+    <update id="updateWonnabe">
+        UPDATE User_Info
+        SET selected_wonnabe_ids = #{selectedWonnabeIds}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 사용자의 진단 히스토리를 조회하는 쿼리 -->
+    <select id="selectDiagnosisHistory" resultType="com.wonnabe.user.dto.DiagnosisHistoryResponse$DiagnosisHistoryItem">
+        SELECT
+            DATE_FORMAT(dh.diagnosed_at, '%Y-%m-%d %H:%i:%s') AS diagnosedDate,
+            ftt.name AS typeName,
+            ROUND(dh.similarity * 100) AS score
+        FROM diagnosis_history dh
+                 JOIN Financial_Tendency_Type ftt ON dh.nowme_id = ftt.id
+        WHERE dh.user_id = #{userId}
+        ORDER BY dh.diagnosed_at DESC
+    </select>
 </mapper>

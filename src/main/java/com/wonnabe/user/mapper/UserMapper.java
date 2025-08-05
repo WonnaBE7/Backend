@@ -1,7 +1,10 @@
 package com.wonnabe.user.mapper;
 
+import com.wonnabe.user.dto.DiagnosisHistoryResponse;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 @Mapper
 public interface UserMapper {
@@ -18,4 +21,24 @@ public interface UserMapper {
     void updateUser(@Param("userId") String userId,
                     @Param("name") String name,
                     @Param("passwordHash") String passwordHash);
+
+    /**
+     * 사용자의 워너비 선택 정보를 업데이트합니다.
+     * - User_Info 테이블의 selected_wonnabe_ids 필드를 JSON 형태로 저장합니다.
+     *
+     * @param userId              수정 대상 사용자의 UUID
+     * @param selectedWonnabeIds  선택된 워너비 ID 배열 (JSON 문자열 형태)
+     */
+    void updateWonnabe(@Param("userId") String userId,
+                       @Param("selectedWonnabeIds") String selectedWonnabeIds);
+
+    /**
+     * 특정 사용자의 진단 히스토리를 조회합니다.
+     * - diagnosis_history 테이블과 Financial_Tendency_Type 테이블을 조인하여
+     *   진단 날짜, 타입명, 점수 정보를 조회합니다.
+     *
+     * @param userId 조회할 사용자의 UUID
+     * @return DiagnosisHistoryItem 리스트 (진단 히스토리 정보)
+     */
+    List<DiagnosisHistoryResponse.DiagnosisHistoryItem> selectDiagnosisHistory(@Param("userId") String userId);
 }
