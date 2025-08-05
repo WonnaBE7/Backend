@@ -71,8 +71,9 @@ dependencies {
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-    // Jackson - Json 처리
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
+    // Jackson - Json, LocalDate 처리
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2'
 
     // 테스트
     testImplementation "org.springframework:spring-test:${springVersion}"
@@ -117,8 +118,6 @@ dependencies {
     implementation 'org.springframework.data:spring-data-redis:2.7.5'
     // Redis 클라이언트 (Lettuce 사용)
     implementation 'io.lettuce:lettuce-core:6.1.5.RELEASE'
-    // Jackson (value serializer용, 이미 있을 수도 있음)
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.5'
     // (선택) String serializer
     implementation 'org.springframework:spring-context-support:5.3.23'
 

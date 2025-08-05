@@ -2,8 +2,6 @@ package com.wonnabe.goal.service;
 
 import com.wonnabe.goal.dto.*;
 
-import java.util.UUID;
-
 public interface GoalService {
 
     /**

@@ -190,6 +190,12 @@
         WHERE id = #{nowmeId}
     </select>
 
+    <select id="getNowmeDescriptionByNowmeId" resultType="java.lang.String">
+        SELECT description
+        FROM financial_tendency_type
+        WHERE id = #{nowmeId}
+    </select>
+
     <select id="getSavingsProductList" resultType="com.wonnabe.product.domain.SavingsProductVO">
         SELECT sp.product_id,
                sp.product_name,

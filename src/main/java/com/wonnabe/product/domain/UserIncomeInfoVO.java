@@ -11,7 +11,11 @@ import java.util.stream.Collectors;
 
 /**
  * User_info 테이블과 대응
- * Recommend Savings / Insurance 사용 변수
+ *  추천 로직을 위해 사용되는 테이블
+ *  WonnabeID 리스트 반환방식
+ * Recommend Savings / Insurance 사용 변수 나눠존재
+ * -> 추후 Income이 아니라 UserInfo로 클래스명 수정 필요
+
  */
 
 @Data
@@ -27,7 +31,11 @@ public class UserIncomeInfoVO {
     private String incomeEmploymentStatus; // 고용상태 (정규직/계약직/학생/무직)
 
     // 보험 상품 추천을 위한 변수
-
+    private String smokingStatus; // 흡연 여부 (Y/N)
+    private String familyMedicalHistory; // 가족 병력 (고혈압/당뇨/암 등)
+    private String pastMedicalHistory; // 과거 병력 (Y/N)
+    private String exerciseFrequency; // 운동 빈도 (매일, 주3회, 주1회, 안함)
+    private String drinkingFrequency; // 음주 빈도 (자주, 가끔, 안함)
 
 
     // 페르소나 ID 리스트로 변환

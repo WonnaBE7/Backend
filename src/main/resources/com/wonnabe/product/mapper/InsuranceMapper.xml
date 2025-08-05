@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.product.mapper.InsuranceMapper">
+
+    <!--  특정 보험 상품 정보 조회  -->
+    <select id="findById" resultType="com.wonnabe.product.domain.InsuranceProductVO">
+        SELECT *
+        FROM Insurance_Product
+        WHERE product_id = #{productId}
+    </select>
+
+    <!--  사용자가 신청한 보험 등록  -->
+    <insert id="insertUserInsurance" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO User_Insurance (user_id, product_id, start_date, end_date, monthly_premium)
+        VALUES (#{userId}, #{productId}, #{startDate}, #{endDate}, #{monthlyPremium})
+    </insert>
+
+    <!--  사용자 보유 보험 목록 최신화 (my_insurance_ids 컬럼이 있다고 가정) -->
+    <update id="updateUserInsuranceInfo">
+        UPDATE User_Info
+        SET my_insurance_ids =
+                CASE
+                    WHEN JSON_VALID(my_insurance_ids) = 0 OR my_insurance_ids IS NULL THEN JSON_ARRAY(#{insuranceId})
+                    ELSE JSON_ARRAY_APPEND(my_insurance_ids, '$', CAST(#{insuranceId} AS UNSIGNED))
+                    END
+        WHERE user_id = #{userId}
+    </update>
+
+    <!--  사용자가 등록한 보험 정보 조회  -->
+    <select id="findUserInsuranceByProductId" resultType="com.wonnabe.product.domain.UserInsuranceVO">
+        SELECT *
+        FROM User_Insurance
+        WHERE product_id = #{productId} AND user_id = #{userId}
+        ORDER BY id DESC
+        LIMIT 1
+    </select>
+
+    <!--  사용자의 보험 ID 목록 조회  -->
+    <select id="getMyInsuranceIdsJson" resultType="java.lang.String">
+        SELECT my_insurance_ids
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!--  userId로 성별 조회  -->
+    <select id="findGenderByUserId" resultType="java.lang.String">
+        SELECT gender FROM User_profile WHERE user_id = #{userId}
+    </select>
+
+</mapper>
