@@ -22,21 +22,24 @@ public class SavingsProductVO {
     private String productName;     // 상품명
     private String bankName;        // 금융기관
 
-    private Float baseRate;         // 기본금리
-    private Float maxRate;          // 최고금리
     private Long minAmount;         // 최소한도
     private Long maxAmount;         // 최대한도
     private Integer minJoinPeriod;  // 최소가입기간 (개월)
-    private Integer maxJoinPeriod;  // 최대가입기간 (개월)
     private String rateType;        // 이자 유형 (단리, 복리)
 
-    // recommend를 위한 Score
+    // recommend를 위한 Score + 상세보기 Chart data
     private int interestRateScore;      // 금리_점수
     private int compoundInterestScore;  // 단복리_점수
     private int preferentialScore;      // 우대조건_점수
     private int penaltyScore;          // 중도해지페널티_점수
     private int limitScore;            // 최대한도_점수
 
-
+    // ---- 예적금 상세보기를 위한 변수 ----
+    private Float baseRate;         // 기본금리
+    private Float maxRate;          // 최고금리
+    private String prefer;          // 우대금리 조건
+    private String etcNote;         // 추가
+    private Integer maxJoinPeriod;  // 최대가입기간 (개월)
+    private String mtrtInt;         // 만기이후금리
 
 }
