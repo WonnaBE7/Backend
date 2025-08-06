@@ -21,6 +21,10 @@ public interface BoardMapper {
                      @Param("content") String content);
 
 
+    // 게시글 존재 여부 확인용
+    BoardDTO selectBoardByIdAndCommunityId(@Param("boardId") Long boardId,
+                                           @Param("communityId") int communityId);
+
     //게시글 삭제
     void markBoardAsDeleted(@Param("boardId") Long boardId,
                             @Param("communityId") int communityId,
@@ -47,6 +51,7 @@ public interface BoardMapper {
                            @Param("boardId") Long boardId,
                            @Param("communityId") int communityId,
                            @Param("isDeleted") int isDeleted);
+
 
 
     //좋아요 생성 - 게시글

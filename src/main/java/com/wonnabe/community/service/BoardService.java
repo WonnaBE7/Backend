@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -35,16 +36,35 @@ public class BoardService {
 
     //게시글 삭제
     public void deleteBoard(Long boardId, int communityId, String userId) {
+        BoardDTO board = boardMapper.selectBoardByIdAndCommunityId(boardId, communityId);
+        if (board == null) {
+            throw new NoSuchElementException("게시글 없음");
+        }
+
         boardMapper.markBoardAsDeleted(boardId, communityId, userId);
     }
 
+
+
     //게시글 조회
     public BoardDTO getBoardDetail(int communityId, Long boardId, String userId) {
-        return boardMapper.selectBoardDetail(communityId, boardId, userId);
+        BoardDTO board = boardMapper.selectBoardDetail(communityId, boardId, userId);
+
+        if (board == null) {
+            throw new NoSuchElementException("게시글 없음");
+        }
+
+        return board;
     }
+
 
     //게시글 스크랩
     public void toggleBoardScrap(String userId, Long boardId, int communityId) {
+        BoardDTO board = boardMapper.selectBoardByIdAndCommunityId(boardId, communityId);
+        if (board == null) {
+            throw new NoSuchElementException("게시글 없음");
+        }
+
         Integer currentStatus = boardMapper.getScrapStatus(userId, boardId, communityId);
 
         if (currentStatus == null) {
@@ -55,8 +75,14 @@ public class BoardService {
         }
     }
 
+
     //좋아요 생성 - 게시글
     public void toggleBoardLike(String userId, Long boardId, int communityId) {
+        BoardDTO board = boardMapper.selectBoardByIdAndCommunityId(boardId, communityId);
+        if (board == null) {
+            throw new NoSuchElementException("게시글 없음");
+        }
+
         Integer status = boardMapper.getBoardLikeStatus(userId, boardId, communityId);
 
         if (status == null) {
@@ -66,6 +92,7 @@ public class BoardService {
             boardMapper.updateBoardLikeStatus(userId, boardId, communityId, newStatus);
         }
     }
+
 
 
 

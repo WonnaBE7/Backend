@@ -5,8 +5,8 @@
 
 <mapper namespace="com.wonnabe.community.mapper.BoardMapper">
 
-    <!--  게시판 전체 글 조회 - 페이지네이션   -->
-    <select id="selectBoardsByCommunityId" resultType="com.wonnabe.community.dto.board.BoardDTO">
+    <!-- 게시판 전체 글 조회 - 페이지네이션 -->
+    <select id="selectBoardsByCommunityId" resultType="BoardDTO">
         SELECT
         b.id AS boardId,
         b.title,
@@ -14,15 +14,15 @@
         u.name AS userName,
         f.id AS categoryId,
         f.name AS categoryName,
-        (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
-        (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+        (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+        (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
         EXISTS (
         SELECT 1 FROM board_scrap
-        WHERE board_id = b.id AND user_id = #{userId}
+        WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
         ) AS isScraped,
         EXISTS (
         SELECT 1 FROM board_like
-        WHERE board_id = b.id AND user_id = #{userId}
+        WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
         ) AS isLiked,
         DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
         FROM board b
@@ -37,7 +37,7 @@
         LIMIT #{pageSize}
     </select>
 
-    <!-- 게시글 생성  -->
+    <!-- 게시글 생성 -->
     <insert id="insertBoard">
         INSERT INTO board (
             financial_tendency_type_id,
@@ -58,7 +58,16 @@
                  )
     </insert>
 
-    <!--  게시글 삭제  -->
+    <!--  게시글 존재 여부 확인용  -->
+    <select id="selectBoardByIdAndCommunityId" resultType="com.wonnabe.community.dto.board.BoardDTO">
+        SELECT *
+        FROM board
+        WHERE id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 게시글 삭제 (is_deleted 플래그 업데이트) -->
     <update id="markBoardAsDeleted">
         UPDATE board
         SET is_deleted = 1
@@ -67,8 +76,7 @@
           AND user_id = #{userId}
     </update>
 
-
-    <!--  게시글 조회  -->
+    <!-- 게시글 상세 조회 -->
     <select id="selectBoardDetail" resultType="BoardDTO">
         SELECT
             b.id AS boardId,
@@ -77,15 +85,15 @@
             u.name AS userName,
             f.id AS categoryId,
             f.name AS categoryName,
-            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
-            (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+            (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
             EXISTS (
                 SELECT 1 FROM board_scrap
-                WHERE board_id = b.id AND user_id = #{userId}
+                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
             ) AS isScraped,
             EXISTS (
                 SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId}
+                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
             ) AS isLiked,
             DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
         FROM board b
@@ -96,7 +104,7 @@
           AND b.is_deleted = 0
     </select>
 
-    <!--  게시글 스크랩  -->
+    <!-- 게시글 스크랩 상태 조회 -->
     <select id="getScrapStatus" resultType="int">
         SELECT is_deleted
         FROM board_scrap
@@ -105,11 +113,13 @@
           AND financial_tendency_type_id = #{communityId}
     </select>
 
+    <!-- 게시글 스크랩 추가 -->
     <insert id="insertBoardScrap">
-        INSERT INTO board_scrap (user_id, board_id, financial_tendency_type_id)
-        VALUES (#{userId}, #{boardId}, #{communityId})
+        INSERT INTO board_scrap (user_id, board_id, financial_tendency_type_id, is_deleted)
+        VALUES (#{userId}, #{boardId}, #{communityId}, 0)
     </insert>
 
+    <!-- 게시글 스크랩 상태 업데이트 -->
     <update id="updateScrapStatus">
         UPDATE board_scrap
         SET is_deleted = #{isDeleted}
@@ -118,7 +128,8 @@
           AND financial_tendency_type_id = #{communityId}
     </update>
 
-    <!--  좋아요 생성 - 게시글  -->
+
+    <!-- 게시글 좋아요 상태 조회 -->
     <select id="getBoardLikeStatus" resultType="int">
         SELECT is_deleted
         FROM board_like
@@ -127,11 +138,13 @@
           AND financial_tendency_type_id = #{communityId}
     </select>
 
+    <!-- 게시글 좋아요 추가 -->
     <insert id="insertBoardLike">
-        INSERT INTO board_like (user_id, board_id, financial_tendency_type_id)
-        VALUES (#{userId}, #{boardId}, #{communityId})
+        INSERT INTO board_like (user_id, board_id, financial_tendency_type_id, is_deleted)
+        VALUES (#{userId}, #{boardId}, #{communityId}, 0)
     </insert>
 
+    <!-- 게시글 좋아요 상태 업데이트 -->
     <update id="updateBoardLikeStatus">
         UPDATE board_like
         SET is_deleted = #{isDeleted}

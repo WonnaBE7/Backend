@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -29,15 +30,22 @@ public class CommentService {
     }
 
     //좋아요 생성 -댓글
-    public void toggleCommentLike(String userId, Long boardId, Long commentId, int communityId) {
-        Integer status = commentMapper.getCommentLikeStatus(userId, boardId, commentId, communityId);
+    public void toggleCommentLike(String userId, Long commentId, Long boardId, int communityId) {
+        CommentDTO comment = commentMapper.selectCommentByIdAndBoardAndCommunity(commentId, boardId, communityId);
+        if (comment == null) {
+            // 반드시 이 메시지 그대로
+            throw new NoSuchElementException("댓글 없음");
+        }
 
+        Integer status = commentMapper.getCommentLikeStatus(userId, commentId, boardId, communityId);
         if (status == null) {
-            commentMapper.insertCommentLike(userId, boardId, commentId, communityId);
+            commentMapper.insertCommentLike(userId, commentId, boardId, communityId);
         } else {
             int newStatus = (status == 0) ? 1 : 0;
-            commentMapper.updateCommentLikeStatus(userId, boardId, commentId, communityId, newStatus);
+            commentMapper.updateCommentLikeStatus(userId, commentId, boardId, communityId, newStatus);
         }
     }
+
+
 
 }

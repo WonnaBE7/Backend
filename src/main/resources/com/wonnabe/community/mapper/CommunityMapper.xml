@@ -52,7 +52,7 @@
     </select>
 
     <!-- 인기 게시글 Top3 -->
-    <select id="selectTop3Boards" resultType="com.wonnabe.community.dto.board.BoardDTO">
+    <select id="selectTop3Boards" resultType="BoardDTO">
         SELECT
             b.id AS boardId,
             b.title,
@@ -60,15 +60,15 @@
             u.name AS userName,
             f.id AS categoryId,
             f.name AS categoryName,
-            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
-            (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+            (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
             EXISTS (
                 SELECT 1 FROM board_scrap
-                WHERE board_id = b.id AND user_id = #{userId}
+                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
             ) AS isScraped,
             EXISTS (
                 SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId}
+                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
             ) AS isLiked,
             DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
         FROM board b
@@ -79,16 +79,18 @@
             LIMIT 3
     </select>
 
-    <!-- 내가 좋아요랑 스크랩 한 글 수 -->
+    <!-- 내가 작성한 게시글 수 -->
     <select id="countUserBoards" resultType="int">
         SELECT COUNT(*) FROM board WHERE user_id = #{userId} AND is_deleted = 0
     </select>
 
+    <!-- 내가 스크랩한 글 수 -->
     <select id="countUserScraps" resultType="int">
-        SELECT COUNT(*) FROM board_scrap WHERE user_id = #{userId}
+        SELECT COUNT(*) FROM board_scrap
+        WHERE user_id = #{userId} AND is_deleted = 0
     </select>
 
-    <!--  사용자가 스크랩한 게시글을 조회  -->
+    <!-- 사용자가 스크랩한 게시글 조회 -->
     <select id="selectScrapedBoards" resultType="BoardDTO">
         SELECT
             b.id AS boardId,
@@ -97,24 +99,26 @@
             u.name AS userName,
             f.id AS categoryId,
             f.name AS categoryName,
-            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
-            (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+            (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
             TRUE AS isScraped,
             EXISTS (
                 SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId}
+                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
             ) AS isLiked,
             b.created_at AS createdAt
         FROM board_scrap bs
                  JOIN board b ON bs.board_id = b.id
                  JOIN user_profile u ON b.user_id = u.user_id
                  JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
-        WHERE bs.user_id = #{userId} AND b.is_deleted = 0
+        WHERE bs.user_id = #{userId}
+          AND bs.is_deleted = 0
+          AND b.is_deleted = 0
         ORDER BY b.created_at DESC
     </select>
 
-    <!--  사용자가 작성한 글 목록 조회  -->
-    <select id="selectWrittenBoards" resultType="com.wonnabe.community.dto.board.BoardDTO">
+    <!-- 사용자가 작성한 글 목록 조회 -->
+    <select id="selectWrittenBoards" resultType="BoardDTO">
         SELECT
             b.id AS boardId,
             b.title,
@@ -122,15 +126,15 @@
             u.name AS userName,
             f.id AS categoryId,
             f.name AS categoryName,
-            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id) AS likeCount,
-            (SELECT COUNT(*) FROM comment WHERE post_id = b.id) AS commentCount,
+            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+            (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
             EXISTS (
                 SELECT 1 FROM board_scrap
-                WHERE board_id = b.id AND user_id = #{userId}
+                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
             ) AS isScraped,
             EXISTS (
                 SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId}
+                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
             ) AS isLiked,
             DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
         FROM board b

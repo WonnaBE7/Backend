@@ -6,12 +6,14 @@ import com.wonnabe.community.dto.comment.CommentCreateRequestDto;
 import com.wonnabe.community.dto.comment.CommentDTO;
 import com.wonnabe.community.service.CommentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequiredArgsConstructor
@@ -61,11 +63,23 @@ public class CommentController {
             @AuthenticationPrincipal CustomUser customUser,
             @RequestParam("communityId") int communityId,
             @RequestParam("boardId") Long boardId,
-            @RequestParam("commentId") Long commentId
-    ) {
-        String userId = customUser.getUser().getUserId();
-        commentService.toggleCommentLike(userId, boardId, commentId, communityId);
-        return JsonResponse.ok("댓글 좋아요 상태가 변경되었습니다.");
+            @RequestParam("commentId") Long commentId) {
+
+        try {
+            String userId = customUser.getUser().getUserId();
+            commentService.toggleCommentLike(userId, commentId, boardId, communityId);
+            return JsonResponse.ok("댓글 좋아요 상태가 변경되었습니다.");
+        } catch (NoSuchElementException e) {
+            // 메시지로 분기
+            if ("댓글 없음".equals(e.getMessage())) {
+                return JsonResponse.error(HttpStatus.NOT_FOUND, "좋아요 대상 댓글이 존재하지 않습니다.");
+            }
+            return JsonResponse.error(HttpStatus.NOT_FOUND, "대상 데이터가 존재하지 않습니다.");
+        } catch (Exception e) {
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 좋아요 처리 중 오류가 발생했습니다.");
+        }
     }
+
+
 
 }

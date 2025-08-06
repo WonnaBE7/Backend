@@ -27,11 +27,6 @@ public class CommunityService {
         return communityMapper.selectTop3Communities();
     }
 
-    // 필요 시 확장할 예정
-    // public CommunityDTO getCommunityById(int communityId) {
-    //     return communityMapper.selectCommunityById(communityId);
-    // }
-
     // 사용자의 상위 3개 게시글 조회
     public List<BoardDTO> getTop3BoardList(String userId) {
         return communityMapper.selectTop3Boards(userId);

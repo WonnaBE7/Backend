@@ -24,6 +24,11 @@ public interface CommentMapper {
                               @Param("boardId") Long boardId,
                               @Param("userId") String userId);
 
+    // 댓글 좋아요에 있는지 존재 여부 확인
+    CommentDTO selectCommentByIdAndBoardAndCommunity(@Param("commentId") Long commentId,
+                                                     @Param("boardId") Long boardId,
+                                                     @Param("communityId") int communityId);
+
     //좋아요 생성 -댓글
     Integer getCommentLikeStatus(@Param("userId") String userId,
                                  @Param("boardId") Long boardId,

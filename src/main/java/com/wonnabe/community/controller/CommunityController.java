@@ -20,18 +20,20 @@ public class CommunityController {
 
     private final CommunityService communityService;
 
+    // 전체 커뮤니티 리스트 조회
     @GetMapping("/list")
     public ResponseEntity<Object> getCommunityList() {
         List<CommunityDTO> communityList = communityService.getCommunityList();
         return JsonResponse.ok("게시판 조회에 성공", Map.of("communities", communityList));
     }
 
-
+    // 상위 3개 커뮤니티 조회
     @GetMapping("/list/top3")
     public ResponseEntity<Object> getTop3Communities() {
         return JsonResponse.ok("TOP 3 커뮤니티 조회 성공", communityService.getTop3CommunityList());
     }
 
+    // 사용자의 상위 3개 게시글 조회
     @GetMapping("/board/top3")
     public ResponseEntity<Object> getTop3Boards(@AuthenticationPrincipal CustomUser customUser) {
         String userId = customUser.getUser().getUserId();
@@ -40,6 +42,7 @@ public class CommunityController {
         return JsonResponse.ok("게시글을 불러오는 것에 성공하였습니다.", Map.of("boards", boardList));
     }
 
+    // 내가 쓴 글 수 / 스크랩한 글 수 조회
     @GetMapping("/number")
     public ResponseEntity<Object> getBoardCounts(@AuthenticationPrincipal CustomUser customUser) {
         String userId = customUser.getUser().getUserId();
