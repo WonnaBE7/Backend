@@ -15,6 +15,7 @@
         <package name="com.wonnabe.product.dto" />
         <package name="com.wonnabe.asset.domain"/>
         <package name="com.wonnabe.asset.dto"/>
+        <package name="com.wonnabe.community.dto"/>
     </typeAliases>
 
 </configuration>
