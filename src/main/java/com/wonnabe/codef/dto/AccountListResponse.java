@@ -19,14 +19,14 @@ public class AccountListResponse {
     private CodefData data;
 
     public List<UserAccount> toUserAccountsFromDeposit(String userId, String institutionCode) {
-        return parseAccounts(data.getResDepositTrust(), userId, institutionCode, "입출금");
+        return parseAccounts(data.getResDepositTrust(), userId, institutionCode);
     }
 
     public List<UserAccount> toUserAccountsFromInsurance(String userId, String institutionCode) {
-        return parseAccounts(data.getResInsurance(), userId, institutionCode, "보험");
+        return parseAccounts(data.getResInsurance(), userId, institutionCode);
     }
 
-    private List<UserAccount> parseAccounts(List<Map<String, Object>> list, String userId, String institutionCode, String category) {
+    private List<UserAccount> parseAccounts(List<Map<String, Object>> list, String userId, String institutionCode) {
         List<UserAccount> accounts = new ArrayList<>();
         if (list == null) return accounts;
 
@@ -36,15 +36,15 @@ public class AccountListResponse {
             account.setInstitutionCode(institutionCode);
 
             account.setAccountNumber((String) item.get("resAccount"));
-            account.setAccountBalance(parseDouble(item.get("resAccountBalance")));
+            account.setAccountName((String) item.get("resAccountName"));
             account.setAccountDeposit((String) item.get("resAccountDeposit"));
-            account.setAccountNickname((String) item.get("resAccountNickName"));
-            account.setCurrency((String) item.get("resAccountCurrency"));
+            account.setAccountBalance(parseDouble(item.get("resAccountBalance")));
             account.setAccountStartDate((String) item.get("resAccountStartDate"));
             account.setAccountEndDate((String) item.get("resAccountEndDate"));
-            account.setAccountName((String) item.get("resAccountName"));
-            account.setAccountDisplay((String) item.get("resAccountDisplay"));
-//            account.setCategory(category);
+
+//            account.setAccountNickname((String) item.get("resAccountNickName"));
+//            account.setCurrency((String) item.get("resAccountCurrency"));
+//            account.setAccountDisplay((String) item.get("resAccountDisplay"));
 
             accounts.add(account);
         }
@@ -58,19 +58,5 @@ public class AccountListResponse {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    public List<UserAccount> toUserAccounts(String userId, String institutionCode) {
-        List<UserAccount> result = new ArrayList<>();
-
-        if (data == null) return result;
-
-        result.addAll(parseAccounts(data.getResDepositTrust(), userId, institutionCode, "deposit"));
-        result.addAll(parseAccounts(data.getResForeignCurrency(), userId, institutionCode, "foreign"));
-        result.addAll(parseAccounts(data.getResFund(), userId, institutionCode, "fund"));
-        result.addAll(parseAccounts(data.getResLoan(), userId, institutionCode, "loan"));
-        result.addAll(parseAccounts(data.getResInsurance(), userId, institutionCode, "insurance"));
-
-        return result;
     }
 }

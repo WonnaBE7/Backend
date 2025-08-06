@@ -12,7 +12,6 @@
           AND account_number = #{accountNumber}
     </select>
 
-    <!-- AccountMapper.xml -->
     <select id="findCategoryByAccountId" resultType="string">
         SELECT category
         FROM User_Accounts

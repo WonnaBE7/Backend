@@ -1,10 +1,7 @@
 package com.wonnabe.codef.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wonnabe.codef.dto.AccountListResponse;
-import com.wonnabe.codef.dto.CardListWrapper;
-import com.wonnabe.codef.dto.CodefAuthParam;
-import com.wonnabe.codef.dto.CodefTransactionResponse;
+import com.wonnabe.codef.dto.*;
 import com.wonnabe.codef.util.AssetRequestBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,6 +53,9 @@ public class CodefApiClient {
         } else if (endpoint.contains("/account/transaction-list")) {
             // 은행 수시입출 거래내역 조회
             return objectMapper.readValue(rawJson, CodefTransactionResponse.class);
+        } else if (endpoint.contains("/installment-savings/transaction-list")) {
+            // 은행 적금 거래내역 조회
+            return objectMapper.readValue(rawJson, SavingTransactionResponse.class);
         } else {
             throw new UnsupportedOperationException("지원하지 않는 CODEF API 엔드포인트: " + endpoint);
         }

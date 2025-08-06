@@ -3,11 +3,7 @@ package com.wonnabe.codef.service;
 import com.wonnabe.codef.domain.UserCard;
 import com.wonnabe.codef.domain.UserSaving;
 import com.wonnabe.codef.domain.UserTransactions;
-import com.wonnabe.codef.dto.AccountListResponse;
-import com.wonnabe.codef.dto.CardListWrapper;
-import com.wonnabe.codef.dto.CodefTransactionResponse;
-import com.wonnabe.codef.dto.TransactionListResponse;
-import com.wonnabe.codef.dto.CodefAuthParam;
+import com.wonnabe.codef.dto.*;
 import com.wonnabe.codef.mapper.*;
 import com.wonnabe.codef.client.CodefApiClient;
 import com.wonnabe.codef.domain.UserAccount;
@@ -32,7 +28,7 @@ public class AssetSyncService {
     private final CodefMapper codefMapper;
 
     private final AssetMapper assetMapper;
-    private final SavingsMapper savingsMapper;
+    private final CodefSavingsMapper savingsMapper;
     private final AssetCardMapper assetCardMapper;
     private  final UserTransactionsMapper  userTransactionsMapper;
     private final AccountMapper accountMapper;
@@ -56,12 +52,15 @@ public class AssetSyncService {
 
                 if (response instanceof AccountListResponse wrapper) {
                     allAccounts.addAll(wrapper.toUserAccountsFromDeposit(userId, param.getInstitutionCode()));
-                    allAccounts.addAll(wrapper.toUserAccountsFromInsurance(userId, param.getInstitutionCode()));
+//                    allAccounts.addAll(wrapper.toUserAccountsFromInsurance(userId, param.getInstitutionCode()));
                 } else if (response instanceof CardListWrapper cardResponse) {
                     allCards.add(cardResponse.toUserCard(userId));
                 } else if (response instanceof CodefTransactionResponse txWrapper) {
                     TransactionListResponse txResponse = txWrapper.getData();
                     allTransactions.addAll(txResponse.toUserTransactions(userId, param.getInstitutionCode(), accountMapper));
+                } else if (response instanceof SavingTransactionResponse savingTxWrapper) {
+                    List<UserTransactions> savingTxs = savingTxWrapper.toUserTransactions(userId, param.getInstitutionCode(), accountMapper, savingsMapper);
+                    allTransactions.addAll(savingTxs);
                 } else {
                     log.warn("⚠️ 알 수 없는 응답 형식: {}, 기관: {}", response.getClass().getSimpleName(), param.getInstitutionCode());
                     continue;
@@ -96,7 +95,7 @@ public class AssetSyncService {
                     assetCardMapper.upsert(card);
                 }
 
-                // 계좌 수시입출 거래내역 처리
+                // 계좌 수시입출/적금 거래내역 처리
                 if (!allTransactions.isEmpty()) {
                     userTransactionsMapper.upsertBatch(allTransactions);
                 }

@@ -11,14 +11,16 @@
         category,
         balance,
         last_updated,
+        created_at,  <!-- 여기에 추가 -->
         institution_code
         ) VALUES (
         #{account.userId},
         #{account.accountNumber},
         #{account.accountName},
-        '입출금', <!-- category가 없으므로 기본값 고정 -->
+        '입출금',
         #{account.accountBalance},
         NOW(),
+        #{account.accountStartDate},  <!-- 이 값으로 삽입 -->
         #{account.institutionCode}
         )
         ON DUPLICATE KEY UPDATE
@@ -28,5 +30,6 @@
         last_updated = NOW(),
         institution_code = VALUES(institution_code)
     </insert>
+
 
 </mapper>

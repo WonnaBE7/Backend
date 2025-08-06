@@ -5,11 +5,15 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 @Mapper
-public interface SavingsMapper {
+public interface CodefSavingsMapper {
 
     void upsert(UserSaving savings);
 
     Long findProductIdByKeyword(@Param("keyword") String keyword);
+
+    Long findSavingIdByUserIdAndProductId(@Param("resAccount") String resAccount);
+
+    Integer findProductIdByAccountId(@Param("accountId") Long accountId);
 
 //    List<UserSavings> findByUserId(@Param("userId") String userId);
 //

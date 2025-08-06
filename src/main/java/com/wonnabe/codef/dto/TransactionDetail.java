@@ -20,21 +20,22 @@ public class TransactionDetail {
     @JsonProperty("resAccountIn")
     private String depositAmount;
 
+    @JsonProperty("resAccountDesc1")
+    private String description1;
+
     @JsonProperty("resAccountDesc2")
     private String description;
+
+    @JsonProperty("resAccountDesc3")
+    private String description3;
+
+    @JsonProperty("resAccountDesc4")
+    private String description4;
 
 //    @JsonProperty("resAfterTranBalance")
 //    private String balanceAfter;
 //
-//    @JsonProperty("resAccountDesc1")
-//    private String description1;
-//
-//    @JsonProperty("resAccountDesc3")
-//    private String description3;
-//
-//    @JsonProperty("resAccountDesc4")
-//    private String description4;
-//
 //    @JsonProperty("tranDesc")
 //    private String transactionDescription;
+
 }

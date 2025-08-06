@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.fasterxml.jackson.core.io.NumberInput.parseBigDecimal;
 
@@ -76,7 +77,9 @@ public class TransactionListResponse {
             tx.setUserId(userId);
             tx.setTransactionDate(detail.getTransactionDate());  // yyyy-MM-dd 형식 가정
             tx.setTransactionTime(detail.getTransactionTime());  // HH:mm:ss 형식 가정
-            tx.setDescription(detail.getDescription());          // 단일 필드
+            tx.setDescription(buildDescription(detail));
+
+//            tx.setDescription(detail.getDescription());          // 단일 필드
 //            tx.setAssetCategory(assetCategory);                  // '예금','적금','투자','입출금','보험','기타' // '입출금','투자','연금','기타'
 
             Long in = parseLong(detail.getDepositAmount());
@@ -86,7 +89,7 @@ public class TransactionListResponse {
                 tx.setAmount(in);
                 tx.setTransactionType("입금");
             } else if (out != null && out != 0) {
-                tx.setAmount(out);
+                tx.setAmount(-out);
                 tx.setTransactionType("출금");
             } else {
                 // null이거나 0이면 무시
@@ -104,7 +107,7 @@ public class TransactionListResponse {
             // ✅ assetCategory 조회 및 설정
             String assetCategory = accountMapper.findCategoryByAccountId(accountId);
             if (assetCategory != null && !assetCategory.isBlank()) {
-                tx.setAssetCategory(assetCategory);  // 예: "입출금", "예금", "투자", "연금", "기타"
+                tx.setAssetCategory(assetCategory);  // 예: "입출금", "예금", "투자", "연금", "기타" + 추가처리(이 외라면 User_Insurance, User_Savings에서 찾도록)
             }
             tx.setInstitutionCode(institutionCode);
             result.add(tx);
@@ -117,6 +120,23 @@ public class TransactionListResponse {
             return value != null && !value.isBlank() ? Long.parseLong(value.replaceAll(",", "")) : null;
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    // ✅ 올바른 메서드 시그니처
+    private String buildDescription(TransactionDetail detail) {
+        StringBuilder sb = new StringBuilder();
+        appendIfNotEmpty(sb, detail.getDescription1());
+        appendIfNotEmpty(sb, detail.getDescription());
+        appendIfNotEmpty(sb, detail.getDescription3());
+        appendIfNotEmpty(sb, detail.getDescription4());
+        return sb.toString().trim();
+    }
+
+    private void appendIfNotEmpty(StringBuilder sb, Object val) {
+        if (val != null && !val.toString().isBlank()) {
+            if (sb.length() > 0) sb.append(" / ");
+            sb.append(val.toString());
         }
     }
 }
