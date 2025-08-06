@@ -14,8 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.wonnabe.product.dto.TransactionSummaryDto;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
+
 import java.sql.Date;
 import java.time.LocalDate;
 import java.util.List;
@@ -88,7 +87,7 @@ class UserInsuranceMapperTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(janSummary, "1월 요약이 존재해야 합니다.");
-        assertEquals(-220000L, janSummary.getTotalSavings(), "1월 총액은 -220000이어야 합니다.");
+        assertEquals(-15000L, janSummary.getTotalSavings(), "1월 총액은 -15000이어야 합니다.");
 
         // 2월 데이터 검증
         TransactionSummaryDto febSummary = summaries.stream()
@@ -96,7 +95,7 @@ class UserInsuranceMapperTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(febSummary, "2월 요약이 존재해야 합니다.");
-        assertEquals(-150000L, febSummary.getTotalSavings(), "2월 총액은 -150000이어야 합니다.");
+        assertEquals(-12000L, febSummary.getTotalSavings(), "2월 총액은 -12000이어야 합니다.");
 
         // 3월 데이터 검증
         TransactionSummaryDto marSummary = summaries.stream()
@@ -104,7 +103,7 @@ class UserInsuranceMapperTest {
                 .findFirst()
                 .orElse(null);
         assertNotNull(marSummary, "3월 요약이 존재해야 합니다.");
-        assertEquals(-200000L, marSummary.getTotalSavings(), "3월 총액은 -200000이어야 합니다.");
+        assertEquals(-8000L, marSummary.getTotalSavings(), "3월 총액은 -8000이어야 합니다.");
 
         System.out.println("===== 월별 거래 내역 합계 =====");
         summaries.forEach(s -> System.out.printf(

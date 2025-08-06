@@ -1,18 +1,15 @@
 package com.wonnabe.product.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.common.config.ServletConfig;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.domain.UserVO;
-import com.wonnabe.product.dto.UserCardDetailDTO;
 import com.wonnabe.product.service.CardService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,11 +21,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
