@@ -18,5 +18,5 @@ public class UserAccount {
 
     private String accountName;
     private String accountDisplay;
-//    private String category;  // "deposit", "foreign", "fund", "loan", "insurance"
+    private String category;
 }

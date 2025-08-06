@@ -24,7 +24,7 @@ public class TransactionDetail {
     private String description1;
 
     @JsonProperty("resAccountDesc2")
-    private String description;
+    private String description2;
 
     @JsonProperty("resAccountDesc3")
     private String description3;

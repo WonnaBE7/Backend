@@ -72,6 +72,11 @@ public class AssetSyncService {
 
                     switch (depositCode) {
                         case "11": // 수시입출
+                            account.setCategory("입출금");
+                            assetMapper.upsert(account);
+                            break;
+                        case "14":
+                            account.setCategory("연금");
                             assetMapper.upsert(account);
                             break;
                         case "12": // 적금/예금
@@ -83,6 +88,7 @@ public class AssetSyncService {
 //                            insuranceMapper.upsert(insurance);
 //                            break;
                         default:
+                            account.setCategory("기타");
                             assetMapper.upsert(account); // 기본은 입출금
                     }
                 }
@@ -99,7 +105,6 @@ public class AssetSyncService {
                 if (!allTransactions.isEmpty()) {
                     userTransactionsMapper.upsertBatch(allTransactions);
                 }
-
                 log.info("✅ 자산 동기화 성공 - userId: {}, 기관: {}", userId, param.getInstitutionCode());
 
             } catch (Exception e) {
@@ -158,6 +163,8 @@ public class AssetSyncService {
         if (productId == null) {
             log.warn("❗ product_id 조회 실패: accountName='{}'", account.getAccountName());
         }
+        savings.setAccountNumber(account.getAccountNumber());
+
         return savings;
     }
 
