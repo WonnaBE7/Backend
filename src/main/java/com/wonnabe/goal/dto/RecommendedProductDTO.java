@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class RecommendedProductDTO {
-    private Long id;
+    private Long id; // productId
     private String name;
     private String bank;
     private String category; // 예금, 적금
@@ -29,7 +29,7 @@ public class RecommendedProductDTO {
 
     public static RecommendedProductDTO of(RecommendedProductVO vo) {
         return vo == null ? null : RecommendedProductDTO.builder()
-                .id(vo.getId())
+                .id(vo.getProductId())
                 .name(vo.getProductName())
                 .bank(vo.getBankName())
                 .category(determineCategory(vo.getProductId()))
