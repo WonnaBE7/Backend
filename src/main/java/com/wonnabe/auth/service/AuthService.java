@@ -66,6 +66,29 @@ public class AuthService {
         return true;
     }
 
+    private void validateSignupDTO(SignupDTO dto) {
+        if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("이메일은 필수 입력 항목입니다.");
+        }
+        if (dto.getPassword() == null || dto.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("비밀번호는 필수 입력 항목입니다.");
+        }
+        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("이름은 필수 입력 항목입니다.");
+        }
+
+        if (!isValidEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다.");
+        }
+        if (dto.getPassword().length() < 6) {
+            throw new IllegalArgumentException("비밀번호는 최소 6자 이상이어야 합니다.");
+        }
+    }
+
+    private boolean isValidEmail(String email) {
+        return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
+    }
+
     /**
      * 쿠키에 담긴 Refresh Token을 검증하고 새로운 Access Token을 발급합니다.
      *

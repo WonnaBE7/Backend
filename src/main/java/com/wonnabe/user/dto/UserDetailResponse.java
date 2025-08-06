@@ -1,4 +1,3 @@
-// UserDetailResponse.java - 완전한 코드 (이것만 수정하면 됨!)
 package com.wonnabe.user.dto;
 
 import lombok.Builder;

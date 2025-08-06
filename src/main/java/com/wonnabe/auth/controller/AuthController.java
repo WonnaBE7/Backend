@@ -34,15 +34,14 @@ public class AuthController {
      */
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody SignupDTO signupDTO) {
-        // 입력값 검증 추가 가능
-        if (signupDTO.getEmail() == null || signupDTO.getPassword() == null) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, "필수 정보가 누락되었습니다.");
+        try {
+            boolean result = authService.registerUser(signupDTO);
+            return result
+                    ? JsonResponse.ok("회원가입 성공")
+                    : JsonResponse.error(HttpStatus.CONFLICT, "이미 가입된 이메일입니다");
+        } catch (IllegalArgumentException e) {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, e.getMessage());
         }
-
-        boolean result = authService.registerUser(signupDTO);
-        return result
-                ? JsonResponse.ok("회원가입 성공")
-                : JsonResponse.error(HttpStatus.CONFLICT, "이미 가입된 이메일입니다");
     }
 
     /**

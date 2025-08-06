@@ -109,18 +109,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 "/assets/**",
                 "/*",
                 "/api/member/**",
-                "/api/nowme/**",        // ‼️‼️‼️‼️‼️
-//                "/api/nowme/diagnosis", // ‼️‼️‼️‼️‼️
-                "/api/auth/kakao/**", // ‼️‼️‼️‼️‼️
-                // 나중엔 아래 코드로 바꾸기
-                /*
-                // 이 줄을 삭제하고, 아래에서 세밀하게 제어
-                "/api/auth/kakao/**",   // ❌ 삭제
-                // 대신 configure(HttpSecurity http) 메서드에서:
-                .antMatchers("/api/auth/kakao/login-url").permitAll()    // 로그인 URL만 허용
-                .antMatchers("/api/auth/kakao/callback").permitAll()     // 콜백만 허용
-                .antMatchers("/api/auth/kakao/login").permitAll()        // POST 로그인만 허용
-                * */
                 // Swagger 관련 url은 보안에서 제외
                 "/swagger-ui.html",
                 "/webjars/**",
@@ -158,12 +146,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler);
 
-        // 🔥 인가 정책 설정 - NowMe API 명시적 허용
+        // 인가 정책 설정
         http.authorizeRequests()
                 .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers("/api/nowme/**").permitAll()      // 🔥 추가 보장
-                .antMatchers("/api/nowme/diagnosis").permitAll() // 🔥 명시적 허용
-                .anyRequest().permitAll();
+                .antMatchers("/api/auth/signup").permitAll()
+                .antMatchers("/api/auth/login").permitAll()
+                .antMatchers("/api/auth/refresh").permitAll()
+                .antMatchers("/api/auth/logout").permitAll()
+                .antMatchers("/api/auth/kakao/login-url").permitAll()
+                .antMatchers("/api/auth/kakao/callback").permitAll()
+                .antMatchers("/api/auth/kakao/login").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/nowme/diagnosis").permitAll()
+                .antMatchers("/api/user/**").authenticated()
+                .anyRequest().authenticated();
 
         http.httpBasic().disable()
                 .csrf().disable()
