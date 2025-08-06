@@ -14,4 +14,4 @@ out/
 /src/main/resources/application.properties
 
 # 모든 .gitkeep은 포함
-!**/.gitkeep
+!**/.gitkeep.gradle/
