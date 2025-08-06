@@ -8,7 +8,7 @@
     <update id="updateUser">
         UPDATE User_Profile
         SET name = #{name},
-        password_hash = #{passwordHash}
+            password_hash = #{passwordHash}
         WHERE user_id = #{userId}
     </update>
 
@@ -29,5 +29,163 @@
                  JOIN Financial_Tendency_Type ftt ON dh.nowme_id = ftt.id
         WHERE dh.user_id = #{userId}
         ORDER BY dh.diagnosed_at DESC
+    </select>
+
+    <!-- 사용자 기본 정보 조회 (User_Profile + User_Info 조인) -->
+    <select id="selectUserInfo" resultType="map">
+        SELECT
+            up.user_id as userId,
+            up.name as name,
+            up.email as email,
+            ui.income_job_type as job,
+            ui.nowme_id as nowmeId,
+            CASE
+                WHEN ui.income_annual_amount IS NOT NULL
+                    THEN ROUND(ui.income_annual_amount / 12)
+                ELSE NULL
+                END as monthlyIncome
+        FROM User_Profile up
+                 LEFT JOIN User_Info ui ON up.user_id = ui.user_id
+        WHERE up.user_id = #{userId}
+    </select>
+
+    <!-- 현재 진단된 금융성향 이름 조회 -->
+    <select id="selectFinancialTendencyName" resultType="String">
+        SELECT name
+        FROM Financial_Tendency_Type
+        WHERE id = #{nowmeId}
+    </select>
+
+    <!-- 선택한 워너비 이름들 조회 -->
+    <select id="selectFinancialTendencyNames" resultType="String">
+        SELECT ftt.name
+        FROM Financial_Tendency_Type ftt
+        WHERE JSON_CONTAINS(
+                      (SELECT selected_wonnabe_ids FROM User_Info WHERE user_id = #{userId}),
+                      CAST(ftt.id AS JSON)
+              )
+    </select>
+
+    <!-- UserDetailData용 ResultMap 정의 -->
+    <resultMap id="userDetailDataMap" type="com.wonnabe.user.dto.UserDetailResponse$UserDetailData">
+        <constructor>
+            <arg column="user_id" javaType="String"/>
+            <arg column="lifestyle_smoking" javaType="Long"/>
+            <arg column="lifestyle_drinking" javaType="Long"/>
+            <arg column="lifestyle_exercise" javaType="Long"/>
+            <arg column="household_size" javaType="Integer"/>
+            <arg column="lifestyle_family_medical" javaType="Long"/>
+            <arg column="lifestyle_before_diseases" javaType="Long"/>
+            <arg column="income_job_type" javaType="String"/>
+        </constructor>
+    </resultMap>
+
+    <!-- 사용자 상세 정보 조회 쿼리 (resultMap 사용) -->
+    <select id="selectUserDetail" resultMap="userDetailDataMap">
+        SELECT
+            user_id,
+            CASE WHEN lifestyle_smoking = 'Y' THEN 1 ELSE 0 END AS lifestyle_smoking,
+            CASE WHEN lifestyle_alcohol_freq = '전혀 안 함' THEN 0 ELSE 1 END AS lifestyle_drinking,
+            CASE WHEN lifestyle_exercise_freq = '운동 안 함' THEN 0 ELSE 1 END AS lifestyle_exercise,
+            household_size,
+            CASE WHEN lifestyle_family_medical IS NOT NULL AND lifestyle_family_medical != '' THEN 1 ELSE 0 END AS lifestyle_family_medical,
+            CASE WHEN lifestyle_before_diseases IS NOT NULL AND lifestyle_before_diseases != '' THEN 1 ELSE 0 END AS lifestyle_before_diseases,
+            income_job_type
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 사용자 상세 정보 등록 쿼리 -->
+    <insert id="insertUserDetail" parameterType="com.wonnabe.user.dto.UserDetailRequest">
+        INSERT INTO User_Info (
+        user_id,
+        lifestyle_smoking,
+        lifestyle_alcohol_freq,
+        lifestyle_exercise_freq,
+        household_size,
+        lifestyle_family_medical,
+        lifestyle_before_diseases,
+        income_job_type
+        ) VALUES (
+        #{user_id},
+        <choose>
+            <when test="lifestyle_smoking != null and lifestyle_smoking == true">'Y'</when>
+            <otherwise>'N'</otherwise>
+        </choose>,
+        <choose>
+            <when test="lifestyle_drinking != null and lifestyle_drinking == true">'주 1회 이상'</when>
+            <otherwise>'전혀 안 함'</otherwise>
+        </choose>,
+        <choose>
+            <when test="lifestyle_exercise != null and lifestyle_exercise == true">'주 1회 이상'</when>
+            <otherwise>'운동 안 함'</otherwise>
+        </choose>,
+        #{household_size},
+        <choose>
+            <when test="lifestyle_family_medical != null and lifestyle_family_medical == true">'있음'</when>
+            <otherwise>NULL</otherwise>
+        </choose>,
+        <choose>
+            <when test="lifestyle_before_diseases != null and lifestyle_before_diseases == true">'있음'</when>
+            <otherwise>NULL</otherwise>
+        </choose>,
+        #{income_job_type}
+        )
+    </insert>
+
+    <!-- 사용자 상세 정보 수정 쿼리 (동적 업데이트) -->
+    <update id="updateUserDetail" parameterType="com.wonnabe.user.dto.UserDetailRequest">
+        UPDATE User_Info
+        <set>
+            <if test="lifestyle_smoking != null">
+                lifestyle_smoking =
+                <choose>
+                    <when test="lifestyle_smoking == true">'Y'</when>
+                    <otherwise>'N'</otherwise>
+                </choose>,
+            </if>
+            <if test="lifestyle_drinking != null">
+                lifestyle_alcohol_freq =
+                <choose>
+                    <when test="lifestyle_drinking == true">'주 1회 이상'</when>
+                    <otherwise>'전혀 안 함'</otherwise>
+                </choose>,
+            </if>
+            <if test="lifestyle_exercise != null">
+                lifestyle_exercise_freq =
+                <choose>
+                    <when test="lifestyle_exercise == true">'주 1회 이상'</when>
+                    <otherwise>'운동 안 함'</otherwise>
+                </choose>,
+            </if>
+            <if test="household_size != null">
+                household_size = #{household_size},
+            </if>
+            <if test="lifestyle_family_medical != null">
+                lifestyle_family_medical =
+                <choose>
+                    <when test="lifestyle_family_medical == true">'있음'</when>
+                    <otherwise>NULL</otherwise>
+                </choose>,
+            </if>
+            <if test="lifestyle_before_diseases != null">
+                lifestyle_before_diseases =
+                <choose>
+                    <when test="lifestyle_before_diseases == true">'있음'</when>
+                    <otherwise>NULL</otherwise>
+                </choose>,
+            </if>
+            <if test="income_job_type != null">
+                income_job_type = #{income_job_type},
+            </if>
+        </set>
+        WHERE user_id = #{user_id}
+    </update>
+
+    <!-- 사용자 상세 정보 존재 여부 확인 쿼리 -->
+    <select id="checkUserDetailExists" resultType="int">
+        SELECT COUNT(*)
+        FROM User_Info
+        WHERE user_id = #{userId}
     </select>
 </mapper>

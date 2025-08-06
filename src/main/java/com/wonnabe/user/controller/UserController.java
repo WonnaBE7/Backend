@@ -1,16 +1,16 @@
 package com.wonnabe.user.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
-import com.wonnabe.user.dto.DiagnosisHistoryResponse;
-import com.wonnabe.user.dto.UpdateUserRequest;
-import com.wonnabe.user.dto.UpdateWonnabeRequest;
-import com.wonnabe.user.dto.UserInfoResponse;
+import com.wonnabe.user.dto.*;
 import com.wonnabe.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -76,5 +76,52 @@ public class UserController {
     @GetMapping("/users/{id}/nowme/history")
     public ResponseEntity<DiagnosisHistoryResponse> getNowmeHistory(@PathVariable("id") String id) {
         return ResponseEntity.ok(userService.getNowmeHistory(id));
+    }
+
+    /**
+     * 사용자 상세 정보를 조회합니다.
+     */
+    @GetMapping("/info")
+    public ResponseEntity<UserDetailResponse> getUserDetail(@RequestParam("user_id") String userId) {
+        UserDetailResponse response = userService.getUserDetail(userId);
+        return ResponseEntity.status(response.getCode()).body(response);
+    }
+
+    /**
+     * 사용자 상세 정보를 등록합니다.
+     */
+    @PostMapping("/info")
+    public ResponseEntity<Map<String, Object>> createUserDetail(@RequestBody UserDetailRequest request) {
+        userService.createUserDetail(request);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", 201);
+        response.put("message", "사용자 정보가 성공적으로 생성되었습니다.");
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("user_id", request.getUser_id());
+        data.put("created_at", new Date());
+        response.put("data", data);
+
+        return ResponseEntity.status(201).body(response);
+    }
+
+    /**
+     * 사용자 상세 정보를 수정합니다.
+     */
+    @PutMapping("/info")
+    public ResponseEntity<Map<String, Object>> updateUserDetail(@RequestBody UserDetailRequest request) {
+        List<String> updatedFields = userService.updateUserDetail(request);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("code", 200);
+        response.put("message", "사용자 정보가 성공적으로 수정되었습니다.");
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("user_id", request.getUser_id());
+        data.put("updated_fields", updatedFields);
+        response.put("data", data);
+
+        return ResponseEntity.ok(response);
     }
 }
