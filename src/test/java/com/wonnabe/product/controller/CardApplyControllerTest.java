@@ -76,7 +76,7 @@ class CardApplyControllerTest {
     @Transactional
     void applyCard() throws Exception {
         CardApplyRequestDTO dto = CardApplyRequestDTO.builder()
-                .cardId("2003")
+                .cardId("2005")
                 .linkedAccount("222-2222-2222")
                 .cardType("check")
                 .productType("card")
