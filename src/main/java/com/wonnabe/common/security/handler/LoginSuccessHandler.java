@@ -1,6 +1,8 @@
 package com.wonnabe.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wonnabe.codef.service.AssetSyncService;
+import com.wonnabe.codef.service.CodefAuthService;
 import com.wonnabe.auth.repository.RefreshTokenRedisRepository;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.dto.AuthResultDTO;
@@ -27,6 +29,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final JwtProcessor jwtProcessor;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
+    private final CodefAuthService codefAuthService;
+    private final AssetSyncService assetSyncService;
 
     /**
      * 사용자 정보와 AccessToken을 포함하는 AuthResultDTO 객체를 생성합니다.
@@ -58,12 +62,19 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         CustomUser user = (CustomUser) authentication.getPrincipal();
         String userId = user.getUser().getUserId();
 
+        // 외부 연동 분리
+        syncExternalData(userId);
+
         // ✅ 토큰 생성
         String accessToken = jwtProcessor.generateAccessToken(userId);
         String refreshToken = jwtProcessor.generateRefreshToken(userId);
 
         // ✅ Redis 저장
-        refreshTokenRedisRepository.save(userId, refreshToken, 60 * 60 * 24 * 7); // 7일 (초 단위)
+        try {
+            refreshTokenRedisRepository.save(userId, refreshToken, 60 * 60 * 24 * 7);
+        } catch (Exception e) {
+            log.error("❌ Redis 저장 실패 - userId: {}, error: {}", userId, e.getMessage());
+        }
 
         // ✅ Refresh Token → Secure HttpOnly 쿠키로 전송
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
@@ -87,4 +98,14 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         log.info("✅ 로그인 성공 - userId: {}", userId);
     }
+
+    private void syncExternalData(String userId) {
+        try {
+            codefAuthService.syncUserCodef(userId);
+            assetSyncService.syncAllAssets(userId);
+        } catch (Exception e) {
+            log.warn("외부 연동 실패 - userId: {}, error: {}", userId, e.getMessage());
+        }
+    }
+
 }

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.codef.mapper.AccountMapper">
+
+    <select id="findAccountIdByUserIdAndAccountNumber" resultType="long">
+        SELECT id
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+          AND account_number = #{accountNumber}
+    </select>
+
+    <select id="findCategoryByAccountId" resultType="string">
+        SELECT category
+        FROM User_Accounts
+        WHERE id = #{accountId}
+    </select>
+
+</mapper>
