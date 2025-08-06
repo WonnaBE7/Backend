@@ -1,6 +1,7 @@
 package com.wonnabe.product.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.Map;
@@ -87,7 +88,7 @@ class CardProductControllerTest {
 		SecurityContextHolder.getContext().setAuthentication(auth);
 
 		// 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/products/cards/2500"))
+		MvcResult result = mockMvc.perform(get("/api/user/products/cards/2500"))
 			.andExpect(status().isOk())
 			.andReturn();
 
@@ -123,7 +124,7 @@ class CardProductControllerTest {
 		SecurityContextHolder.getContext().setAuthentication(auth);
 
 		// 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/products/cards/3333"))
+		MvcResult result = mockMvc.perform(get("/api/user/products/cards/3333"))
 			.andExpect(status().is4xxClientError())
 			.andReturn();
 
@@ -159,7 +160,7 @@ class CardProductControllerTest {
 		SecurityContextHolder.getContext().setAuthentication(auth);
 
 		// 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-		MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/products/cards/2300"))
+		MvcResult result = mockMvc.perform(get("/api/user/products/cards/2300"))
 			.andExpect(status().is4xxClientError())
 			.andReturn();
 
