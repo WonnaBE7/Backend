@@ -33,11 +33,20 @@
                              account_id = VALUES(account_id)
     </insert>
 
-    <select id="findProductIdByKeyword" parameterType="String" resultType="long">
+    <select id="findProductIdByKeyword2" parameterType="String" resultType="long">
         SELECT product_id
         FROM Card_product
         WHERE #{cardName} LIKE CONCAT('%', REPLACE(card_name, ' ', ''), '%')
         LIMIT 1
+    </select>
+
+    <select id="findProductIdByKeyword" parameterType="map" resultType="long">
+        SELECT p.product_id
+        FROM Card_product p
+                 JOIN Institutions i ON p.card_company = i.name
+        WHERE i.code = #{institutionCode}
+          AND REPLACE(#{cardName}, ' ', '') LIKE CONCAT('%', REPLACE(p.card_name, ' ', ''), '%')
+        LIMIT 1;
     </select>
 
 </mapper>

@@ -16,7 +16,10 @@ public class UserTransactions {
     private String assetCategory;
 
     private Long amount;
-    private String description; // 기존 하나로 통합
+    private String description1;
+    private String description2;
+    private String description3;
+    private String description4;
 
     private String institutionCode;         // 기관 코드
 //    private Date createdAt;                 // 수집 시각

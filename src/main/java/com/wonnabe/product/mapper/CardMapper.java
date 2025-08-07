@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
-import com.wonnabe.product.dto.BasicUserInfo;
+import com.wonnabe.product.dto.BasicUserInfoDTO;
 import com.wonnabe.product.dto.UserCardDTO;
 import com.wonnabe.product.dto.UserInfoForCardDTO;
 
@@ -121,6 +121,6 @@ public interface CardMapper {
      * @param userId 사용자 아이디
      * @return 사용자 기본 정보
      */
-    BasicUserInfo findBasicUserInfoById(@Param("userId") String userId);
+    BasicUserInfoDTO findBasicUserInfoById(@Param("userId") String userId);
 
 }

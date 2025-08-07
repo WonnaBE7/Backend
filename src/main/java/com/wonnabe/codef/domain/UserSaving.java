@@ -14,4 +14,5 @@ public class UserSaving {
     private Date startDate;
     private Date maturityDate;
     private BigDecimal monthlyPayment;
+    private String accountNumber;
 }

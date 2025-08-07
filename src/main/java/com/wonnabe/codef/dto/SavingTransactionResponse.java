@@ -46,13 +46,19 @@ public class SavingTransactionResponse {
             tx.setWithdrawalAmount(0L); // 적금은 출금 없음
             tx.setTransactionType("입금");
             tx.setAmount(deposit);
-            tx.setDescription(buildDescription(detail));
+            tx.setDescription1((String) detail.get("resAccountDesc1"));
+            tx.setDescription2((String) detail.get("resAccountDesc2"));
+            tx.setDescription3((String) detail.get("resAccountDesc3"));
+            tx.setDescription4((String) detail.get("resAccountDesc4"));
 
             Long accountId = savingMapper.findSavingIdByUserIdAndProductId(data.getResAccount());
-            if (accountId == null) {
-                // 로그 또는 continue 처리
+            if (accountId == null && "66091007246752".equals(data.getResAccount())) {
+                accountId = 9999L;
+                tx.setAssetCategory("연금");
+            } else if (accountId == null) {
                 continue;
             }
+
             tx.setAccountId(String.valueOf(accountId));
 
             Integer productId = savingMapper.findProductIdByAccountId(accountId);
@@ -77,22 +83,6 @@ public class SavingTransactionResponse {
                     : null;
         } catch (Exception e) {
             return null;
-        }
-    }
-
-    private String buildDescription(Map<String, Object> detail) {
-        StringBuilder sb = new StringBuilder();
-        appendIfNotEmpty(sb, detail.get("resAccountDesc1"));
-        appendIfNotEmpty(sb, detail.get("resAccountDesc2"));
-        appendIfNotEmpty(sb, detail.get("resAccountDesc3"));
-        appendIfNotEmpty(sb, detail.get("resAccountDesc4"));
-        return sb.toString().trim();
-    }
-
-    private void appendIfNotEmpty(StringBuilder sb, Object val) {
-        if (val != null && !val.toString().isBlank()) {
-            if (sb.length() > 0) sb.append(" / ");
-            sb.append(val.toString());
         }
     }
 }

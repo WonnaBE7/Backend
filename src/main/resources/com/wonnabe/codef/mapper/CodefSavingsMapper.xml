@@ -7,10 +7,10 @@
 
     <insert id="upsert" parameterType="com.wonnabe.codef.domain.UserSaving">
         INSERT INTO User_Savings (
-        id, user_id, product_id, principal_amount, start_date, maturity_date, monthly_payment
+        id, user_id, product_id, principal_amount, start_date, maturity_date, monthly_payment, account_number
         )
         VALUES (
-        #{id}, #{userId}, #{productId}, #{principalAmount}, #{startDate}, #{maturityDate}, #{monthlyPayment}
+        #{id}, #{userId}, #{productId}, #{principalAmount}, #{startDate}, #{maturityDate}, #{monthlyPayment}, #{accountNumber}
         )
         ON DUPLICATE KEY UPDATE
         principal_amount = #{principalAmount},

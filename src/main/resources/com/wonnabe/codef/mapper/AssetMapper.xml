@@ -17,18 +17,15 @@
         #{account.userId},
         #{account.accountNumber},
         #{account.accountName},
-        '입출금',
+        #{account.category},
         #{account.accountBalance},
         NOW(),
         #{account.accountStartDate},  <!-- 이 값으로 삽입 -->
         #{account.institutionCode}
         )
         ON DUPLICATE KEY UPDATE
-        account_name = VALUES(account_name),
-        category = VALUES(category),
         balance = VALUES(balance),
-        last_updated = NOW(),
-        institution_code = VALUES(institution_code)
+        last_updated = NOW()
     </insert>
 
 
