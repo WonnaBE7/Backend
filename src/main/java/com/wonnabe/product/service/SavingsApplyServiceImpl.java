@@ -54,7 +54,7 @@ public class SavingsApplyServiceImpl implements SavingsApplyService {
         }
 
         // 5. 사용자 정보에 예적금 ID 추가
-        savingsMapper.updateUserSavingsInfo(newSavingsId, userId);
+        savingsMapper.updateUserSavingsInfo(product.getProductId(), userId);
 
         // 6. 가입 확인 (선택적)
         UserSavingsVO savingsCheck = savingsMapper.findUserSavingsByProductId(product.getProductId(), userId);

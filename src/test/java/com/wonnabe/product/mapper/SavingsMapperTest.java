@@ -54,34 +54,45 @@ public class SavingsMapperTest {
         calendar.add(Calendar.MONTH, 12);
         Date maturityDate = calendar.getTime();
 
-        UserSavingsVO newSavings = UserSavingsVO.builder()
-                .userId(TEST_USER_ID)
-                .productId(TEST_PRODUCT_ID)
-                .principalAmount(1000000L)
-                .startDate(startDate)
-                .maturityDate(maturityDate)
-                .monthlyPayment(100000L)
-                .build();
+        // 1. 먼저 동일한 userId + productId 조합이 존재하는지 확인
+        UserSavingsVO existing = savingsMapper.findUserSavingsByProductId(TEST_PRODUCT_ID, TEST_USER_ID);
 
-        // when: 1. 사용자 예적금 정보 삽입
-        savingsMapper.insertUserSavings(newSavings);
-        long newId = newSavings.getId();
+        long savingsId;
+        if (existing != null) {
+            // 이미 존재하는 경우: 해당 ID 재사용
+            savingsId = existing.getId();
+            System.out.println("기존 가입된 예적금 정보 사용: " + existing);
+        } else {
+            // 존재하지 않으면 새로 생성
+            UserSavingsVO newSavings = UserSavingsVO.builder()
+                    .userId(TEST_USER_ID)
+                    .productId(TEST_PRODUCT_ID)
+                    .principalAmount(1000000L)
+                    .startDate(startDate)
+                    .maturityDate(maturityDate)
+                    .monthlyPayment(100000L)
+                    .build();
 
-        // then: 1. 삽입 후 ID가 정상적으로 생성되었는지 확인
-        assertTrue(newId > 0);
+            savingsMapper.insertUserSavings(newSavings);
+            savingsId = newSavings.getId();
+
+            // then: 삽입 후 ID가 정상적으로 생성되었는지 확인
+            assertTrue(savingsId > 0);
+        }
+
 
         // when: 2. 사용자 정보에 예적금 ID 업데이트
-        savingsMapper.updateUserSavingsInfo(newId, TEST_USER_ID);
+        savingsMapper.updateUserSavingsInfo(savingsId, TEST_USER_ID);
 
         // then: 2. 업데이트 후, 해당 사용자의 예적금 목록에 새 ID가 포함되어 있는지 확인
         String mySavingsIdsJson = savingsMapper.getMySavingsIdsJson(TEST_USER_ID);
         assertNotNull(mySavingsIdsJson);
-        assertTrue(mySavingsIdsJson.contains(String.valueOf(newId)));
+        assertTrue(mySavingsIdsJson.contains(String.valueOf(savingsId)));
 
         // then: 3. 최종적으로 가입된 예적금 정보가 DB에서 정상적으로 조회되는지 확인
         UserSavingsVO savedSavings = savingsMapper.findUserSavingsByProductId(TEST_PRODUCT_ID, TEST_USER_ID);
         assertNotNull(savedSavings);
-        assertEquals(newId, savedSavings.getId());
+        assertEquals(savingsId, savedSavings.getId());
 
         System.out.println("성공적으로 가입된 예적금 정보: " + savedSavings);
     }

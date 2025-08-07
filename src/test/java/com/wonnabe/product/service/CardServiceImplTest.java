@@ -2,7 +2,6 @@ package com.wonnabe.product.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;

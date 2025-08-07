@@ -177,7 +177,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     }
 
     // 가중치 정규화
-    private double[] normalizeWeights(double[] weights) {
+    public double[] normalizeWeights(double[] weights) {
         double sum = Arrays.stream(weights).sum();
         if (sum == 0) {
             return weights;

@@ -161,7 +161,7 @@
     </select>
 
 
-    <select id="findBasicUserInfoById" resultType="BasicUserInfo">
+    <select id="findBasicUserInfoById" resultType="BasicUserInfoDTO">
         SELECT
             ui.user_id,
             ui.income_annual_amount,

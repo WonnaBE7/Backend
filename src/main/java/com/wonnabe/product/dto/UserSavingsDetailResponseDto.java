@@ -12,7 +12,7 @@ import java.time.ZoneId;
 import java.util.List;
 
 /**
- * 예적금 상품 상세 조회 API의 최종 응답 형식을 정의하는 DTO입니다.
+ * 보유 예적금 상품 상세 조회 API의 최종 응답 형식을 정의하는 DTO입니다.
  * 서비스 계층에서 계산된 모든 데이터를 조합하여 클라이언트에게 전달될 최종 형태를 만듭니다.
  */
 @Data

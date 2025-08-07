@@ -1,5 +1,4 @@
 package com.wonnabe.codef.dto;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wonnabe.codef.domain.UserCard;
@@ -8,7 +7,10 @@ import lombok.Setter;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -16,22 +18,31 @@ import java.util.Date;
 public class CardListWrapper {
 
     @JsonProperty("data")
-    private CardListResponse data;
+    private List<CardListResponse> data;
 
-    public UserCard toUserCard(String userId) {
-        UserCard card = new UserCard();
-        card.setUserId(userId);
-        card.setCardName(data.getResCardName());
-        card.setCardNumber(data.getResCardNo());
-        card.setCardType(data.getResCardType());
-        card.setUserName(data.getResUserNm());
-        card.setSleepYn(data.getResSleepYN());
-        card.setTrafficYn(data.getResTrafficYN());
-        card.setValidPeriod(parseDate(data.getResValidPeriod()));
-        card.setIssueDate(parseDate(data.getResIssueDate()));
-        card.setImageLink(data.getResImageLink());
-        card.setCardState(data.getResState());
-        return card;
+    private String userId;
+    private String connectedId;
+    private Map<String, Object> result;
+    private String endpoint;
+
+    public List<UserCard> toUserCards(String userId) {
+        List<UserCard> cards = new ArrayList<>();
+        for (CardListResponse cardDto : data) {
+            UserCard card = new UserCard();
+            card.setUserId(userId);
+            card.setCardName(cardDto.getResCardName());
+            card.setCardNumber(cardDto.getResCardNo());
+            card.setCardType(cardDto.getResCardType());
+            card.setUserName(cardDto.getResUserNm());
+            card.setSleepYn(cardDto.getResSleepYN());
+            card.setTrafficYn(cardDto.getResTrafficYN());
+            card.setValidPeriod(parseDate(cardDto.getResValidPeriod()));
+            card.setIssueDate(parseDate(cardDto.getResIssueDate()));
+            card.setImageLink(cardDto.getResImageLink());
+            card.setCardState(cardDto.getResState());
+            cards.add(card);
+        }
+        return cards;
     }
 
     private Date parseDate(String yyyymmdd) {

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.community.mapper.CommunityProductMapper">
+
+
+    <select id="findTop3ProductsByCommunityId" resultType="ProductDTO">
+        WITH same_nowme_users AS (
+            SELECT user_id
+            FROM User_Info
+            WHERE nowme_id = #{commnuityId}
+        ),
+             all_products AS (
+                 SELECT 'savings' AS product_type, us.product_id
+                 FROM User_Savings us
+                          JOIN savings_product sp ON us.product_id = sp.product_id
+                 WHERE us.user_id IN (SELECT user_id FROM same_nowme_users)
+
+                 UNION ALL
+
+                 SELECT 'card', uc.product_id
+                 FROM User_Card uc
+                          JOIN card_product cp ON uc.product_id = cp.product_id
+                 WHERE uc.user_id IN (SELECT user_id FROM same_nowme_users)
+
+                 UNION ALL
+
+                 SELECT 'insurance', ui.product_id
+                 FROM User_Insurance ui
+                          JOIN insurance_product ip ON ui.product_id = ip.product_id
+                 WHERE ui.user_id IN (SELECT user_id FROM same_nowme_users)
+             ),
+             top3 AS (
+                 SELECT product_type, product_id, COUNT(*) AS cnt
+                 FROM all_products
+                 GROUP BY product_type, product_id
+                 ORDER BY cnt DESC
+            LIMIT 3
+            )
+        SELECT
+            t.product_id      AS productId,
+            t.product_type    AS type,
+            CASE
+                WHEN t.product_type = 'savings'   THEN sp.product_name
+                WHEN t.product_type = 'card'      THEN cp.card_name
+                WHEN t.product_type = 'insurance' THEN ip.product_name
+                END                AS productName,
+            CASE
+                WHEN t.product_type = 'savings'
+                    THEN CONCAT('연 금리 ',
+                                TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM CAST(sp.base_rate AS CHAR))),
+                                '%')
+                WHEN t.product_type = 'card'
+                    THEN cp.benefit_limit
+                WHEN t.product_type = 'insurance'
+                    THEN ip.coverage_type
+                END                AS description
+        FROM top3 t
+                 LEFT JOIN savings_product   sp ON t.product_type = 'savings'   AND sp.product_id = t.product_id
+                 LEFT JOIN card_product      cp ON t.product_type = 'card'      AND cp.product_id = t.product_id
+                 LEFT JOIN insurance_product ip ON t.product_type = 'insurance' AND ip.product_id = t.product_id
+        ORDER BY t.cnt DESC;
+
+    </select>
+</mapper>
