@@ -1,4 +1,3 @@
-// com.wonnabe.auth.service.KakaoService.java
 package com.wonnabe.auth.service;
 
 import com.fasterxml.jackson.databind.JsonNode;

@@ -1,4 +1,3 @@
-// com.wonnabe.common.security.service.CustomUserDetailsService.java
 package com.wonnabe.common.security.service;
 
 import com.wonnabe.common.security.account.domain.UserVO;
@@ -53,5 +52,4 @@ public class CustomUserDetailsService implements UserDetailsService {
         }
         return new CustomUser(user);
     }
-
 }

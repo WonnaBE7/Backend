@@ -5,7 +5,7 @@
 
 <mapper namespace="com.wonnabe.nowme.mapper.NowMeMapper">
 
-    <!-- 🔹 [SpendingEvaluator] 소비패턴 정량 평가용 -->
+    <!-- [SpendingEvaluator] 소비패턴 정량 평가용 -->
 
     <!-- 1. 전체 소비 금액 (최근 1개월) -->
     <select id="getTotalSpending" resultType="double">
@@ -49,7 +49,7 @@
              ) AS weekly_data
     </select>
 
-    <!-- 🔹 [ActivityEvaluator] 금융활동성 정량 평가용 -->
+    <!-- [ActivityEvaluator] 금융활동성 정량 평가용 -->
 
     <!-- 5. 계좌 카테고리 수 (입출금, 투자, 연금 등 종류) -->
     <select id="getAccountCategoryCount" resultType="int">
@@ -88,7 +88,7 @@
           AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
     </select>
 
-    <!-- 🔹 [RiskEvaluator] 리스크성향 정량 평가용 -->
+    <!-- [RiskEvaluator] 리스크성향 정량 평가용 -->
 
     <!-- 10. 전체 계좌 잔액 합계 -->
     <select id="getTotalBalance" resultType="double">
@@ -127,7 +127,7 @@
         WHERE us.user_id = #{userId}
     </select>
 
-    <!-- 🔹 [PlanningEvaluator] 계획방식 정량 평가용 -->
+    <!-- [PlanningEvaluator] 계획방식 정량 평가용 -->
 
     <!-- 16. 목표 개수 -->
     <select id="getGoalCount" resultType="int">
@@ -188,7 +188,7 @@
              ) AS monthly_data
     </select>
 
-    <!-- 🔹 [공통 정보] -->
+    <!-- [공통 정보] -->
 
     <!-- 14. 사용자 가구원 수 -->
     <select id="getHouseholdSize" resultType="int">
@@ -204,7 +204,7 @@
         WHERE user_id = #{userId}
     </select>
 
-    <!-- 🔹 [진단 결과 저장용] -->
+    <!-- [진단 결과 저장용] -->
 
     <!-- 22. 진단 이력 저장 -->
     <insert id="insertDiagnosisHistory">
@@ -229,5 +229,4 @@
         SET nowme_id = #{nowmeId}
         WHERE user_id = #{userId}
     </update>
-
 </mapper>

@@ -4,6 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.wonnabe.user.mapper.UserMapper">
+
     <!-- 사용자의 이름과 비밀번호를 수정하는 쿼리 -->
     <update id="updateUser">
         UPDATE User_Profile
@@ -19,7 +20,7 @@
         WHERE user_id = #{userId}
     </update>
 
-    <!-- 사용자의 진단 히스토리를 조회하는 쿼리 -->
+    <!-- 사용자의 전체 진단 히스토리를 조회하는 쿼리 -->
     <select id="selectDiagnosisHistory" resultType="com.wonnabe.user.dto.DiagnosisHistoryResponse$DiagnosisHistoryItem">
         SELECT
             DATE_FORMAT(dh.diagnosed_at, '%Y-%m-%d %H:%i:%s') AS diagnosedDate,
@@ -28,6 +29,26 @@
         FROM diagnosis_history dh
                  JOIN Financial_Tendency_Type ftt ON dh.nowme_id = ftt.id
         WHERE dh.user_id = #{userId}
+        ORDER BY dh.diagnosed_at DESC
+    </select>
+
+    <!-- 사용자의 최근 12개월 월별 최신 진단 히스토리 조회 (각 월의 가장 최신 데이터만) -->
+    <select id="selectDiagnosisHistoryLast12Months" resultType="com.wonnabe.user.dto.DiagnosisHistoryResponse$DiagnosisHistoryItem">
+        SELECT
+            DATE_FORMAT(dh.diagnosed_at, '%Y-%m-%d') AS diagnosedDate,
+            ftt.name AS typeName,
+            ROUND(dh.similarity * 100) AS score
+        FROM diagnosis_history dh
+                 JOIN Financial_Tendency_Type ftt ON dh.nowme_id = ftt.id
+        WHERE dh.user_id = #{userId}
+          AND dh.diagnosed_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+          AND dh.diagnosed_at = (
+            SELECT MAX(dh2.diagnosed_at)
+            FROM diagnosis_history dh2
+            WHERE dh2.user_id = dh.user_id
+              AND YEAR(dh2.diagnosed_at) = YEAR(dh.diagnosed_at)
+              AND MONTH(dh2.diagnosed_at) = MONTH(dh.diagnosed_at)
+        )
         ORDER BY dh.diagnosed_at DESC
     </select>
 
@@ -107,29 +128,29 @@
         lifestyle_before_diseases,
         income_job_type
         ) VALUES (
-        #{user_id},
+        #{userId},
         <choose>
-            <when test="lifestyle_smoking != null and lifestyle_smoking == true">'Y'</when>
+            <when test="lifestyleSmoking != null and lifestyleSmoking == true">'Y'</when>
             <otherwise>'N'</otherwise>
         </choose>,
         <choose>
-            <when test="lifestyle_drinking != null and lifestyle_drinking == true">'주 1회 이상'</when>
+            <when test="lifestyleDrinking != null and lifestyleDrinking == true">'주 1회 이상'</when>
             <otherwise>'전혀 안 함'</otherwise>
         </choose>,
         <choose>
-            <when test="lifestyle_exercise != null and lifestyle_exercise == true">'주 1회 이상'</when>
+            <when test="lifestyleExercise != null and lifestyleExercise == true">'주 1회 이상'</when>
             <otherwise>'운동 안 함'</otherwise>
         </choose>,
-        #{household_size},
+        #{householdSize},
         <choose>
-            <when test="lifestyle_family_medical != null and lifestyle_family_medical == true">'있음'</when>
+            <when test="lifestyleFamilyMedical != null and lifestyleFamilyMedical == true">'있음'</when>
             <otherwise>NULL</otherwise>
         </choose>,
         <choose>
-            <when test="lifestyle_before_diseases != null and lifestyle_before_diseases == true">'있음'</when>
+            <when test="lifestyleBeforeDiseases != null and lifestyleBeforeDiseases == true">'있음'</when>
             <otherwise>NULL</otherwise>
         </choose>,
-        #{income_job_type}
+        #{incomeJobType}
         )
     </insert>
 
@@ -137,49 +158,49 @@
     <update id="updateUserDetail" parameterType="com.wonnabe.user.dto.UserDetailRequest">
         UPDATE User_Info
         <set>
-            <if test="lifestyle_smoking != null">
+            <if test="lifestyleSmoking != null">
                 lifestyle_smoking =
                 <choose>
-                    <when test="lifestyle_smoking == true">'Y'</when>
+                    <when test="lifestyleSmoking == true">'Y'</when>
                     <otherwise>'N'</otherwise>
                 </choose>,
             </if>
-            <if test="lifestyle_drinking != null">
+            <if test="lifestyleDrinking != null">
                 lifestyle_alcohol_freq =
                 <choose>
-                    <when test="lifestyle_drinking == true">'주 1회 이상'</when>
+                    <when test="lifestyleDrinking == true">'주 1회 이상'</when>
                     <otherwise>'전혀 안 함'</otherwise>
                 </choose>,
             </if>
-            <if test="lifestyle_exercise != null">
+            <if test="lifestyleExercise != null">
                 lifestyle_exercise_freq =
                 <choose>
-                    <when test="lifestyle_exercise == true">'주 1회 이상'</when>
+                    <when test="lifestyleExercise == true">'주 1회 이상'</when>
                     <otherwise>'운동 안 함'</otherwise>
                 </choose>,
             </if>
-            <if test="household_size != null">
-                household_size = #{household_size},
+            <if test="householdSize != null">
+                household_size = #{householdSize},
             </if>
-            <if test="lifestyle_family_medical != null">
+            <if test="lifestyleFamilyMedical != null">
                 lifestyle_family_medical =
                 <choose>
-                    <when test="lifestyle_family_medical == true">'있음'</when>
+                    <when test="lifestyleFamilyMedical == true">'있음'</when>
                     <otherwise>NULL</otherwise>
                 </choose>,
             </if>
-            <if test="lifestyle_before_diseases != null">
+            <if test="lifestyleBeforeDiseases != null">
                 lifestyle_before_diseases =
                 <choose>
-                    <when test="lifestyle_before_diseases == true">'있음'</when>
+                    <when test="lifestyleBeforeDiseases == true">'있음'</when>
                     <otherwise>NULL</otherwise>
                 </choose>,
             </if>
-            <if test="income_job_type != null">
-                income_job_type = #{income_job_type},
+            <if test="incomeJobType != null">
+                income_job_type = #{incomeJobType},
             </if>
         </set>
-        WHERE user_id = #{user_id}
+        WHERE user_id = #{userId}
     </update>
 
     <!-- 사용자 상세 정보 존재 여부 확인 쿼리 -->

@@ -7,7 +7,6 @@ import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.dto.AuthResultDTO;
 import com.wonnabe.common.security.account.dto.UserInfoDTO;
 import com.wonnabe.common.security.service.CustomUserDetailsService;
-import com.wonnabe.common.util.JsonResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
@@ -55,6 +54,8 @@ public class AuthService {
      * @return 가입 성공 여부 (true: 성공, false: 이메일 중복)
      */
     public boolean registerUser(SignupDTO dto) {
+        validateSignupDTO(dto);
+
         if (authMapper.existsByEmail(dto.getEmail()) > 0) {
             return false; // 이메일 중복
         }

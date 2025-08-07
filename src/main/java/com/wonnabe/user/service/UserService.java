@@ -1,42 +1,34 @@
 package com.wonnabe.user.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.user.dto.*;
 import com.wonnabe.user.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Slf4j
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final ObjectMapper objectMapper;
 
     /**
-     * 로그인한 사용자의 정보를 조회합니다. (기존 메소드 수정)
+     * 로그인한 사용자의 정보를 조회합니다.
      */
     public UserInfoResponse getUserInfo(CustomUser user) {
         String userId = user.getUser().getUserId();
 
-        // 기본 사용자 정보 조회
         Map<String, Object> userInfoMap = userMapper.selectUserInfo(userId);
         if (userInfoMap == null) {
-            // User_Info가 없는 경우 기본 정보만 반환
             return UserInfoResponse.builder()
                     .userId(user.getUser().getUserId())
                     .name(user.getUser().getName())
@@ -48,7 +40,6 @@ public class UserService {
                     .build();
         }
 
-        // nowME 조회 (현재 진단된 금융성향)
         String nowME = null;
         Object nowmeIdObj = userInfoMap.get("nowmeId");
         if (nowmeIdObj != null) {
@@ -56,10 +47,8 @@ public class UserService {
             nowME = userMapper.selectFinancialTendencyName(nowmeId);
         }
 
-        // wonnaBE 조회 (선택한 워너비들)
         List<String> wonnaBE = userMapper.selectFinancialTendencyNames(userId);
 
-        // monthlyIncome 타입 변환 처리 (BigDecimal → Long)
         Long monthlyIncome = null;
         Object monthlyIncomeObj = userInfoMap.get("monthlyIncome");
         if (monthlyIncomeObj != null) {
@@ -95,9 +84,8 @@ public class UserService {
      * 로그인한 사용자의 워너비 선택 정보를 수정합니다.
      */
     public void updateWonnabe(CustomUser user, UpdateWonnabeRequest request) {
-        // [1, 2, 3] 형태의 JSON 문자열 직접 생성
         StringBuilder json = new StringBuilder("[");
-        List<Integer> ids = request.getSelected_wonnabe_ids();
+        List<Integer> ids = request.getSelectedWonnabeIds();
 
         for (int i = 0; i < ids.size(); i++) {
             json.append(ids.get(i));
@@ -111,11 +99,11 @@ public class UserService {
     }
 
     /**
-     * 특정 사용자의 진단 결과 히스토리를 조회합니다.
+     * 특정 사용자의 진단 결과 히스토리를 조회합니다. (최근 12개월 월별 최신 데이터)
      */
     public DiagnosisHistoryResponse getNowmeHistory(String userId) {
         List<DiagnosisHistoryResponse.DiagnosisHistoryItem> historyItems =
-                userMapper.selectDiagnosisHistory(userId);
+                userMapper.selectDiagnosisHistoryLast12Months(userId);
 
         return DiagnosisHistoryResponse.builder()
                 .isSuccess(true)
@@ -148,8 +136,7 @@ public class UserService {
      * 사용자 상세 정보를 등록합니다.
      */
     public void createUserDetail(UserDetailRequest request) {
-        // 이미 존재하는지 확인
-        int exists = userMapper.checkUserDetailExists(request.getUser_id());
+        int exists = userMapper.checkUserDetailExists(request.getUserId());
         if (exists > 0) {
             throw new RuntimeException("이미 등록된 사용자입니다.");
         }
@@ -161,21 +148,19 @@ public class UserService {
      * 사용자 상세 정보를 수정하고 변경된 필드 목록을 반환합니다.
      */
     public List<String> updateUserDetail(UserDetailRequest request) {
-        // 사용자 존재 여부 확인
-        int exists = userMapper.checkUserDetailExists(request.getUser_id());
+        int exists = userMapper.checkUserDetailExists(request.getUserId());
         if (exists == 0) {
             throw new RuntimeException("사용자를 찾을 수 없습니다.");
         }
 
-        // 수정된 필드 목록 생성
         List<String> updatedFields = new ArrayList<>();
-        if (request.getLifestyle_smoking() != null) updatedFields.add("lifestyle_smoking");
-        if (request.getLifestyle_drinking() != null) updatedFields.add("lifestyle_drinking");
-        if (request.getLifestyle_exercise() != null) updatedFields.add("lifestyle_exercise");
-        if (request.getHousehold_size() != null) updatedFields.add("household_size");
-        if (request.getLifestyle_family_medical() != null) updatedFields.add("lifestyle_family_medical");
-        if (request.getLifestyle_before_diseases() != null) updatedFields.add("lifestyle_before_diseases");
-        if (request.getIncome_job_type() != null) updatedFields.add("income_job_type");
+        if (request.getLifestyleSmoking() != null) updatedFields.add("lifestyleSmoking");
+        if (request.getLifestyleDrinking() != null) updatedFields.add("lifestyleDrinking");
+        if (request.getLifestyleExercise() != null) updatedFields.add("lifestyleExercise");
+        if (request.getHouseholdSize() != null) updatedFields.add("householdSize");
+        if (request.getLifestyleFamilyMedical() != null) updatedFields.add("lifestyleFamilyMedical");
+        if (request.getLifestyleBeforeDiseases() != null) updatedFields.add("lifestyleBeforeDiseases");
+        if (request.getIncomeJobType() != null) updatedFields.add("incomeJobType");
 
         userMapper.updateUserDetail(request);
         return updatedFields;

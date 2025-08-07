@@ -1,7 +1,5 @@
-// com.wonnabe.common.security.account.domain.CustomUser.java
 package com.wonnabe.common.security.account.domain;
 
-import com.wonnabe.common.security.account.domain.UserVO;
 import lombok.Getter;
 import org.springframework.security.core.userdetails.User;
 

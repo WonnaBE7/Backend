@@ -109,7 +109,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 "/assets/**",
                 "/*",
                 "/api/member/**",
-                // Swagger 관련 url은 보안에서 제외
                 "/swagger-ui.html",
                 "/webjars/**",
                 "/swagger-resources/**",
@@ -156,7 +155,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/auth/kakao/login-url").permitAll()
                 .antMatchers("/api/auth/kakao/callback").permitAll()
                 .antMatchers("/api/auth/kakao/login").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/nowme/diagnosis").permitAll()
+                .antMatchers( "/api/nowme/diagnosis").authenticated()
                 .antMatchers("/api/user/**").authenticated()
                 .anyRequest().authenticated();
 

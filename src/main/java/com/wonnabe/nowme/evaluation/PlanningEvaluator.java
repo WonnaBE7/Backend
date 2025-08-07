@@ -24,12 +24,12 @@ public class PlanningEvaluator {
     private static final int[] PLANNING_QUESTION_INDICES = {6, 7, 8}; // 7,8,9번 문항
 
     /**
-     * 🔹 계획방식 정량 점수 계산 (0~1)
+     * 계획방식 정량 점수 계산 (0~1)
      * - 목표 관리 능력, 저축 계획 준수율, 소비 패턴 안정성 → 3개 항목 평균
      */
     public double calculateQuantScore(String userId) {
         try {
-            log.debug("🔍 계획방식 정량 계산 시작 - userId: {}", userId);
+            log.debug("계획방식 정량 계산 시작 - userId: {}", userId);
 
             // 1. 목표 관리 능력 (Goal Management Score)
             double goalManagementScore = calculateGoalManagementScore(userId);
@@ -43,27 +43,27 @@ public class PlanningEvaluator {
             // 3개 항목 평균 계산
             double finalScore = average(goalManagementScore, savingsDisciplineScore, spendingStabilityScore);
 
-            log.debug("🔍 [정량 점수] userId: {}, 목표관리: {}, 저축준수: {}, 소비안정: {}, 최종: {}",
+            log.debug("[정량 점수] userId: {}, 목표관리: {}, 저축준수: {}, 소비안정: {}, 최종: {}",
                     userId, round(goalManagementScore), round(savingsDisciplineScore),
                     round(spendingStabilityScore), round(finalScore));
 
             return round(finalScore);
 
         } catch (Exception e) {
-            log.error("❗ 계획방식 정량 계산 실패 - userId: {}", userId, e);
+            log.error("계획방식 정량 계산 실패 - userId: {}", userId, e);
             return 0.5; // 기본값
         }
     }
 
     /**
-     * 🔹 계획방식 정성 점수 계산 (0~1)
+     * 계획방식 정성 점수 계산 (0~1)
      * - Q1: 예산 관리 철학, Q2: 예상치 못한 지출 반응, Q3: 월급 사용 우선순위
      */
     public static double calculateQualScore(NowMeRequestDTO requestDTO) {
         List<Integer> answers = requestDTO.getAnswers();
 
         if (answers == null || answers.size() < 9) {
-//            log.warn("❗ 설문 답변 부족 - 기본값 0.5 반환");
+//            log.warn("설문 답변 부족 - 기본값 0.5 반환");
             return 0.5;
         }
 
@@ -74,37 +74,37 @@ public class PlanningEvaluator {
 
         double finalScore = roundTo3DecimalPlaces((q1 + q2 + q3) / 3);
 
-        log.debug("🔍 [정성 점수] Q1: {}, Q2: {}, Q3: {}, 최종: {}", q1, q2, q3, finalScore);
+        log.debug("[정성 점수] Q1: {}, Q2: {}, Q3: {}, 최종: {}", q1, q2, q3, finalScore);
 
         return finalScore;
     }
 
     /**
-     * 🔹 계획방식 최종 점수 계산 (정량 60% + 정성 40%)
+     * 계획방식 최종 점수 계산 (정량 60% + 정성 40%)
      */
     public double calculateFinalScore(String userId, NowMeRequestDTO requestDTO) {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
 
-            System.out.println("🔍 [Activity] 정량: " + quantScore + ", 정성: " + qualScore);
+            System.out.println("[Activity] 정량: " + quantScore + ", 정성: " + qualScore);
 
             double finalScore = (quantScore * 0.6) + (qualScore * 0.4);
 
-            log.info("✅ 계획방식 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
+            log.info("계획방식 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
                     userId, roundTo3DecimalPlaces(quantScore), roundTo3DecimalPlaces(qualScore),
                     roundTo3DecimalPlaces(finalScore));
 
             return roundTo3DecimalPlaces(finalScore);
 
         } catch (Exception e) {
-            log.error("❗ 계획방식 최종 점수 계산 실패 - userId: {}", userId, e);
+            log.error("계획방식 최종 점수 계산 실패 - userId: {}", userId, e);
             return 0.5;
         }
     }
 
     /**
-     * 🔸 목표 관리 능력 계산
+     * 목표 관리 능력 계산
      * - 목표 설정 여부 + 목표 진척률 평균
      */
     private double calculateGoalManagementScore(String userId) {
@@ -120,19 +120,19 @@ public class PlanningEvaluator {
             // 최종 목표 관리 점수
             double goalScore = (goalExistsScore + progressScore) / 2;
 
-            log.debug("🔍 목표관리 - 목표개수: {}, 설정점수: {}, 진척률: {}%, 진척점수: {}, 최종: {}",
+            log.debug("목표관리 - 목표개수: {}, 설정점수: {}, 진척률: {}%, 진척점수: {}, 최종: {}",
                     goalCount, goalExistsScore, avgProgressRate, progressScore, goalScore);
 
             return goalScore;
 
         } catch (Exception e) {
-            log.warn("❗ 목표 관리 점수 계산 실패 - userId: {}, 기본값 0.5 반환", userId, e);
+            log.warn("목표 관리 점수 계산 실패 - userId: {}, 기본값 0.5 반환", userId, e);
             return 0.5;
         }
     }
 
     /**
-     * 🔸 저축 계획 준수율 계산
+     * 저축 계획 준수율 계산
      * - user_goal의 monthly_save_amount vs User_Savings의 monthly_payment 비교
      */
     private double calculateSavingsDisciplineScore(String userId) {
@@ -152,19 +152,19 @@ public class PlanningEvaluator {
             double savingsRatio = actualMonthlySaving / plannedMonthlySaving;
             double disciplineScore = bound(savingsRatio); // 1.0을 초과해도 1.0으로 제한
 
-            log.debug("🔍 저축준수 - 계획: {}, 실제: {}, 비율: {}, 점수: {}",
+            log.debug("저축준수 - 계획: {}, 실제: {}, 비율: {}, 점수: {}",
                     plannedMonthlySaving, actualMonthlySaving, savingsRatio, disciplineScore);
 
             return disciplineScore;
 
         } catch (Exception e) {
-            log.warn("❗ 저축 계획 준수율 계산 실패 - userId: {}, 기본값 0.5 반환", userId, e);
+            log.warn("저축 계획 준수율 계산 실패 - userId: {}, 기본값 0.5 반환", userId, e);
             return 0.5;
         }
     }
 
     /**
-     * 🔸 소비 패턴 안정성 계산
+     * 소비 패턴 안정성 계산
      * - Summaries_Cache의 monthly 데이터로 변동계수(CV) 계산
      */
     private double calculateSpendingStabilityScore(String userId) {
@@ -176,7 +176,7 @@ public class PlanningEvaluator {
             double monthlySpendingAvg = nowMeMapper.getMonthlySpendingAverage(userId);
 
             if (monthlySpendingAvg == 0) {
-                log.debug("🔍 소비안정성 - 소비 데이터 없음, 기본값 0.5 반환");
+                log.debug("소비안정성 - 소비 데이터 없음, 기본값 0.5 반환");
                 return 0.5;
             }
 
@@ -187,19 +187,19 @@ public class PlanningEvaluator {
             // CV 0.3을 기준으로 정규화 (일반적으로 CV 0.3 이하면 안정적)
             double stabilityScore = bound(Math.max(0.3 - coefficientOfVariation, 0.0) / 0.3);
 
-            log.debug("🔍 소비안정성 - 평균: {}, 표준편차: {}, CV: {}, 점수: {}",
+            log.debug("소비안정성 - 평균: {}, 표준편차: {}, CV: {}, 점수: {}",
                     monthlySpendingAvg, monthlySpendingStdDev, coefficientOfVariation, stabilityScore);
 
             return stabilityScore;
 
         } catch (Exception e) {
-            log.warn("❗ 소비 패턴 안정성 계산 실패 - userId: {}, 기본값 0.5 반환", userId, e);
+            log.warn("소비 패턴 안정성 계산 실패 - userId: {}, 기본값 0.5 반환", userId, e);
             return 0.5;
         }
     }
 
     /**
-     * 🔸 계획방식 전용 점수 매핑
+     * 계획방식 전용 점수 매핑
      */
     private static double mapToPlanningScore(int answer, int questionType) {
         return switch (questionType) {
@@ -228,24 +228,24 @@ public class PlanningEvaluator {
         };
     }
 
-    // 🔸 평균 계산
+    // 평균 계산
     private double average(double... values) {
         double sum = 0;
         for (double v : values) sum += v;
         return sum / values.length;
     }
 
-    // 🔸 소수점 3자리 반올림
+    // 소수점 3자리 반올림
     private static double roundTo3DecimalPlaces(double value) {
         return Math.round(value * 1000.0) / 1000.0;
     }
 
-    // 🔸 0.0 ~ 1.0 사이로 제한하는 bound 함수
+    // 0.0 ~ 1.0 사이로 제한하는 bound 함수
     private double bound(double value) {
         return Math.max(0.0, Math.min(1.0, value));
     }
 
-    // 🔸 소수점 3자리 반올림 (간단 버전)
+    // 소수점 3자리 반올림 (간단 버전)
     private double round(double value) {
         return Math.round(value * 1000.0) / 1000.0;
     }

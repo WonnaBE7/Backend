@@ -21,21 +21,21 @@ public class SpendingEvaluator {
 
     private final NowMeMapper nowMeMapper;
 
-    // 🔸 필수 소비 카테고리
+    // 필수 소비 카테고리
     private static final Set<String> ESSENTIAL_CATEGORIES = Set.of("food", "transport", "living", "fixcost");
 
-    // 🔸 상수값 외부화
-    private static final double DIVERSITY_BASELINE = 4.0; // ‼️‼️‼️‼️‼️ 원래는 8.2
-    private static final double SPENDING_RATE_BASELINE = 0.4; // ‼️‼️‼️‼️‼️ 원래는 0.673
-    private static final double CONSISTENCY_BASELINE = 35000; // ‼️‼️‼️‼️‼️ 원래는 67000.0
+    // 상수값 외부화
+    private static final double DIVERSITY_BASELINE = 4.0; // 8.2
+    private static final double SPENDING_RATE_BASELINE = 0.4; // 0.673
+    private static final double CONSISTENCY_BASELINE = 35000; // 67000.0
 
     /**
-     * 🔹 소비 성향 정량 점수 계산 (0~1)
+     * 소비 성향 정량 점수 계산 (0~1)
      * - 소비 기록 기반 4개 항목 점수 → 평균
      */
     public double calculateQuantScore(String userId) {
         try {
-            log.debug("🔍 소비패턴 정량 계산 시작 - userId: {}", userId);
+            log.debug("소비패턴 정량 계산 시작 - userId: {}", userId);
 
             double totalSpending = nowMeMapper.getTotalSpending(userId);
             double essentialSpending = nowMeMapper.getSpendingByCategories(userId, ESSENTIAL_CATEGORIES);
@@ -57,7 +57,7 @@ public class SpendingEvaluator {
             double finalScore = average(essentialScore, diversityScore, spendingRateScore, consistencyScore);
 
             // 상세 로깅
-            log.debug("🔍 [정량 점수] userId: {}, 필수소비: {}, 다양성: {}, 소비율: {}, 일관성: {}, 최종: {}",
+            log.debug("[정량 점수] userId: {}, 필수소비: {}, 다양성: {}, 소비율: {}, 일관성: {}, 최종: {}",
                     userId, roundTo3DecimalPlaces(essentialScore), roundTo3DecimalPlaces(diversityScore),
                     roundTo3DecimalPlaces(spendingRateScore), roundTo3DecimalPlaces(consistencyScore),
                     roundTo3DecimalPlaces(finalScore));
@@ -65,20 +65,20 @@ public class SpendingEvaluator {
             return finalScore;
 
         } catch (Exception e) {
-            log.error("❗ 소비패턴 정량 계산 실패 - userId: {}", userId, e);
+            log.error("소비패턴 정량 계산 실패 - userId: {}", userId, e);
             return 0.5; // 기본값 반환
         }
     }
 
     /**
-     * 🔹 소비 성향 정성 점수 계산 (0~1)
+     * 소비 성향 정성 점수 계산 (0~1)
      * - 설문 응답 기반 3문항 해석 → 평균
      */
     public static double calculateQualScore(NowMeRequestDTO requestDTO) {
         List<Integer> answers = requestDTO.getAnswers();
 
         if (answers == null || answers.size() < 3) {
-            log.warn("❗ 설문 답변 부족 - 기본값 0.5 반환");
+            log.warn("설문 답변 부족 - 기본값 0.5 반환");
             return 0.5;
         }
 
@@ -89,36 +89,36 @@ public class SpendingEvaluator {
         double finalScore = roundTo3DecimalPlaces((q1 + q2 + q3) / 3);
 
         // 상세 로깅
-        log.debug("🔍 [정성 점수] Q1: {}, Q2: {}, Q3: {}, 최종: {}", q1, q2, q3, finalScore);
+        log.debug("[정성 점수] Q1: {}, Q2: {}, Q3: {}, 최종: {}", q1, q2, q3, finalScore);
 
         return finalScore;
     }
 
     /**
-     * 🔹 소비패턴 최종 점수 계산 (정량 60% + 정성 40%)
+     * 소비패턴 최종 점수 계산 (정량 60% + 정성 40%)
      */
     public double calculateFinalScore(String userId, NowMeRequestDTO requestDTO) {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
 
-            System.out.println("🔍 [Activity] 정량: " + quantScore + ", 정성: " + qualScore);
+            System.out.println("[Activity] 정량: " + quantScore + ", 정성: " + qualScore);
 
             double finalScore = (quantScore * 0.6) + (qualScore * 0.4);
 
-            log.info("✅ 소비패턴 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
+            log.info("소비패턴 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
                     userId, roundTo3DecimalPlaces(quantScore), roundTo3DecimalPlaces(qualScore),
                     roundTo3DecimalPlaces(finalScore));
 
             return roundTo3DecimalPlaces(finalScore);
 
         } catch (Exception e) {
-            log.error("❗ 소비패턴 최종 점수 계산 실패 - userId: {}", userId, e);
+            log.error("소비패턴 최종 점수 계산 실패 - userId: {}", userId, e);
             return 0.5;
         }
     }
 
-    // 🔸 선택지 점수 매핑 (1=0.0, 2=0.5, 3=1.0)
+    // 선택지 점수 매핑 (1=0.0, 2=0.5, 3=1.0)
     private static double mapToScore(int answer) {
         return switch (answer) {
             case 1 -> 0.0;
@@ -128,14 +128,14 @@ public class SpendingEvaluator {
         };
     }
 
-    // 🔸 평균 계산
+    // 평균 계산
     private double average(double... values) {
         double sum = 0;
         for (double v : values) sum += v;
         return sum / values.length;
     }
 
-    // 🔸 소수점 3자리 반올림
+    // 소수점 3자리 반올림
     private static double roundTo3DecimalPlaces(double value) {
         return Math.round(value * 1000.0) / 1000.0;
     }

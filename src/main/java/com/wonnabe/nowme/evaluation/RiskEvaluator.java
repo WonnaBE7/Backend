@@ -24,21 +24,21 @@ public class RiskEvaluator {
     // 리스크성향 관련 설문 문항 인덱스 (12문항 중 10,11,12번)
     private static final int[] RISK_QUESTION_INDICES = {9, 10, 11}; // 10,11,12번 문항
 
-    // 🔸 투자(위험자산) 계좌 카테고리
+    // 투자(위험자산) 계좌 카테고리
     private static final Set<String> INVESTMENT_CATEGORIES = Set.of("투자");
 
-    // 🔸 기준값들 (기획안 기준)
+    // 기준값들 (기획안 기준)
     private static final double RISK_ASSET_RATIO_BASELINE = 0.6;    // 60%
     private static final double INVESTMENT_PRODUCT_BASELINE = 3.0;  // 3개
     private static final double EXPECTED_RETURN_BASELINE = 5.0;     // 5.0%
 
     /**
-     * 🔹 리스크성향 정량 점수 계산 (0~1)
+     * 리스크성향 정량 점수 계산 (0~1)
      * - 위험자산 비율, 투자상품 다양성, 기대수익률 평균 → 3개 항목 평균
      */
     public double calculateQuantScore(String userId) {
         try {
-            log.debug("🔍 리스크성향 정량 계산 시작 - userId: {}", userId);
+            log.debug("리스크성향 정량 계산 시작 - userId: {}", userId);
 
             // 1. 위험자산 비율 = 투자 계좌 잔액 / 전체 계좌 잔액
             double totalBalance = nowMeMapper.getTotalBalance(userId);
@@ -54,36 +54,36 @@ public class RiskEvaluator {
             double avgExpectedRate = nowMeMapper.getAvgSavingsRate(userId);
             double expectedReturnScore = bound(avgExpectedRate / EXPECTED_RETURN_BASELINE);
 
-            // 🔸 예외 처리: 투자 계좌가 전혀 없을 경우 완전한 안정형으로 간주
+            // 예외 처리: 투자 계좌가 전혀 없을 경우 완전한 안정형으로 간주
             if (investmentAccountCount == 0 && investmentBalance == 0) {
-                log.debug("📝 투자 계좌 없음 - 안정형으로 판단 (0.0)");
+                log.debug("투자 계좌 없음 - 안정형으로 판단 (0.0)");
                 return 0.0;
             }
 
             // 3개 항목 평균 계산
             double finalScore = average(riskAssetScore, productDiversityScore, expectedReturnScore);
 
-            log.debug("🔍 [정량 점수] userId: {}, 위험자산비율: {}, 상품다양성: {}, 기대수익률: {}, 최종: {}",
+            log.debug("[정량 점수] userId: {}, 위험자산비율: {}, 상품다양성: {}, 기대수익률: {}, 최종: {}",
                     userId, round(riskAssetScore), round(productDiversityScore),
                     round(expectedReturnScore), round(finalScore));
 
             return round(finalScore);
 
         } catch (Exception e) {
-            log.error("❗ 리스크성향 정량 계산 실패 - userId: {}", userId, e);
+            log.error("리스크성향 정량 계산 실패 - userId: {}", userId, e);
             return 0.5; // 기본값
         }
     }
 
     /**
-     * 🔹 리스크성향 정성 점수 계산 (0~1)
+     * 리스크성향 정성 점수 계산 (0~1)
      * - Q1: 고위험 고수익 투자 선호, Q2: 손실 대응 방식, Q3: 리스크 인식
      */
     public static double calculateQualScore(NowMeRequestDTO requestDTO) {
         List<Integer> answers = requestDTO.getAnswers();
 
         if (answers == null || answers.size() < 12) {
-            log.warn("❗ 설문 답변 부족 - 기본값 0.5 반환");
+            log.warn("설문 답변 부족 - 기본값 0.5 반환");
             return 0.5;
         }
 
@@ -94,37 +94,37 @@ public class RiskEvaluator {
 
         double finalScore = roundTo3DecimalPlaces((q1 + q2 + q3) / 3);
 
-        log.debug("🔍 [정성 점수] Q1: {}, Q2: {}, Q3: {}, 최종: {}", q1, q2, q3, finalScore);
+        log.debug("[정성 점수] Q1: {}, Q2: {}, Q3: {}, 최종: {}", q1, q2, q3, finalScore);
 
         return finalScore;
     }
 
     /**
-     * 🔹 리스크성향 최종 점수 계산 (정량 60% + 정성 40%)
+     * 리스크성향 최종 점수 계산 (정량 60% + 정성 40%)
      */
     public double calculateFinalScore(String userId, NowMeRequestDTO requestDTO) {
         try {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
 
-            System.out.println("🔍 [Activity] 정량: " + quantScore + ", 정성: " + qualScore);
+            System.out.println("[Activity] 정량: " + quantScore + ", 정성: " + qualScore);
 
             double finalScore = (quantScore * 0.6) + (qualScore * 0.4);
 
-            log.info("✅ 리스크성향 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
+            log.info("리스크성향 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
                     userId, roundTo3DecimalPlaces(quantScore), roundTo3DecimalPlaces(qualScore),
                     roundTo3DecimalPlaces(finalScore));
 
             return roundTo3DecimalPlaces(finalScore);
 
         } catch (Exception e) {
-            log.error("❗ 리스크성향 최종 점수 계산 실패 - userId: {}", userId, e);
+            log.error("리스크성향 최종 점수 계산 실패 - userId: {}", userId, e);
             return 0.5;
         }
     }
 
     /**
-     * 🔸 리스크성향 전용 점수 매핑 (기획안 기준)
+     * 리스크성향 전용 점수 매핑 (기획안 기준)
      */
     private static double mapToRiskScore(int answer, int questionType) {
         return switch (questionType) {
@@ -153,24 +153,24 @@ public class RiskEvaluator {
         };
     }
 
-    // 🔸 평균 계산
+    // 평균 계산
     private double average(double... values) {
         double sum = 0;
         for (double v : values) sum += v;
         return sum / values.length;
     }
 
-    // 🔸 소수점 3자리 반올림
+    // 소수점 3자리 반올림
     private static double roundTo3DecimalPlaces(double value) {
         return Math.round(value * 1000.0) / 1000.0;
     }
 
-    // 🔸 0.0 ~ 1.0 사이로 제한하는 bound 함수
+    // 0.0 ~ 1.0 사이로 제한하는 bound 함수
     private double bound(double value) {
         return Math.max(0.0, Math.min(1.0, value));
     }
 
-    // 🔸 소수점 3자리 반올림 (간단 버전)
+    // 소수점 3자리 반올림 (간단 버전)
     private double round(double value) {
         return Math.round(value * 1000.0) / 1000.0;
     }

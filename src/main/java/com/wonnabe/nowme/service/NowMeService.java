@@ -101,7 +101,7 @@ public class NowMeService {
      */
     public NowMeResponseDTO diagnose(String userId, NowMeRequestDTO requestDTO) {
         try {
-            log.info("🚀 NowMe 진단 시작 - userId: {}", userId);
+            log.info("NowMe 진단 시작 - userId: {}", userId);
 
             // 1. 4개 축별 점수 계산
             UserVector userVector = calculateUserVector(userId, requestDTO);
@@ -110,7 +110,6 @@ public class NowMeService {
             // 2. 12개 페르소나와 유사도 계산
             PersonaMatchResult matchResult = findBestMatchingPersona(userVector);
             log.info("최적 페르소나 매칭 완료 - {} (유사도: {})", matchResult.personaName, matchResult.similarity);
-
             // 3. 진단 결과 저장
             saveDiagnosisHistory(userId, userVector, matchResult.personaName, matchResult.similarity);
 

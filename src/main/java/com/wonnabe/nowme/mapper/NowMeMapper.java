@@ -8,7 +8,7 @@ import java.util.Set;
 @Mapper
 public interface NowMeMapper {
 
-    // 🔹 [SpendingEvaluator] 소비패턴 정량 평가용
+    // ✔️ [SpendingEvaluator] 소비패턴 정량 평가용
 
     // 총 소비 금액 (최근 1개월)
     double getTotalSpending(@Param("userId") String userId);
@@ -28,7 +28,7 @@ public interface NowMeMapper {
     // 최근 1개월 주별 소비 표준편차
     double getWeeklySpendingStdDev(@Param("userId") String userId);
 
-    // 🔹 [ActivityEvaluator] 금융활동성 정량 평가용
+    // ✔️ [ActivityEvaluator] 금융활동성 정량 평가용
 
     // 계좌 유형 수 (입출금, 투자, 연금, 기타 등)
     int getAccountCategoryCount(@Param("userId") String userId);
@@ -45,7 +45,7 @@ public interface NowMeMapper {
     // 최근 1개월 서로 다른 소비처(MCC) 수
     int getMonthlyMerchantCategoryCount(@Param("userId") String userId);
 
-    // 🔹 [RiskEvaluator] 리스크성향 정량 평가용
+    // ✔️ [RiskEvaluator] 리스크성향 정량 평가용
 
     // 전체 계좌 잔액 합계
     double getTotalBalance(@Param("userId") String userId);
@@ -59,7 +59,7 @@ public interface NowMeMapper {
     // 가입한 저축상품의 평균 max_rate
     double getAvgSavingsRate(@Param("userId") String userId);
 
-    // 🔹 [PlanningEvaluator] 계획방식 정량 평가용
+    // ✔️ [PlanningEvaluator] 계획방식 정량 평가용
 
     // 목표 관리 관련
     int getGoalCount(@Param("userId") String userId);
@@ -73,7 +73,7 @@ public interface NowMeMapper {
     double getMonthlySpendingStdDev(@Param("userId") String userId);
     double getMonthlySpendingAverage(@Param("userId") String userId);
 
-    // 🔹 [진단 결과 저장용]
+    // ✔️ [진단 결과 저장용]
 
     // 진단 이력 저장
     void insertDiagnosisHistory(

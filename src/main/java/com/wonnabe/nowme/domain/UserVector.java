@@ -24,7 +24,6 @@ public class UserVector {
      * 점수 배열로부터 UserVector 생성
      * @param vector [금융활동성, 소비패턴, 계획방식, 리스크성향] 순서의 배열
      */
-    // 점수 배열로부터 UserVector 객체 생성
     public UserVector(double[] vector) {
         if (vector == null || vector.length != 4) {
             throw new IllegalArgumentException("Vector must be a non-null array of length 4");
@@ -48,7 +47,6 @@ public class UserVector {
      * 벡터의 크기(magnitude) 계산
      * @return 유클리드 노름값
      */
-    // 유클리드 거리 계산 시 필요한 벡터의 크기(노름) 계산 메서드
     public double magnitude() {
         return Math.sqrt(
                 financialActivity * financialActivity +

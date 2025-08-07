@@ -25,9 +25,9 @@ import java.util.Map;
  * - 사용자의 금융 성향을 분석하는 NowMe 진단 결과를 응답하는 API 엔드포인트
  */
 
-@RestController // REST API 컨트롤러임을 명시 (JSON 응답)
-@RequestMapping("/api/nowme") // 공통 URL Prefix 설정
-@RequiredArgsConstructor // final 필드 자동 생성자 주입 (nowMeService)
+@RestController
+@RequestMapping("/api/nowme")
+@RequiredArgsConstructor
 @Log4j2
 public class NowMeController {
 
@@ -39,7 +39,7 @@ public class NowMeController {
             @RequestBody NowMeRequestDTO request
     ) {
         try {
-            log.info("NowMe 진단 API 요청 - userId: {}", user.getUser().getUserId());
+            log.info("NowMe 진단 API 호출됨 - userId: {}", user.getUser().getUserId());
 
             String userId = user.getUser().getUserId();
             NowMeResponseDTO result = nowMeService.diagnose(userId, request);

@@ -3,11 +3,9 @@ package com.wonnabe.user.mapper;
 import com.wonnabe.user.dto.DiagnosisHistoryResponse;
 import com.wonnabe.user.dto.UserDetailRequest;
 import com.wonnabe.user.dto.UserDetailResponse;
-import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -28,15 +26,15 @@ public interface UserMapper {
                        @Param("selectedWonnabeIds") String selectedWonnabeIds);
 
     /**
-     * 특정 사용자의 진단 히스토리를 조회합니다.
+     * 특정 사용자의 전체 진단 히스토리를 조회합니다.
      */
     List<DiagnosisHistoryResponse.DiagnosisHistoryItem> selectDiagnosisHistory(@Param("userId") String userId);
 
     /**
-     * 사용자의 User_Info 정보를 조회합니다.
-     * @param userId 사용자 ID
-     * @return Map 형태로 User_Info 데이터 반환
+     * 특정 사용자의 최근 12개월 월별 최신 진단 히스토리를 조회합니다.
      */
+    List<DiagnosisHistoryResponse.DiagnosisHistoryItem> selectDiagnosisHistoryLast12Months(@Param("userId") String userId);
+
     /**
      * 기존 getUserInfo API용 메소드들
      */

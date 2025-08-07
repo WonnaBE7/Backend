@@ -65,18 +65,18 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         // 외부 연동 분리
         syncExternalData(userId);
 
-        // ✅ 토큰 생성
+        // 토큰 생성
         String accessToken = jwtProcessor.generateAccessToken(userId);
         String refreshToken = jwtProcessor.generateRefreshToken(userId);
 
-        // ✅ Redis 저장
+        // Redis 저장
         try {
             refreshTokenRedisRepository.save(userId, refreshToken, 60 * 60 * 24 * 7);
         } catch (Exception e) {
-            log.error("❌ Redis 저장 실패 - userId: {}, error: {}", userId, e.getMessage());
+            log.error("Redis 저장 실패 - userId: {}, error: {}", userId, e.getMessage());
         }
 
-        // ✅ Refresh Token → Secure HttpOnly 쿠키로 전송
+        // Refresh Token → Secure HttpOnly 쿠키로 전송
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
         refreshCookie.setHttpOnly(true);
         refreshCookie.setSecure(true);
@@ -84,19 +84,19 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         refreshCookie.setMaxAge(60 * 60 * 24 * 7);
         response.addCookie(refreshCookie);
 
-        // ✅ 응답 데이터 구성
+        // 응답 데이터 구성
         AuthResultDTO result = makeAuthResult(user, accessToken);
         Map<String, Object> body = new HashMap<>();
         body.put("code", 200);
         body.put("message", "로그인 성공");
         body.put("data", result);
 
-        // ✅ JSON 직렬화 및 응답 전송
+        // JSON 직렬화 및 응답 전송
         response.setContentType("application/json;charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_OK);
         objectMapper.writeValue(response.getWriter(), body);
 
-        log.info("✅ 로그인 성공 - userId: {}", userId);
+        log.info("로그인 성공 - userId: {}", userId);
     }
 
     private void syncExternalData(String userId) {

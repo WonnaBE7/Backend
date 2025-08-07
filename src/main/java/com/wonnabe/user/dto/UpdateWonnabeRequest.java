@@ -6,5 +6,5 @@ import java.util.List;
 
 @Getter
 public class UpdateWonnabeRequest {
-    private List<Integer> selected_wonnabe_ids;
+    private List<Integer> selectedWonnabeIds;
 }
