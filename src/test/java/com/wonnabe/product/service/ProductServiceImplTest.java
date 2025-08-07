@@ -4,10 +4,15 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.domain.UserVO;
+import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.domain.SavingsProductVO;
+import com.wonnabe.product.domain.UserInsuranceVO;
+import com.wonnabe.product.domain.UserSavingsVO;
 import com.wonnabe.product.dto.BasicUserInfo;
+import com.wonnabe.product.dto.InsuranceProductDetailResponseDTO;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
 import com.wonnabe.product.mapper.ProductMapper;
+import com.wonnabe.product.mapper.UserInsuranceMapper;
 import com.wonnabe.product.mapper.UserSavingsMapper;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +52,12 @@ class ProductServiceImplTest {
 
     @Mock
     private SavingsRecommendationService savingsRecommendationService;
+
+    @Mock
+    private InsuranceRecommendationService insuranceRecommendationService;
+
+    @Mock
+    private UserInsuranceMapper userInsuranceMapper;
 
     @Mock
     private SecurityContext securityContext;
@@ -178,6 +190,140 @@ class ProductServiceImplTest {
 
         // when
         SavingsProductDetailResponseDto result = productService.getSavingProductDetail(productId);
+
+        // then
+        assertNotNull(result, "결과 DTO는 null이 아니어야 합니다.");
+        assertFalse(result.getProductInfo().isWished(), "찜하지 않은 상품이므로 isWished는 false여야 합니다.");
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("보험 상품 상세 정보 조회 - 사용자가 찜한 상품일 경우")
+    void getInsuranceProductDetail_whenProductIsWished() {
+        // given
+        String productId = "3001";
+        String userId = "test-user-uuid";
+
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");         // 이메일 추가
+        userVO.setPasswordHash("testPassword123");    // 비밀번호 해시 추가
+        CustomUser customUser = new CustomUser(userVO);
+
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn(customUser);
+
+        InsuranceProductVO product = InsuranceProductVO.builder()
+                .productId(Long.valueOf(productId))
+                .productName("테스트 보험")
+                .providerName("테스트 보험사")
+                .femalePremium(BigDecimal.valueOf(10000))
+                .malePremium(BigDecimal.valueOf(12000))
+                .priceCompetitivenessScore(80.0f)
+                .coverageLimitScore(70.0f)
+                .coverageScopeScore(90.0f)
+                .deductibleScore(60.0f)
+                .refundScopeScore(75.0f)
+                .coverageType("상해급여")
+                .coverageLimit("연간 5천만원 한도")
+                .coverageDesc("상해로 인한 급여 항목 의료비 보장")
+                .note("기준일: 20250701, 유형: 4세대 실손의료보험, 제공기관: 손해보험협회")
+                .build();
+
+        BasicUserInfo basicUserInfo = BasicUserInfo.builder()
+                .userId(userId)
+                .nowMeId(1)
+                .favoriteProductsByType("[" + productId + ", \"3002\"]")
+                .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) {
+                return List.of(Long.valueOf(productId), 3002L);
+            }
+            return Collections.emptyList();
+        });
+
+        given(productMapper.findInsuranceProductById(anyString())).willReturn(product);
+        given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+
+        double[] weights = {0.3, 0.2, 0.2, 0.1, 0.2}; // 예시 가중치
+        given(insuranceRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));
+        given(insuranceRecommendationService.calculateScore(any(InsuranceProductVO.class), any(double[].class))).willReturn(85.0);
+
+        given(userInsuranceMapper.findAllByUserId(anyString())).willReturn(Collections.emptyList());
+
+        // when
+        InsuranceProductDetailResponseDTO result = productService.getInsuranceProductDetail(productId);
+
+        // then
+        assertNotNull(result, "결과 DTO는 null이 아니어야 합니다.");
+
+        var productInfo = result.getProductInfo();
+        assertNotNull(productInfo, "ProductInfo는 null이 아니어야 합니다.");
+        assertEquals(productId, productInfo.getProductId(), "상품 ID가 일치해야 합니다.");
+        assertEquals("테스트 보험", productInfo.getProductName(), "상품명이 일치해야 합니다.");
+        assertEquals("테스트 보험사", productInfo.getProviderName(), "제공사명이 일치해야 합니다.");
+        assertEquals(85, productInfo.getMatchScore(), "Match Score가 일치해야 합니다.");
+        assertEquals("11000원", productInfo.getAveragePremium(), "평균 보험료가 일치해야 합니다.");
+        assertTrue(productInfo.isWished(), "찜한 상품이므로 isWished는 true여야 합니다.");
+
+        assertTrue(result.getComparisonChart().isEmpty(), "비교 차트 정보는 비어있어야 합니다.");
+
+        var maturityInfo = result.getMaturityInfo();
+        assertNotNull(maturityInfo, "만기 정보는 null이 아니어야 합니다.");
+        assertEquals("상해로 인한 급여 항목 의료비 보장", maturityInfo.getCoverageDesc(), "보장 설명이 일치해야 합니다.");
+        assertEquals("기준일: 20250701, 유형: 4세대 실손의료보험, 제공기관: 손해보험협회", maturityInfo.getNote(), "기타 유의사항이 일치해야 합니다.");
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("보험 상품 상세 정보 조회 - 사용자가 찜하지 않은 상품일 경우")
+    void getInsuranceProductDetail_whenProductIsNotWished() {
+        // given
+        String productId = "3001";
+        String userId = "test-user-uuid";
+
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");         // 이메일 추가
+        userVO.setPasswordHash("testPassword123");    // 비밀번호 해시 추가
+        CustomUser customUser = new CustomUser(userVO);
+
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn(customUser);
+
+        InsuranceProductVO product = InsuranceProductVO.builder()
+                .productId(Long.valueOf(productId))
+                .femalePremium(BigDecimal.valueOf(10000))
+                .malePremium(BigDecimal.valueOf(12000))
+                .build();
+
+        BasicUserInfo basicUserInfo = BasicUserInfo.builder()
+                .userId(userId)
+                .nowMeId(1)
+                .favoriteProductsByType("[\"3002\", \"3003\"]")
+                .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) {
+                return List.of(Long.valueOf(productId), 3002L);
+            }
+            return List.of(3002L, 3003L);
+        });
+
+        given(productMapper.findInsuranceProductById(anyString())).willReturn(product);
+        given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+
+        double[] weights = {0.3, 0.2, 0.2, 0.1, 0.2}; // 예시 가중치
+        given(insuranceRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));
+        given(insuranceRecommendationService.calculateScore(any(InsuranceProductVO.class), any(double[].class))).willReturn(0.0);
+
+        given(userInsuranceMapper.findAllByUserId(anyString())).willReturn(Collections.emptyList());
+
+        // when
+        InsuranceProductDetailResponseDTO result = productService.getInsuranceProductDetail(productId);
 
         // then
         assertNotNull(result, "결과 DTO는 null이 아니어야 합니다.");

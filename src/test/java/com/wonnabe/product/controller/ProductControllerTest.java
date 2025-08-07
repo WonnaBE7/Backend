@@ -144,4 +144,48 @@ class ProductControllerTest {
         mockMvc.perform(get("/api/products/savings/{productId}", nonExistentProductId))
                 .andExpect(status().isInternalServerError()); // 500 Internal Server Error를 기대
     }
+
+    @Test
+    @DisplayName("[성공] 보험 상품 상세 정보 조회")
+    void getInsuranceProductDetail_success() throws Exception {
+        // given
+        String productId = "3001"; // DB에 존재하는 보험 상품 ID
+        setupAuthentication(userId);
+
+        // when
+        MvcResult result = mockMvc.perform(get("/api/products/insurance/{productId}", productId))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // then
+        String jsonResponse = result.getResponse().getContentAsString();
+        log.info("보험 응답 JSON (raw):\n{}", jsonResponse);
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = mapper.readValue(jsonResponse, new TypeReference<>() {});
+            Object jsonObject = mapper.readValue(jsonResponse, Object.class);
+            String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+            log.info("보험 응답 JSON (pretty):\n{}", prettyJson);
+        } catch (Exception e) {
+            log.error("보험 JSON 파싱 중 오류 발생: {}", e.getMessage(), e);
+            fail("보험 JSON 응답 파싱 실패: " + e.getMessage());
+        }
+
+        Integer code = (Integer) responseMap.get("code");
+        assertEquals(200, code, "보험 응답 JSON의 code 필드는 200이어야 합니다.");
+    }
+
+    @Test
+    @DisplayName("[실패] 존재하지 않는 보험 상품 정보 조회")
+    void getInsuranceProductDetail_notFound() throws Exception {
+        // given
+        String nonExistentProductId = "9999"; // DB에 존재하지 않는 보험 상품 ID
+        setupAuthentication(userId);
+
+        // when & then
+        mockMvc.perform(get("/api/products/insurance/{productId}", nonExistentProductId))
+                .andExpect(status().isInternalServerError()); // 500 Internal Server Error를 기대
+    }
 }

@@ -1,6 +1,7 @@
 package com.wonnabe.product.mapper;
 
 import com.wonnabe.common.config.RootConfig;
+import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.domain.SavingsProductVO;
 import com.wonnabe.product.dto.BasicUserInfo;
 import lombok.extern.log4j.Log4j2;
@@ -64,5 +65,21 @@ class ProductMapperTest {
         assertEquals(userId, result.getUserId(), "조회된 사용자 ID가 요청한 ID와 일치해야 합니다.");
         assertNotNull(result.getFavoriteProductsByType(), "찜 목록 정보는 null이 아니어야 합니다.");
         assertNotNull(result.getNowMeId(), "페르소나 ID 정보는 null이 아니어야 합니다.");
+    }
+
+    @Test
+    @DisplayName("[성공] 상품 ID로 보험 상품 정보 조회")
+    void findInsuranceProductById_success() {
+        // given: 테스트 사전 조건 설정
+        String productId = "3001"; // 테스트 DB에 존재하는 보험 상품 ID
+
+        // when: 테스트 대상 메서드 호출
+        InsuranceProductVO result = productMapper.findInsuranceProductById(productId);
+
+        // then: 결과 검증 (JUnit 5 Assertions 사용)
+        log.info("조회된 보험 상품 정보: {}", result);
+        assertNotNull(result, "조회 결과는 null이 아니어야 합니다.");
+        assertEquals(Long.valueOf(productId), result.getProductId(), "조회된 상품 ID가 요청한 ID와 일치해야 합니다.");
+        assertNotNull(result.getProductName(), "상품 이름은 null이 아니어야 합니다.");
     }
 }
