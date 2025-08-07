@@ -5,6 +5,7 @@ import com.wonnabe.common.security.account.domain.UserVO;
 import com.wonnabe.nowme.dto.NowMeRequestDTO;
 import com.wonnabe.nowme.dto.NowMeResponseDTO;
 import com.wonnabe.nowme.service.NowMeService;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

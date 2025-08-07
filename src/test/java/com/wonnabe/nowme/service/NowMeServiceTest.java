@@ -1,7 +1,6 @@
 package com.wonnabe.nowme.service;
 
 import com.wonnabe.nowme.dto.NowMeRequestDTO;
-import com.wonnabe.nowme.dto.NowMeResponseDTO;
 import com.wonnabe.nowme.evaluation.ActivityEvaluator;
 import com.wonnabe.nowme.evaluation.PlanningEvaluator;
 import com.wonnabe.nowme.evaluation.RiskEvaluator;
