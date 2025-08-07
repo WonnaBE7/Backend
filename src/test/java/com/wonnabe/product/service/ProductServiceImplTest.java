@@ -1,5 +1,7 @@
 package com.wonnabe.product.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.domain.UserVO;
 import com.wonnabe.product.domain.SavingsProductVO;
@@ -7,6 +9,7 @@ import com.wonnabe.product.dto.BasicUserInfo;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
 import com.wonnabe.product.mapper.ProductMapper;
 import com.wonnabe.product.mapper.UserSavingsMapper;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,8 +21,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
@@ -51,11 +53,15 @@ class ProductServiceImplTest {
     @Mock
     private Authentication authentication;
 
+    @Mock
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     void setUp() {
         SecurityContextHolder.setContext(securityContext);
     }
 
+    @SneakyThrows
     @Test
     @DisplayName("예적금 상품 상세 정보 조회 - 사용자가 찜한 상품일 경우")
     void getSavingProductDetail_whenProductIsWished() {
@@ -87,6 +93,14 @@ class ProductServiceImplTest {
                 .nowMeId(1)
                 .favoriteProductsByType("[" + productId + ", \"1112\"]")
                 .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) { // Check if the productId is in the JSON string
+                return List.of(Long.valueOf(productId), 1112L);
+            }
+            return Collections.emptyList(); // Default for other cases, or throw an exception if expected
+        });
 
         given(productMapper.findSavingProductById(anyString())).willReturn(product);
         given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
@@ -121,6 +135,7 @@ class ProductServiceImplTest {
         assertEquals(List.of("만기 후 이율 정보1", "만기 후 이율 정보2"), maturityInfo.getContent(), "만기 후 금리 내용이 일치해야 합니다.");
     }
 
+    @SneakyThrows
     @Test
     @DisplayName("예적금 상품 상세 정보 조회 - 사용자가 찜하지 않은 상품일 경우")
     void getSavingProductDetail_whenProductIsNotWished() {
@@ -145,6 +160,15 @@ class ProductServiceImplTest {
                 .nowMeId(1)
                 .favoriteProductsByType("[\"1112\", \"1113\"]")
                 .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) { // Check if the productId is in the JSON string
+                return List.of(Long.valueOf(productId), 1112L);
+            } else {
+                return List.of(1112L, 1113L);
+            }
+        });
 
         given(productMapper.findSavingProductById(anyString())).willReturn(product);
         given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);

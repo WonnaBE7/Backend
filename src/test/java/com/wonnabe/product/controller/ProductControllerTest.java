@@ -6,12 +6,15 @@ import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.common.config.ServletConfig;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.domain.UserVO;
+import com.wonnabe.product.service.CardService;
+import com.wonnabe.product.service.ProductService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,6 +31,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.springframework.test.util.AssertionErrors.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -51,7 +55,10 @@ class ProductControllerTest {
     // 테스트에 사용할 가짜 사용자 ID
     private final String userId = "1469a2a3-213d-427e-b29f-f79d58f51190"; // 실제 DB에 존재하는 테스트용 사용자 UUID
 
-    // WebApplicationContext는 Spring의 전체 웹 애플리케이션 설정을 담고 있습니다.
+    @Autowired
+    private ProductService productService; // product 서비스 자동 주입
+
+    // WebApplicationContext는 Spring의 전체 웹 애플리케이션 설정을 담음
     @Autowired
     private WebApplicationContext ctx;
 
@@ -60,9 +67,12 @@ class ProductControllerTest {
      * 여기서는 MockMvc 객체를 초기화하고, 한글 깨짐 방지를 위한 필터를 추가합니다.
      */
     @BeforeEach
-    public void setup() {
+    public void setup() throws Exception {
+        // Mockito 초기화
+        MockitoAnnotations.openMocks(this);
+
         this.mockMvc = MockMvcBuilders.webAppContextSetup(ctx)
-                .addFilters(new CharacterEncodingFilter("UTF-8", true)) // 응답 인코딩 설정
+                .addFilters(new CharacterEncodingFilter("UTF-8", true))
                 .build();
     }
 
@@ -71,9 +81,7 @@ class ProductControllerTest {
      * 테스트 간의 독립성을 보장하기 위해 SecurityContext를 초기화합니다.
      */
     @AfterEach
-    void clearSecurityContext() {
-        SecurityContextHolder.clearContext();
-    }
+    void clearSecurityContext() { SecurityContextHolder.clearContext(); }
 
     /**
      * 테스트용 가짜 인증(Authentication) 객체를 생성하고 SecurityContextHolder에 설정하는 헬퍼 메서드입니다.
@@ -105,11 +113,19 @@ class ProductControllerTest {
 
         // then: 응답 결과를 검증하는 단계
         String jsonResponse = result.getResponse().getContentAsString();
-        log.info("응답 JSON: \n{}", jsonResponse);
+        log.info("응답 JSON (raw):\n{}", jsonResponse);
 
-        // ObjectMapper를 사용하여 JSON 응답을 Map으로 변환합니다.
         ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> responseMap = mapper.readValue(jsonResponse, new TypeReference<>() {});
+        Map<String, Object> responseMap = null;
+        try {
+            responseMap = mapper.readValue(jsonResponse, new TypeReference<>() {});
+            Object jsonObject = mapper.readValue(jsonResponse, Object.class);
+            String prettyJson = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonObject);
+            log.info("응답 JSON (pretty):\n{}", prettyJson);
+        } catch (Exception e) {
+            log.error("JSON 파싱 중 오류 발생: {}", e.getMessage(), e);
+            fail("JSON 응답 파싱 실패: " + e.getMessage());
+        }
 
         // 응답의 최상위 "code" 필드가 200인지 확인하여 API 호출이 성공했는지 검증합니다.
         Integer code = (Integer) responseMap.get("code");
