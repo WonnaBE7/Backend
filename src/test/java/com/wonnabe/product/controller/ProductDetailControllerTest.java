@@ -6,8 +6,7 @@ import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.common.config.ServletConfig;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.domain.UserVO;
-import com.wonnabe.product.service.CardService;
-import com.wonnabe.product.service.ProductService;
+import com.wonnabe.product.service.ProductDetailService;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ServletConfig.class
 })
 @Log4j2
-class ProductControllerTest {
+class ProductDetailControllerTest {
 
     // MockMvc는 서블릿 컨테이너를 모의(mock)하여 실제 네트워크 연결 없이 컨트롤러를 테스트할 수 있게 합니다.
     private MockMvc mockMvc;
@@ -56,7 +55,7 @@ class ProductControllerTest {
     private final String userId = "1469a2a3-213d-427e-b29f-f79d58f51190"; // 실제 DB에 존재하는 테스트용 사용자 UUID
 
     @Autowired
-    private ProductService productService; // product 서비스 자동 주입
+    private ProductDetailService productDetailService; // product 서비스 자동 주입
 
     // WebApplicationContext는 Spring의 전체 웹 애플리케이션 설정을 담음
     @Autowired

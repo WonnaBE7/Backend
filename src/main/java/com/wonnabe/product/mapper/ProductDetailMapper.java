@@ -6,7 +6,7 @@ import com.wonnabe.product.dto.BasicUserInfo;
 import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
-public interface ProductMapper {
+public interface ProductDetailMapper {
     SavingsProductVO findSavingProductById(String productId);
 
     BasicUserInfo findBasicUserInfoById(String userId);

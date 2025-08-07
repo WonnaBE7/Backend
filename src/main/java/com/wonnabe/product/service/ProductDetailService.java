@@ -8,7 +8,7 @@ import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
 * 1) 예적금: SavingsProductDetailResponseDto
 * 2) 보험: InsuranceProductDetailResponseDto
  */
-public interface ProductService {
+public interface ProductDetailService {
     SavingsProductDetailResponseDto getSavingProductDetail(String productId);
     InsuranceProductDetailResponseDTO getInsuranceProductDetail(String productId);
 }

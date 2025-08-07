@@ -43,7 +43,7 @@ import lombok.extern.log4j.Log4j2;
 	ServletConfig.class
 })
 @Log4j2
-class CardProductControllerTest {
+class CardProductDetailControllerTest {
 
 	private MockMvc mockMvc; // 컨트롤러 테스트용 가짜 브라우저인 mockmvc
 

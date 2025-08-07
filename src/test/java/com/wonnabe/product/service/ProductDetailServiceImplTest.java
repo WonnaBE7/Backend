@@ -6,12 +6,10 @@ import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.domain.UserVO;
 import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.domain.SavingsProductVO;
-import com.wonnabe.product.domain.UserInsuranceVO;
-import com.wonnabe.product.domain.UserSavingsVO;
 import com.wonnabe.product.dto.BasicUserInfo;
 import com.wonnabe.product.dto.InsuranceProductDetailResponseDTO;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
-import com.wonnabe.product.mapper.ProductMapper;
+import com.wonnabe.product.mapper.ProductDetailMapper;
 import com.wonnabe.product.mapper.UserInsuranceMapper;
 import com.wonnabe.product.mapper.UserSavingsMapper;
 import lombok.SneakyThrows;
@@ -22,7 +20,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,13 +36,13 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
-class ProductServiceImplTest {
+class ProductDetailServiceImplTest {
 
     @InjectMocks
-    private ProductServiceImpl productService;
+    private ProductDetailServiceImpl productService;
 
     @Mock
-    private ProductMapper productMapper;
+    private ProductDetailMapper productDetailMapper;
 
     @Mock
     private UserSavingsMapper userSavingsMapper;
@@ -114,8 +111,8 @@ class ProductServiceImplTest {
             return Collections.emptyList(); // Default for other cases, or throw an exception if expected
         });
 
-        given(productMapper.findSavingProductById(anyString())).willReturn(product);
-        given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+        given(productDetailMapper.findSavingProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
 
         double[] weights = {0.3, 0.1, 0.2, 0.3, 0.2};
         given(savingsRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));
@@ -182,8 +179,8 @@ class ProductServiceImplTest {
             }
         });
 
-        given(productMapper.findSavingProductById(anyString())).willReturn(product);
-        given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+        given(productDetailMapper.findSavingProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
         given(savingsRecommendationService.getPersonaWeights()).willReturn(Map.of(1, new double[]{0.2,0.2,0.2,0.2,0.2}));
         given(savingsRecommendationService.calculateScore(any(), any())).willReturn(0.0);
         given(userSavingsMapper.findAllByUserId(anyString())).willReturn(Collections.emptyList());
@@ -244,8 +241,8 @@ class ProductServiceImplTest {
             return Collections.emptyList();
         });
 
-        given(productMapper.findInsuranceProductById(anyString())).willReturn(product);
-        given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+        given(productDetailMapper.findInsuranceProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
 
         double[] weights = {0.3, 0.2, 0.2, 0.1, 0.2}; // 예시 가중치
         given(insuranceRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));
@@ -313,8 +310,8 @@ class ProductServiceImplTest {
             return List.of(3002L, 3003L);
         });
 
-        given(productMapper.findInsuranceProductById(anyString())).willReturn(product);
-        given(productMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+        given(productDetailMapper.findInsuranceProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
 
         double[] weights = {0.3, 0.2, 0.2, 0.1, 0.2}; // 예시 가중치
         given(insuranceRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));

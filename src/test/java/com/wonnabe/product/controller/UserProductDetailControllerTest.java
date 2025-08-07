@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @Log4j2
 @ActiveProfiles("test")
-class UserProductControllerTest {
+class UserProductDetailControllerTest {
 
     private MockMvc mockMvc; // 컨트롤러 테스트용 가짜 브라우저인 mockmvc
 

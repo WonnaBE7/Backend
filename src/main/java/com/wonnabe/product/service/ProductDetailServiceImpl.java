@@ -11,7 +11,7 @@ import com.wonnabe.product.domain.UserSavingsVO;
 import com.wonnabe.product.dto.BasicUserInfo;
 import com.wonnabe.product.dto.InsuranceProductDetailResponseDTO;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
-import com.wonnabe.product.mapper.ProductMapper;
+import com.wonnabe.product.mapper.ProductDetailMapper;
 import com.wonnabe.product.mapper.UserInsuranceMapper;
 import com.wonnabe.product.mapper.UserSavingsMapper;
 import lombok.RequiredArgsConstructor;
@@ -25,15 +25,14 @@ import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Log4j2
-public class ProductServiceImpl implements ProductService {
+public class ProductDetailServiceImpl implements ProductDetailService {
 
-    private final ProductMapper productMapper;
+    private final ProductDetailMapper productDetailMapper;
     private final UserSavingsMapper userSavingsMapper;
     private final InsuranceRecommendationService insuranceRecommendationService;
     private final UserInsuranceMapper userInsuranceMapper;
@@ -48,8 +47,8 @@ public class ProductServiceImpl implements ProductService {
         // CustomUser가 가지고 있는 UserVO 객체에서 직접 userId(UUID)를 가져옵니다.
         String userId = customUser.getUser().getUserId();
 
-        BasicUserInfo basicUserInfo = productMapper.findBasicUserInfoById(userId);
-        SavingsProductVO product = productMapper.findSavingProductById(productId);
+        BasicUserInfo basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+        SavingsProductVO product = productDetailMapper.findSavingProductById(productId);
 
         double[] weights = savingsRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
         int matchScore = (int) savingsRecommendationService.calculateScore(product, weights);
@@ -81,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
         List<UserSavingsVO> userSavings = userSavingsMapper.findAllByUserId(userId);
 
         List<SavingsProductDetailResponseDto.ComparisonChart> comparisonChart = userSavings.stream().map(saving -> {
-            SavingsProductVO savingProduct = productMapper.findSavingProductById(String.valueOf(saving.getProductId()));
+            SavingsProductVO savingProduct = productDetailMapper.findSavingProductById(String.valueOf(saving.getProductId()));
             return SavingsProductDetailResponseDto.ComparisonChart.builder()
                     .compareId(saving.getId())
                     .compareName(savingProduct.getProductName())
@@ -111,8 +110,8 @@ public class ProductServiceImpl implements ProductService {
         CustomUser customUser = (CustomUser) authentication.getPrincipal();
         String userId = customUser.getUser().getUserId();
 
-        BasicUserInfo basicUserInfo = productMapper.findBasicUserInfoById(userId);
-        InsuranceProductVO product = productMapper.findInsuranceProductById(productId);
+        BasicUserInfo basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+        InsuranceProductVO product = productDetailMapper.findInsuranceProductById(productId);
 
         // matchScore 계산
         double[] weights = insuranceRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
@@ -157,7 +156,7 @@ public class ProductServiceImpl implements ProductService {
         List<UserInsuranceVO> userInsurances = userInsuranceMapper.findAllByUserId(userId);
 
         List<InsuranceProductDetailResponseDTO.ComparisonChart> comparisonChart = userInsurances.stream().map(insurance -> {
-            InsuranceProductVO insuranceProduct = productMapper.findInsuranceProductById(String.valueOf(insurance.getProductId()));
+            InsuranceProductVO insuranceProduct = productDetailMapper.findInsuranceProductById(String.valueOf(insurance.getProductId()));
             return InsuranceProductDetailResponseDTO.ComparisonChart.builder()
                     .compareId(insurance.getId())
                     .compareName(insuranceProduct.getProductName())
