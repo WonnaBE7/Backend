@@ -4,7 +4,7 @@ import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
-import com.wonnabe.product.dto.BasicUserInfo;
+import com.wonnabe.product.dto.BasicUserInfoDTO;
 import com.wonnabe.product.dto.MonthlyConsumptionDTO;
 import com.wonnabe.product.dto.UserCardDTO;
 import com.wonnabe.product.dto.UserInfoForCardDTO;
@@ -169,7 +169,7 @@ public class CardMapperTest {
     @DisplayName("[성공] 사용자의 기본 정보를 조회")
     void findUserBasic() {
         // when
-        BasicUserInfo user = cardMapper.findBasicUserInfoById(userId);
+        BasicUserInfoDTO user = cardMapper.findBasicUserInfoById(userId);
 
         // then
         assertNotNull(user);
