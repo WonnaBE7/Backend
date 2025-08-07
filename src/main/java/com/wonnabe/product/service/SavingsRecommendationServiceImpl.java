@@ -125,6 +125,11 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
         return response;
     }
 
+    @Override
+    public Map<Integer, double[]> getPersonaWeights() {
+        return PERSONA_WEIGHTS;
+    }
+
     // 소득/고용상태에 따른 가중치 조정
     private double[] adjustWeightsByIncome(double[] weights, String incomeSource, String employment) {
         double[] adjusted = weights.clone();
@@ -168,7 +173,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     }
 
     // 점수 계산
-    private double calculateScore(SavingsProductVO score, double[] weights) {
+    public double calculateScore(SavingsProductVO score, double[] weights) {
         return (weights[0] * score.getInterestRateScore() +
                 weights[1] * score.getCompoundInterestScore() +
                 weights[2] * score.getPreferentialScore() +
