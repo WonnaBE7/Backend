@@ -54,7 +54,6 @@ class UserMapperTest {
 
         @Override
         public void insertUserDetail(UserDetailRequest request) {
-            // mock 구현
         }
 
         @Override

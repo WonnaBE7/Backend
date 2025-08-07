@@ -21,7 +21,7 @@ class UserControllerTest {
             // when
             userController.getMyInfo(mockUser);
 
-            // then: 예외 없이 통과
+            // then: 예외없이 통과
         });
     }
 
