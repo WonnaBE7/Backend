@@ -2,7 +2,7 @@ package com.wonnabe.product.service;
 
 import com.wonnabe.product.domain.CardProductVO;
 import com.wonnabe.product.domain.UserCardVO;
-import com.wonnabe.product.dto.BasicUserInfo;
+import com.wonnabe.product.dto.BasicUserInfoDTO;
 import com.wonnabe.product.dto.CardApplyRequestDTO;
 
 import static com.wonnabe.product.dto.CardProductDetailResponseDTO.*;
@@ -333,7 +333,7 @@ public class CardServiceImpl implements CardService {
         }
 
         // 사용자 정보 조회
-        BasicUserInfo user = cardMapper.findBasicUserInfoById(userId);
+        BasicUserInfoDTO user = cardMapper.findBasicUserInfoById(userId);
 
         if (user == null) {
             throw new NoSuchElementException("사용자의 정보를 찾을 수 없습니다.");
