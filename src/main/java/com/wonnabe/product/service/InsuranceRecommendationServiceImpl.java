@@ -11,7 +11,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -217,12 +216,12 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     public double calculateScore(InsuranceProductVO product, double[] weights) {
         // weights 배열의 순서: 가격 경쟁력, 보장한도, 보장범위, 자기부담금 수준, 환급범위
         double score = 0.0;
-        score += weights[0] * (product.getPriceCompetitivenessScore() != null ? product.getPriceCompetitivenessScore() : 0.0f);
-        score += weights[1] * (product.getCoverageLimitScore() != null ? product.getCoverageLimitScore() : 0.0f);
-        score += weights[2] * (product.getCoverageScopeScore() != null ? product.getCoverageScopeScore() : 0.0f);
-        score += weights[3] * (product.getDeductibleScore() != null ? product.getDeductibleScore() : 0.0f);
-        score += weights[4] * (product.getRefundScopeScore() != null ? product.getRefundScopeScore() : 0.0f);
-        return score * 10; // 점수를 10배하여 100점 만점으로 조정
+        score += weights[0] * (product.getScorePriceCompetitiveness() != null ? product.getScorePriceCompetitiveness() : 0.0f);
+        score += weights[1] * (product.getScoreCoverageLimit() != null ? product.getScoreCoverageLimit() : 0.0f);
+        score += weights[2] * (product.getScoreCoverageScope() != null ? product.getScoreCoverageScope() : 0.0f);
+        score += weights[3] * (product.getScoreDeductibleLevel() != null ? product.getScoreDeductibleLevel() : 0.0f);
+        score += weights[4] * (product.getScoreRefundScope() != null ? product.getScoreRefundScope() : 0.0f);
+        return score; // 점수를 10배하여 100점 만점으로 조정
     }
 
     // 가중치 정규화
