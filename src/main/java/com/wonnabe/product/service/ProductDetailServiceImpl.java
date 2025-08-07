@@ -8,7 +8,7 @@ import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.domain.SavingsProductVO;
 import com.wonnabe.product.domain.UserInsuranceVO;
 import com.wonnabe.product.domain.UserSavingsVO;
-import com.wonnabe.product.dto.BasicUserInfo;
+import com.wonnabe.product.dto.BasicUserInfoDTO;
 import com.wonnabe.product.dto.InsuranceProductDetailResponseDTO;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
 import com.wonnabe.product.mapper.ProductDetailMapper;
@@ -47,7 +47,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
         // CustomUser가 가지고 있는 UserVO 객체에서 직접 userId(UUID)를 가져옵니다.
         String userId = customUser.getUser().getUserId();
 
-        BasicUserInfo basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+        BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
         SavingsProductVO product = productDetailMapper.findSavingProductById(productId);
 
         double[] weights = savingsRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
@@ -110,7 +110,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
         CustomUser customUser = (CustomUser) authentication.getPrincipal();
         String userId = customUser.getUser().getUserId();
 
-        BasicUserInfo basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+        BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
         InsuranceProductVO product = productDetailMapper.findInsuranceProductById(productId);
 
         // matchScore 계산
