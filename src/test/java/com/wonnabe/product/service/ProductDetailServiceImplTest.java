@@ -6,7 +6,7 @@ import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.domain.UserVO;
 import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.domain.SavingsProductVO;
-import com.wonnabe.product.dto.BasicUserInfo;
+import com.wonnabe.product.dto.BasicUserInfoDTO;
 import com.wonnabe.product.dto.InsuranceProductDetailResponseDTO;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
 import com.wonnabe.product.mapper.ProductDetailMapper;
@@ -97,7 +97,7 @@ class ProductDetailServiceImplTest {
                 .interestRateScore(80).compoundInterestScore(70).preferentialScore(90).penaltyScore(60).limitScore(85)
                 .build();
 
-        BasicUserInfo basicUserInfo = BasicUserInfo.builder()
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
                 .userId(userId)
                 .nowMeId(1)
                 .favoriteProductsByType("[" + productId + ", \"1112\"]")
@@ -164,7 +164,7 @@ class ProductDetailServiceImplTest {
 
         SavingsProductVO product = SavingsProductVO.builder().productId(Long.valueOf(productId)).mtrtInt("").build();
 
-        BasicUserInfo basicUserInfo = BasicUserInfo.builder()
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
                 .userId(userId)
                 .nowMeId(1)
                 .favoriteProductsByType("[\"1112\", \"1113\"]")
@@ -227,7 +227,7 @@ class ProductDetailServiceImplTest {
                 .note("기준일: 20250701, 유형: 4세대 실손의료보험, 제공기관: 손해보험협회")
                 .build();
 
-        BasicUserInfo basicUserInfo = BasicUserInfo.builder()
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
                 .userId(userId)
                 .nowMeId(1)
                 .favoriteProductsByType("[" + productId + ", \"3002\"]")
@@ -296,7 +296,7 @@ class ProductDetailServiceImplTest {
                 .malePremium(BigDecimal.valueOf(12000))
                 .build();
 
-        BasicUserInfo basicUserInfo = BasicUserInfo.builder()
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
                 .userId(userId)
                 .nowMeId(1)
                 .favoriteProductsByType("[\"3002\", \"3003\"]")

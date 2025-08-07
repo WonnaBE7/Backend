@@ -3,7 +3,7 @@ package com.wonnabe.product.mapper;
 import com.wonnabe.common.config.RootConfig;
 import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.domain.SavingsProductVO;
-import com.wonnabe.product.dto.BasicUserInfo;
+import com.wonnabe.product.dto.BasicUserInfoDTO;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ class ProductDetailMapperTest {
         // userId는 필드에 정의된 값을 사용합니다.
 
         // when
-        BasicUserInfo result = productDetailMapper.findBasicUserInfoById(userId);
+        BasicUserInfoDTO result = productDetailMapper.findBasicUserInfoById(userId);
 
         // then
         log.info("조회된 사용자 기본 정보: {}", result);

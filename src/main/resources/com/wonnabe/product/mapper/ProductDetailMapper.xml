@@ -5,7 +5,7 @@
         SELECT * FROM SAVINGS_PRODUCT WHERE PRODUCT_ID = #{productId}
     </select>
 
-    <select id="findBasicUserInfoById" resultType="com.wonnabe.product.dto.BasicUserInfo">
+    <select id="findBasicUserInfoById" resultType="com.wonnabe.product.dto.BasicUserInfoDTO">
         SELECT
             user_id,
             favorite_products_by_type,
