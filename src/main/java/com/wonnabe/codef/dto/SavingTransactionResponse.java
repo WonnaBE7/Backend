@@ -52,10 +52,13 @@ public class SavingTransactionResponse {
             tx.setDescription4((String) detail.get("resAccountDesc4"));
 
             Long accountId = savingMapper.findSavingIdByUserIdAndProductId(data.getResAccount());
-            if (accountId == null) {
-                // 로그 또는 continue 처리
+            if (accountId == null && "66091007246752".equals(data.getResAccount())) {
+                accountId = 9999L;
+                tx.setAssetCategory("연금");
+            } else if (accountId == null) {
                 continue;
             }
+
             tx.setAccountId(String.valueOf(accountId));
 
             Integer productId = savingMapper.findProductIdByAccountId(accountId);

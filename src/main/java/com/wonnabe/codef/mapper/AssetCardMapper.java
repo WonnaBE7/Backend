@@ -23,6 +23,7 @@ public interface AssetCardMapper {
      * @param cardName 카드 이름 (입력받은 원본)
      * @return 매칭된 product_id (없으면 null)
      */
-    Long findProductIdByKeyword(@Param("cardName") String cardName);
+    Long findProductIdByKeyword(@Param("cardName") String cardName,
+                                @Param("institutionCode") String institutionCode);
 
 }
