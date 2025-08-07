@@ -33,7 +33,18 @@
         VALUES (#{postId}, #{userId}, #{parentCommentId}, #{content}, NOW(), 0)
     </insert>
 
-    <!-- 댓글 삭제 -->
+    <!-- 삭제 전 존재 여부 확인 -->
+    <select id="existsComment" resultType="int">
+        SELECT COUNT(*)
+        FROM comment
+        WHERE id = #{commentId}
+          AND parent_comment_id = #{boardId}
+          AND post_id = #{communityId}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 삭제 처리 -->
     <update id="markCommentAsDeleted">
         UPDATE comment
         SET is_deleted = 1
@@ -42,40 +53,51 @@
           AND user_id = #{userId}
     </update>
 
+
+
     <!--  댓글 좋아요에 있는지 존재 여부 확인  -->
-    <select id="selectCommentByIdAndBoardAndCommunity" resultType="com.wonnabe.community.dto.comment.CommentDTO">
-        SELECT *
-        FROM comment
-        WHERE id = #{commentId}
-          AND board_id = #{boardId}
-          AND financial_tendency_type_id = #{communityId}
-          AND is_deleted = 0
+    <select id="selectCommentByIdAndBoardAndCommunity" resultType="CommentDTO">
+        SELECT
+            c.id AS commentId,
+            c.content,
+            (
+                SELECT COUNT(*)
+                FROM comment_like cl
+                WHERE cl.comment_id = c.id AND cl.is_deleted = 0
+            ) AS likeCount
+        FROM comment c
+        WHERE c.id = #{commentId}
+          AND c.parent_comment_id = #{boardId}
+          AND c.post_id = #{communityId}
+          AND c.is_deleted = 0
     </select>
 
-    <!-- 좋아요 상태 조회 - 댓글 -->
-    <select id="getCommentLikeStatus" resultType="int">
+    <!-- 좋아요 상태 확인 -->
+    <select id="getCommentLikeStatus" resultType="Integer">
         SELECT is_deleted
         FROM comment_like
         WHERE user_id = #{userId}
-          AND board_id = #{boardId}
           AND comment_id = #{commentId}
+          AND board_id = #{boardId}
           AND financial_tendency_type_id = #{communityId}
+            LIMIT 1
     </select>
 
-    <!-- 댓글 좋아요 추가 -->
+    <!-- 좋아요 삽입 -->
     <insert id="insertCommentLike">
-        INSERT INTO comment_like (user_id, board_id, comment_id, financial_tendency_type_id, is_deleted)
-        VALUES (#{userId}, #{boardId}, #{commentId}, #{communityId}, 0)
+        INSERT INTO comment_like (user_id, comment_id, board_id, financial_tendency_type_id, is_deleted)
+        VALUES (#{userId}, #{commentId}, #{boardId}, #{communityId}, 0)
     </insert>
 
-    <!-- 댓글 좋아요 상태 수정 -->
+    <!-- 좋아요 상태 토글 (0 -> 1 or 1 -> 0) -->
     <update id="updateCommentLikeStatus">
         UPDATE comment_like
         SET is_deleted = #{isDeleted}
         WHERE user_id = #{userId}
-          AND board_id = #{boardId}
           AND comment_id = #{commentId}
+          AND board_id = #{boardId}
           AND financial_tendency_type_id = #{communityId}
     </update>
+
 
 </mapper>

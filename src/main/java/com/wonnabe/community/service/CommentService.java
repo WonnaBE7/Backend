@@ -25,27 +25,35 @@ public class CommentService {
     }
 
     //댓글 삭제
-    public void deleteComment(Long commentId, Long boardId, String userId) {
+    public void deleteComment(Long commentId, Long boardId, String userId, int communityId) {
+        int exists = commentMapper.existsComment(commentId, boardId, communityId, userId);
+        if (exists == 0) {
+            throw new NoSuchElementException("삭제할 댓글이 존재하지 않음");
+        }
         commentMapper.markCommentAsDeleted(commentId, boardId, userId);
     }
 
+
     //좋아요 생성 -댓글
-    public void toggleCommentLike(String userId, Long commentId, Long boardId, int communityId) {
+    // 댓글 좋아요 토글
+    public CommentDTO toggleCommentLike(String userId, Long commentId, Long boardId, int communityId) {
+        // 댓글 존재 여부 확인
         CommentDTO comment = commentMapper.selectCommentByIdAndBoardAndCommunity(commentId, boardId, communityId);
         if (comment == null) {
-            // 반드시 이 메시지 그대로
-            throw new NoSuchElementException("댓글 없음");
+            throw new IllegalArgumentException("좋아요 대상 댓글이 존재하지 않습니다.");
         }
 
-        Integer status = commentMapper.getCommentLikeStatus(userId, commentId, boardId, communityId);
+        // 좋아요 상태 조회
+        Integer status = commentMapper.getCommentLikeStatus(userId, boardId, commentId, communityId);
         if (status == null) {
-            commentMapper.insertCommentLike(userId, commentId, boardId, communityId);
+            commentMapper.insertCommentLike(userId, boardId, commentId, communityId);
         } else {
             int newStatus = (status == 0) ? 1 : 0;
-            commentMapper.updateCommentLikeStatus(userId, commentId, boardId, communityId, newStatus);
+            commentMapper.updateCommentLikeStatus(userId, boardId, commentId, communityId, newStatus);
         }
+
+        // 최신 댓글 정보 반환
+        return commentMapper.selectCommentByIdAndBoardAndCommunity(commentId, boardId, communityId);
     }
-
-
 
 }

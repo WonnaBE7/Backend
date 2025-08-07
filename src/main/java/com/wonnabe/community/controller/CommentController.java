@@ -52,10 +52,17 @@ public class CommentController {
             @RequestParam("commentId") Long commentId,
             @AuthenticationPrincipal CustomUser customUser
     ) {
-        String userId = customUser.getUser().getUserId();
-        commentService.deleteComment(commentId, boardId, userId);
-        return JsonResponse.ok("댓글 삭제에 성공하였습니다.", Map.of());
+        try {
+            String userId = customUser.getUser().getUserId();
+            commentService.deleteComment(commentId, boardId, userId, communityId);
+            return JsonResponse.ok("댓글 삭제에 성공하였습니다.");
+        } catch (NoSuchElementException e) {
+            return JsonResponse.error(HttpStatus.NOT_FOUND, "삭제할 댓글을 다시 확인해주세요.");
+        } catch (Exception e) {
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제 중 오류가 발생했습니다.");
+        }
     }
+
 
     //좋아요 생성 -댓글
     @PatchMapping("/board/comment/like")
@@ -69,16 +76,13 @@ public class CommentController {
             String userId = customUser.getUser().getUserId();
             commentService.toggleCommentLike(userId, commentId, boardId, communityId);
             return JsonResponse.ok("댓글 좋아요 상태가 변경되었습니다.");
-        } catch (NoSuchElementException e) {
-            // 메시지로 분기
-            if ("댓글 없음".equals(e.getMessage())) {
-                return JsonResponse.error(HttpStatus.NOT_FOUND, "좋아요 대상 댓글이 존재하지 않습니다.");
-            }
-            return JsonResponse.error(HttpStatus.NOT_FOUND, "대상 데이터가 존재하지 않습니다.");
-        } catch (Exception e) {
-            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 좋아요 처리 중 오류가 발생했습니다.");
+        } catch (IllegalArgumentException e) {
+            return JsonResponse.error(HttpStatus.NOT_FOUND, e.getMessage());
         }
     }
+
+
+
 
 
 
