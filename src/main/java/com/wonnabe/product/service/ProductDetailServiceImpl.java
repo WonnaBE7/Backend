@@ -74,7 +74,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                 .benefitSummary(product.getPrefer())
                 .isWished(isWished)
                 .labels(Arrays.asList("금리", "단/복리", "우대조건", "중도해지 페널티", "최대한도"))
-                .currentUserData(Arrays.asList(product.getInterestRateScore(), product.getCompoundInterestScore(), product.getPreferentialScore(), product.getPenaltyScore(), product.getLimitScore()))
+                .currentUserData(Arrays.asList(product.getScoreInterestRate(), product.getScoreInterestType(), product.getScorePreferentialCondition(), product.getScoreCancelBenefit(), product.getScoreMaxAmount()))
                 .build();
 
         List<UserSavingsVO> userSavings = userSavingsMapper.findAllByUserId(userId);
@@ -84,7 +84,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
             return SavingsProductDetailResponseDto.ComparisonChart.builder()
                     .compareId(saving.getId())
                     .compareName(savingProduct.getProductName())
-                    .recommendedProductData(Arrays.asList(savingProduct.getInterestRateScore(), savingProduct.getCompoundInterestScore(), savingProduct.getPreferentialScore(), savingProduct.getPenaltyScore(), savingProduct.getLimitScore()))
+                    .recommendedProductData(Arrays.asList(savingProduct.getScoreInterestRate(), savingProduct.getScoreInterestType(), savingProduct.getScorePreferentialCondition(), savingProduct.getScoreCancelBenefit(), savingProduct.getScoreMaxAmount()))
                     .build();
         }).collect(Collectors.toList());
 
@@ -140,16 +140,16 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                 .matchScore(matchScore)
                 .coverageType(product.getCoverageType())
                 .coverageLimit(product.getCoverageLimit())
-                .deductible(product.getDeductibleScore() != null ? String.valueOf(product.getDeductibleScore()) : null) // 자기부담금 점수를 문자열로 변환
+                .deductible(product.getScoreDeductibleLevel() != null ? String.valueOf(product.getScoreDeductibleLevel()) : null) // 자기부담금 점수를 문자열로 변환
                 .averagePremium(averagePremium.toPlainString() + "원")
                 .isWished(isWished)
                 .labels(Arrays.asList("가격 경쟁력", "보장한도", "보장범위", "자기부담금 수준", "환급범위"))
                 .currentUserData(Arrays.asList(
-                        product.getPriceCompetitivenessScore() != null ? product.getPriceCompetitivenessScore().intValue() : 0,
-                        product.getCoverageLimitScore() != null ? product.getCoverageLimitScore().intValue() : 0,
-                        product.getCoverageScopeScore() != null ? product.getCoverageScopeScore().intValue() : 0,
-                        product.getDeductibleScore() != null ? product.getDeductibleScore().intValue() : 0,
-                        product.getRefundScopeScore() != null ? product.getRefundScopeScore().intValue() : 0
+                        product.getScorePriceCompetitiveness() != null ? product.getScorePriceCompetitiveness().intValue() : 0,
+                        product.getScoreCoverageLimit() != null ? product.getScoreCoverageLimit().intValue() : 0,
+                        product.getScoreCoverageScope() != null ? product.getScoreCoverageScope().intValue() : 0,
+                        product.getScoreDeductibleLevel() != null ? product.getScoreDeductibleLevel().intValue() : 0,
+                        product.getScoreRefundScope() != null ? product.getScoreRefundScope().intValue() : 0
                 ))
                 .build();
 
@@ -161,11 +161,11 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                     .compareId(insurance.getId())
                     .compareName(insuranceProduct.getProductName())
                     .recommendedProductData(Arrays.asList(
-                            insuranceProduct.getPriceCompetitivenessScore() != null ? insuranceProduct.getPriceCompetitivenessScore().intValue() : 0,
-                            insuranceProduct.getCoverageLimitScore() != null ? insuranceProduct.getCoverageLimitScore().intValue() : 0,
-                            insuranceProduct.getCoverageScopeScore() != null ? insuranceProduct.getCoverageScopeScore().intValue() : 0,
-                            insuranceProduct.getDeductibleScore() != null ? insuranceProduct.getDeductibleScore().intValue() : 0,
-                            insuranceProduct.getRefundScopeScore() != null ? insuranceProduct.getRefundScopeScore().intValue() : 0
+                            insuranceProduct.getScorePriceCompetitiveness() != null ? insuranceProduct.getScorePriceCompetitiveness().intValue() : 0,
+                            insuranceProduct.getScoreCoverageLimit() != null ? insuranceProduct.getScoreCoverageLimit().intValue() : 0,
+                            insuranceProduct.getScoreCoverageScope() != null ? insuranceProduct.getScoreCoverageScope().intValue() : 0,
+                            insuranceProduct.getScoreDeductibleLevel() != null ? insuranceProduct.getScoreDeductibleLevel().intValue() : 0,
+                            insuranceProduct.getScoreRefundScope() != null ? insuranceProduct.getScoreRefundScope().intValue() : 0
                     ))
                     .build();
         }).collect(Collectors.toList());
