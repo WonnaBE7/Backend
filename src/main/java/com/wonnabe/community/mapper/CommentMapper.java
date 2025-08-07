@@ -9,6 +9,8 @@ import java.util.List;
 @Mapper
 public interface CommentMapper {
 
+    boolean existsBoardInCommunity(@Param("communityId") int communityId, @Param("boardId") Long boardId);
+
     //댓글 조회
     List<CommentDTO> selectCommentsByBoardId(@Param("communityId") int communityId,
                                              @Param("boardId") Long boardId);

@@ -5,9 +5,21 @@
 
 <mapper namespace="com.wonnabe.community.mapper.CommentMapper">
 
+    <!-- 게시글 존재 여부 확인 -->
+    <select id="existsBoardInCommunity" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM board
+            WHERE id = #{boardId}
+              AND financial_tendency_type_id = #{communityId}
+              AND is_deleted = 0
+        )
+    </select>
+
     <!-- 댓글 조회 -->
     <select id="selectCommentsByBoardId" resultType="CommentDTO">
         SELECT
+            c.user_id AS userId,
             c.id AS commentId,
             u.name AS userName,
             f.name AS nowme,

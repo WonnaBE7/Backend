@@ -53,31 +53,39 @@
 
     <!-- 인기 게시글 Top3 -->
     <select id="selectTop3Boards" resultType="BoardDTO">
-        SELECT
-            b.id AS boardId,
-            b.title,
-            b.content,
-            u.name AS userName,
-            f.id AS categoryId,
-            f.name AS categoryName,
-            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
-            (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
-            EXISTS (
-                SELECT 1 FROM board_scrap
-                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-            ) AS isScraped,
-            EXISTS (
-                SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-            ) AS isLiked,
-            DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
-        FROM board b
-                 JOIN user_profile u ON b.user_id = u.user_id
-                 JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
-        WHERE b.is_deleted = 0
+        SELECT *
+        FROM (
+                 SELECT
+                     b.id AS boardId,
+                     b.title,
+                     b.content,
+                     u.name AS userName,
+                     f.id AS categoryId,
+                     f.name AS categoryName,
+                     (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+                     (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
+                     CASE
+                         WHEN EXISTS (
+                             SELECT 1 FROM board_scrap
+                             WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                         ) THEN TRUE ELSE FALSE
+                         END AS scraped,
+                     CASE
+                         WHEN EXISTS (
+                             SELECT 1 FROM board_like
+                             WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                         ) THEN TRUE ELSE FALSE
+                         END AS liked,
+                     DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+                 FROM board b
+                          JOIN user_profile u ON b.user_id = u.user_id
+                          JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
+                 WHERE b.is_deleted = 0
+             ) AS sub
         ORDER BY likeCount DESC
             LIMIT 3
     </select>
+
 
     <!-- 내가 작성한 게시글 수 -->
     <select id="countUserBoards" resultType="int">
@@ -101,12 +109,22 @@
             f.name AS categoryName,
             (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
             (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
-            TRUE AS isScraped,
-            EXISTS (
-                SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-            ) AS isLiked,
-            b.created_at AS createdAt
+
+            CASE
+                WHEN bs.is_deleted = 0 THEN TRUE ELSE FALSE
+                END AS scraped,
+
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM board_like bl
+                    WHERE bl.board_id = b.id
+                      AND bl.user_id = #{userId}
+                      AND bl.is_deleted = 0
+                ) THEN TRUE ELSE FALSE
+                END AS liked,
+
+            DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+
         FROM board_scrap bs
                  JOIN board b ON bs.board_id = b.id
                  JOIN user_profile u ON b.user_id = u.user_id
@@ -128,20 +146,31 @@
             f.name AS categoryName,
             (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
             (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
-            EXISTS (
-                SELECT 1 FROM board_scrap
-                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-            ) AS isScraped,
-            EXISTS (
-                SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-            ) AS isLiked,
+
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM board_scrap
+                    WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                ) THEN TRUE ELSE FALSE
+                END AS scraped,
+
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM board_like
+                    WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                ) THEN TRUE ELSE FALSE
+                END AS liked,
+
             DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+
         FROM board b
                  JOIN user_profile u ON b.user_id = u.user_id
                  JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
         WHERE b.user_id = #{userId} AND b.is_deleted = 0
         ORDER BY b.created_at DESC
     </select>
+
+
+
 
 </mapper>

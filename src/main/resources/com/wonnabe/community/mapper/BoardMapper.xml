@@ -16,15 +16,23 @@
         f.name AS categoryName,
         (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
         (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
-        EXISTS (
+
+        CASE
+        WHEN EXISTS (
         SELECT 1 FROM board_scrap
         WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-        ) AS isScraped,
-        EXISTS (
+        ) THEN TRUE ELSE FALSE
+        END AS scraped,
+
+        CASE
+        WHEN EXISTS (
         SELECT 1 FROM board_like
         WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-        ) AS isLiked,
+        ) THEN TRUE ELSE FALSE
+        END AS liked,
+
         DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+
         FROM board b
         JOIN user_profile u ON b.user_id = u.user_id
         JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
@@ -36,6 +44,7 @@
         ORDER BY b.id DESC
         LIMIT #{pageSize}
     </select>
+
 
     <!-- 게시글 생성 -->
     <insert id="insertBoard">
@@ -87,15 +96,23 @@
             f.name AS categoryName,
             (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
             (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
-            EXISTS (
-                SELECT 1 FROM board_scrap
-                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-            ) AS isScraped,
-            EXISTS (
-                SELECT 1 FROM board_like
-                WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
-            ) AS isLiked,
+
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM board_scrap
+                    WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                ) THEN TRUE ELSE FALSE
+                END AS scraped,
+
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM board_like
+                    WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                ) THEN TRUE ELSE FALSE
+                END AS liked,
+
             DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+
         FROM board b
                  JOIN user_profile u ON b.user_id = u.user_id
                  JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
@@ -103,6 +120,7 @@
           AND b.financial_tendency_type_id = #{communityId}
           AND b.is_deleted = 0
     </select>
+
 
     <!-- 게시글 스크랩 상태 조회 -->
     <select id="getScrapStatus" resultType="int">
