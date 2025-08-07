@@ -63,13 +63,13 @@ class InsuranceRecommendationMapperTest {
         // then
         assertNotNull(results);
         assertFalse(results.isEmpty());
-        assertNotNull(results.get(0).getPriceCompetitivenessScore());
+        assertNotNull(results.get(0).getScorePriceCompetitiveness());
         System.out.println("\n--- [InsuranceRecommendationMapperTest] 모든 보험 상품 및 점수 조회 결과 ---");
         System.out.println("조회된 InsuranceProductVO 목록 (총 " + results.size() + "개):");
         results.forEach(product -> {
             System.out.println("  - 상품 ID: " + product.getProductId() + ", 상품명: " + product.getProductName() + ", 보험사: " + product.getProviderName());
             System.out.println("    보장한도: " + product.getCoverageLimit() + ", 비고: " + product.getNote() + ", 자기부담금: " + product.getMyMoney());
-            System.out.println("    점수: 가격(" + product.getPriceCompetitivenessScore() + "), 보장한도(" + product.getCoverageLimitScore() + "), 보장범위(" + product.getCoverageScopeScore() + "), 자기부담금(" + product.getDeductibleScore() + "), 환급범위(" + product.getRefundScopeScore() + ")");
+            System.out.println("    점수: 가격(" + product.getScorePriceCompetitiveness() + "), 보장한도(" + product.getScoreCoverageLimit() + "), 보장범위(" + product.getScoreCoverageScope() + "), 자기부담금(" + product.getScoreDeductibleLevel() + "), 환급범위(" + product.getScoreRefundScope() + ")");
         });
         System.out.println("-------------------------------------------------------------------");
     }
