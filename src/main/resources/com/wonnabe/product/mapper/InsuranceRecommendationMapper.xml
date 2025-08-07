@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.product.mapper.InsuranceRecommendationMapper">
+
+    <!-- 사용자의 건강/생활습관 정보 조회 -->
+    <select id="getUserHealthInfo" resultType="com.wonnabe.product.domain.UserIncomeInfoVO">
+        SELECT
+            user_id AS userId,
+            selected_wonnabe_ids AS selectedWonnabeIds,
+            lifestyle_smoking AS smokingStatus,
+            lifestyle_family_medical AS familyMedicalHistory,
+            lifestyle_before_diseases AS pastMedicalHistory,
+            lifestyle_exercise_freq AS exerciseFrequency,
+            lifestyle_alcohol_freq AS drinkingFrequency
+        FROM user_info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 모든 보험 상품과 점수 조회 -->
+    <select id="getAllInsuranceScores" resultType="com.wonnabe.product.domain.InsuranceProductVO">
+        SELECT
+            product_id AS productId,
+            product_name AS productName,
+            provider_name AS providerName,
+            coverage_limit AS coverageLimit,
+            note AS note,
+            my_money AS myMoney,
+
+            score_price_competitiveness AS priceCompetitivenessScore,
+            score_coverage_limit AS coverageLimitScore,
+            score_coverage_scope AS coverageScopeScore,
+            score_deductible_level AS deductibleScore,
+            score_refund_scope AS refundScopeScore
+        FROM
+            insurance_product
+    </select>
+
+</mapper>
