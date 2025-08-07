@@ -13,4 +13,27 @@
         FROM user_info
         WHERE user_id = #{userId}
     </select>
+
+    <select id="findInsuranceProductById" parameterType="String" resultType="com.wonnabe.product.domain.InsuranceProductVO">
+        SELECT
+            product_id,
+            provider_name,
+            product_name,
+            min_age,
+            max_age,
+            female_premium,
+            male_premium,
+            price_competitiveness_score,
+            coverage_limit_score,
+            coverage_scope_score,
+            deductible_score,
+            refund_scope_score,
+            coverage_type,
+            coverage_limit,
+            my_money,
+            coverage_desc,
+            note
+        FROM insurance_product
+        WHERE product_id = #{productId}
+    </select>
 </mapper>
