@@ -54,8 +54,10 @@ public class AssetSyncService {
                     allAccounts.addAll(wrapper.toUserAccountsFromDeposit(userId, param.getInstitutionCode()));
 //                    allAccounts.addAll(wrapper.toUserAccountsFromInsurance(userId, param.getInstitutionCode()));
                 } else if (response instanceof CardListWrapper cardResponse) {
-                    allCards.add(cardResponse.toUserCard(userId));
-                } else if (response instanceof CodefTransactionResponse txWrapper) {
+
+                    allCards.addAll(cardResponse.toUserCards(userId));
+                }
+                else if (response instanceof CodefTransactionResponse txWrapper) {
                     TransactionListResponse txResponse = txWrapper.getData();
                     allTransactions.addAll(txResponse.toUserTransactions(userId, param.getInstitutionCode(), accountMapper));
                 } else if (response instanceof SavingTransactionResponse savingTxWrapper) {
@@ -72,6 +74,11 @@ public class AssetSyncService {
 
                     switch (depositCode) {
                         case "11": // 수시입출
+                            account.setCategory("입출금");
+                            assetMapper.upsert(account);
+                            break;
+                        case "14":
+                            account.setCategory("연금");
                             assetMapper.upsert(account);
                             break;
                         case "12": // 적금/예금
@@ -83,6 +90,7 @@ public class AssetSyncService {
 //                            insuranceMapper.upsert(insurance);
 //                            break;
                         default:
+                            account.setCategory("기타");
                             assetMapper.upsert(account); // 기본은 입출금
                     }
                 }
@@ -90,7 +98,7 @@ public class AssetSyncService {
                 // ✅ 2. 카드 계좌 처리
                 for (UserCard card : allCards) {
                     String normalized = normalizeCardName(card.getCardName());
-                    Long productId = assetCardMapper.findProductIdByKeyword(normalized);
+                    Long productId = assetCardMapper.findProductIdByKeyword(normalized, param.getInstitutionCode());
                     card.setProductId(productId);
                     assetCardMapper.upsert(card);
                 }
@@ -99,7 +107,6 @@ public class AssetSyncService {
                 if (!allTransactions.isEmpty()) {
                     userTransactionsMapper.upsertBatch(allTransactions);
                 }
-
                 log.info("✅ 자산 동기화 성공 - userId: {}, 기관: {}", userId, param.getInstitutionCode());
 
             } catch (Exception e) {
@@ -158,6 +165,8 @@ public class AssetSyncService {
         if (productId == null) {
             log.warn("❗ product_id 조회 실패: accountName='{}'", account.getAccountName());
         }
+        savings.setAccountNumber(account.getAccountNumber());
+
         return savings;
     }
 
@@ -176,6 +185,7 @@ public class AssetSyncService {
         return rawCardName
 //                .toLowerCase()                 // 소문자 통일
                 .replaceAll("\\s+", "")        // 공백 제거
+                .replaceAll("[\\s\\-()\\[\\]{}]", "")   // 공백, 괄호류, 하이픈 제거
 //                .replaceAll("[^가-힣a-zA-Z0-9]", "") // 괄호, 특수기호 제거
                 .replace("nori", "노리");       // 수동 매핑 예시
     }
