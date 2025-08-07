@@ -1,5 +1,6 @@
 package com.wonnabe.product.controller;
 
+import com.wonnabe.common.util.JsonResponse;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
 import com.wonnabe.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping("/savings/{productId}")
-    public ResponseEntity<SavingsProductDetailResponseDto> getSavingProductDetail(@PathVariable String productId) {
-        return ResponseEntity.ok(productService.getSavingProductDetail(productId));
+    public ResponseEntity<Object> getSavingProductDetail(@PathVariable String productId) {
+        return JsonResponse.ok("예적금 상품 상세 조회 성공", productService.getSavingProductDetail(productId));
     }
 }

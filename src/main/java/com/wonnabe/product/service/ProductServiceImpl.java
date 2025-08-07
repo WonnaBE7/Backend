@@ -1,5 +1,8 @@
 package com.wonnabe.product.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.product.domain.SavingsProductVO;
 import com.wonnabe.product.domain.UserSavingsVO;
@@ -8,23 +11,25 @@ import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
 import com.wonnabe.product.mapper.ProductMapper;
 import com.wonnabe.product.mapper.UserSavingsMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class ProductServiceImpl implements ProductService {
 
     private final ProductMapper productMapper;
     private final UserSavingsMapper userSavingsMapper;
     private final SavingsRecommendationService savingsRecommendationService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public SavingsProductDetailResponseDto getSavingProductDetail(String productId) {
@@ -40,7 +45,16 @@ public class ProductServiceImpl implements ProductService {
         double[] weights = savingsRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
         int matchScore = (int) savingsRecommendationService.calculateScore(product, weights);
 
-        boolean isWished = basicUserInfo.getMyFavorite().contains(Long.valueOf(productId));
+        List<Long> favoriteProductIds = Collections.emptyList();
+        try {
+            if (basicUserInfo.getFavoriteProductsByType() != null && !basicUserInfo.getFavoriteProductsByType().isEmpty()) {
+                favoriteProductIds = objectMapper.readValue(basicUserInfo.getFavoriteProductsByType(), new TypeReference<List<Long>>() {});
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing favoriteProductsByType JSON: {}", basicUserInfo.getFavoriteProductsByType(), e);
+            // 예외 발생 시 찜 목록을 비어있는 리스트로 처리하거나 다른 적절한 방식으로 처리
+        }
+        boolean isWished = favoriteProductIds.contains(Long.valueOf(productId));
 
         SavingsProductDetailResponseDto.ProductInfo productInfo = SavingsProductDetailResponseDto.ProductInfo.builder()
                 .productId(String.valueOf(product.getProductId()))
@@ -66,10 +80,13 @@ public class ProductServiceImpl implements ProductService {
                     .build();
         }).collect(Collectors.toList());
 
+        List<String> maturityContent = (product.getMtrtInt() != null && !product.getMtrtInt().isEmpty()) ?
+                Arrays.asList(product.getMtrtInt().split(",")) : Collections.emptyList();
+
         SavingsProductDetailResponseDto.MaturityInfo maturityInfo = SavingsProductDetailResponseDto.MaturityInfo.builder()
                 .maxJoinPeroid(product.getMaxJoinPeriod() + "개월")
                 .title("만기 이후 금리")
-                .content(Arrays.asList(product.getMtrtInt().split(",")))
+                .content(maturityContent)
                 .build();
 
         return SavingsProductDetailResponseDto.builder()
