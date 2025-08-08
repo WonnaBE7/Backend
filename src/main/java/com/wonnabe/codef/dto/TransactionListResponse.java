@@ -77,9 +77,10 @@ public class TransactionListResponse {
             tx.setUserId(userId);
             tx.setTransactionDate(detail.getTransactionDate());  // yyyy-MM-dd 형식 가정
             tx.setTransactionTime(detail.getTransactionTime());  // HH:mm:ss 형식 가정
-            tx.setDescription(buildDescription(detail));
-
-//            tx.setDescription(detail.getDescription());          // 단일 필드
+            tx.setDescription1(detail.getDescription1());
+            tx.setDescription2(detail.getDescription2());
+            tx.setDescription3(detail.getDescription3());
+            tx.setDescription4(detail.getDescription4());
 //            tx.setAssetCategory(assetCategory);                  // '예금','적금','투자','입출금','보험','기타' // '입출금','투자','연금','기타'
 
             Long in = parseLong(detail.getDepositAmount());
@@ -120,23 +121,6 @@ public class TransactionListResponse {
             return value != null && !value.isBlank() ? Long.parseLong(value.replaceAll(",", "")) : null;
         } catch (Exception e) {
             return null;
-        }
-    }
-
-    // ✅ 올바른 메서드 시그니처
-    private String buildDescription(TransactionDetail detail) {
-        StringBuilder sb = new StringBuilder();
-        appendIfNotEmpty(sb, detail.getDescription1());
-        appendIfNotEmpty(sb, detail.getDescription());
-        appendIfNotEmpty(sb, detail.getDescription3());
-        appendIfNotEmpty(sb, detail.getDescription4());
-        return sb.toString().trim();
-    }
-
-    private void appendIfNotEmpty(StringBuilder sb, Object val) {
-        if (val != null && !val.toString().isBlank()) {
-            if (sb.length() > 0) sb.append(" / ");
-            sb.append(val.toString());
         }
     }
 }

@@ -103,8 +103,9 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
 
             // 각 상품의 점수 계산
             List<ProductWithScore<InsuranceProductVO>> scoredProducts = new ArrayList<>();
+            double[] weightsArray = convertWeightsMapToArray(adjustedWeights);
             for (InsuranceProductVO product : allInsuranceProducts) {
-                double totalScore = calculateInsuranceScore(product, adjustedWeights);
+                double totalScore = calculateScore(product, weightsArray);
                 scoredProducts.add(new ProductWithScore<>(product, totalScore));
             }
 
@@ -193,15 +194,34 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
         return normalizeWeights(adjusted);
     }
 
-    // 점수 계산
-    private double calculateInsuranceScore(InsuranceProductVO product, Map<String, Double> weights) {
+    @Override
+    public Map<Integer, double[]> getPersonaWeights() {
+        Map<Integer, double[]> result = new HashMap<>();
+        PERSONA_NAMES.forEach((id, name) -> {
+            Map<String, Double> weightsMap = PERSONA_WEIGHTS_INSURANCE.get(name);
+            if (weightsMap != null) {
+                double[] weightsArray = new double[5]; // 가격, 보장한도, 보장범위, 자기부담금, 환급범위
+                weightsArray[0] = weightsMap.getOrDefault("가격_경쟁력", 0.0);
+                weightsArray[1] = weightsMap.getOrDefault("보장한도", 0.0);
+                weightsArray[2] = weightsMap.getOrDefault("보장범위", 0.0);
+                weightsArray[3] = weightsMap.getOrDefault("자기부담금", 0.0);
+                weightsArray[4] = weightsMap.getOrDefault("환급범위", 0.0);
+                result.put(id, weightsArray);
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public double calculateScore(InsuranceProductVO product, double[] weights) {
+        // weights 배열의 순서: 가격 경쟁력, 보장한도, 보장범위, 자기부담금 수준, 환급범위
         double score = 0.0;
-        score += weights.getOrDefault("가격_경쟁력", 0.0) * (product.getScorePriceCompetitiveness() != null ? product.getScorePriceCompetitiveness() : 0.0f);
-        score += weights.getOrDefault("보장한도", 0.0) * (product.getScoreCoverageLimit() != null ? product.getScoreCoverageLimit() : 0.0f);
-        score += weights.getOrDefault("보장범위", 0.0) * (product.getScoreCoverageScope() != null ? product.getScoreCoverageScope() : 0.0f);
-        score += weights.getOrDefault("자기부담금", 0.0) * (product.getScoreDeductibleLevel() != null ? product.getScoreDeductibleLevel() : 0.0f);
-        score += weights.getOrDefault("환급범위", 0.0) * (product.getScoreRefundScope() != null ? product.getScoreRefundScope() : 0.0f);
-        return score;
+        score += weights[0] * (product.getScorePriceCompetitiveness());
+        score += weights[1] * (product.getScoreCoverageLimit());
+        score += weights[2] * (product.getScoreCoverageScope());
+        score += weights[3] * (product.getScoreDeductibleLevel());
+        score += weights[4] * (product.getScoreRefundScope());
+        return score; // 100점 만점으로 조정
     }
 
     // 가중치 정규화
@@ -212,6 +232,17 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
         }
         return weights.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() / sum));
+    }
+
+    // Map<String, Double> 형태의 가중치를 double[] 형태로 변환
+    private double[] convertWeightsMapToArray(Map<String, Double> weightsMap) {
+        double[] weightsArray = new double[5]; // 가격, 보장한도, 보장범위, 자기부담금, 환급범위
+        weightsArray[0] = weightsMap.getOrDefault("가격_경쟁력", 0.0);
+        weightsArray[1] = weightsMap.getOrDefault("보장한도", 0.0);
+        weightsArray[2] = weightsMap.getOrDefault("보장범위", 0.0);
+        weightsArray[3] = weightsMap.getOrDefault("자기부담금", 0.0);
+        weightsArray[4] = weightsMap.getOrDefault("환급범위", 0.0);
+        return weightsArray;
     }
 
     // 내부 클래스: 상품과 점수

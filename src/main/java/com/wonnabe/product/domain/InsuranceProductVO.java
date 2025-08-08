@@ -23,16 +23,19 @@ public class InsuranceProductVO {
     private BigDecimal femalePremium;
     private BigDecimal malePremium;
 
-    private String coverageType;
-    private String coverageDesc;
-    private String coverageLimit;
-    private String note;
-    private String myMoney;
+    // Recommend를 위한 Score + 상세보기 Chart data
+    private int scorePriceCompetitiveness; // 가격 경쟁력 점수
+    private int scoreCoverageLimit; // 보장 한도 점수
+    private int scoreCoverageScope; // 보장 범위 점수
+    private int scoreDeductibleLevel; // 자기 부담금 점수
+    private int scoreRefundScope; // 환급 범위 점수
 
-    // Recommend를 위한 Score
-    private Float scorePriceCompetitiveness; // 가격 경쟁력 점수
-    private Float scoreCoverageLimit; // 보장 한도 점수
-    private Float scoreCoverageScope; // 보장 범위 점수
-    private Float scoreDeductibleLevel; // 자기 부담금 점수
-    private Float scoreRefundScope; // 환급 범위 점수
+    // --- 보험 상세보기를 위한 변수 ---
+    private String coverageType;
+    private String coverageLimit;
+    private String myMoney;
+    // 평균 월보험료 : 남+녀/2
+    private String coverageDesc;
+    private String note;
+
 }
