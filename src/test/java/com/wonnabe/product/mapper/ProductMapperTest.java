@@ -32,7 +32,7 @@ class ProductMapperTest {
 	private final String userId = "1469a2a3-213d-427e-b29f-f79d58f51190";
 
 	@Test
-	@Disabled("[성공] 카드 정보 요약 조회")
+	@DisplayName("[성공] 카드 정보 요약 조회")
 	void findCardSummaryByUserId() {
 		List<Card> cards = mapper.findCardSummaryByUserId(userId);
 		assertNotNull(cards);
