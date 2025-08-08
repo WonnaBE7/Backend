@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.product.mapper.WishListMapper">
+    <update id="addWishList">
+        UPDATE user_info
+        SET favorite_products_by_type = JSON_ARRAY_APPEND(
+                IFNULL(favorite_products_by_type, JSON_ARRAY()),
+                '$',
+                #{productId}
+                                        )
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="deleteWishList">
+        UPDATE user_info
+        SET favorite_products_by_type = JSON_REMOVE(
+                favorite_products_by_type,
+                JSON_UNQUOTE(
+                        JSON_SEARCH(favorite_products_by_type, 'one', #{productId})
+                )
+                                        )
+        WHERE user_id = #{userId}
+          AND JSON_SEARCH(favorite_products_by_type, 'one', #{productId}) IS NOT NULL
+    </update>
+
+    <select id="findWishListByUserId" resultType="java.lang.String">
+        SELECT favorite_products_by_type
+        FROM user_info
+        WHERE user_id = #{userId}
+    </select>
+</mapper>
