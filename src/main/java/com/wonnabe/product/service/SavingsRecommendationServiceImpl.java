@@ -174,11 +174,11 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
 
     // 점수 계산
     public double calculateScore(SavingsProductVO score, double[] weights) {
-        return (weights[0] * score.getScoreInterestRate() +
+        return ((weights[0] * score.getScoreInterestRate() +
                 weights[1] * score.getScoreInterestType() +
                 weights[2] * score.getScorePreferentialCondition() +
                 weights[3] * score.getScoreCancelBenefit() +
-                weights[4] * score.getScoreMaxAmount()) ;
+                weights[4] * score.getScoreMaxAmount())*10) ; // 점수를10배하여 100점 만점
     }
 
     // 가중치 정규화
