@@ -149,7 +149,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 소득/고용상태에 따른 가중치 조정
-    private double[] adjustWeightsByIncome(double[] weights, double incomeAnnualAmount) {
+    public double[] adjustWeightsByIncome(double[] weights, double incomeAnnualAmount) {
         double[] adjusted = weights.clone();
 
         // 소득원별 조정
@@ -170,7 +170,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 활용 점수 계산
-    int calculateUsageScore(int performanceRate) {
+    public int calculateUsageScore(int performanceRate) {
         if (performanceRate >= 100) return 5;
         if (performanceRate >= 80) return 4;
         if (performanceRate >= 60) return 3;
@@ -179,7 +179,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 가중치 정규화
-    private double[] normalizeWeights(double[] weights) {
+    public double[] normalizeWeights(double[] weights) {
         double sum = Arrays.stream(weights).sum();
         if (sum == 0) {
             return weights;
@@ -188,7 +188,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 점수 계산
-    private double calculateScore(CardProductVO card, double[] weights, double amount) {
+    public double calculateScore(CardProductVO card, double[] weights, double amount) {
         List<Integer> score = card.getCardScores();
         int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
         int usageScore = calculateUsageScore(performanceRate);
