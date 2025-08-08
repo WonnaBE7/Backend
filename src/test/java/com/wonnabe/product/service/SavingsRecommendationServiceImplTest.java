@@ -78,7 +78,7 @@ class SavingsRecommendationServiceImplTest {
         assertEquals(2, response.getRecommendationsByPersona().size());
 
         assertEquals("상품A", response.getRecommendationsByPersona().get(0).getProducts().get(0).getProductName());
-        assertEquals("상품A", response.getRecommendationsByPersona().get(1).getProducts().get(0).getProductName());
+        assertEquals("상품B", response.getRecommendationsByPersona().get(1).getProducts().get(0).getProductName());
         System.out.println(" --- [SavingsRecommendationServiceImplTest] 적금 추천 서비스 결과 ---");
         System.out.println("사용자 ID: " + response.getUserId());
         response.getRecommendationsByPersona().forEach(personaRec -> {

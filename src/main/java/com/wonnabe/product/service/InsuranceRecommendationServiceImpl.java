@@ -156,39 +156,55 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
 
         // 흡연 여부
         if ("Y".equalsIgnoreCase(smokingStatus)) {
-            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v - 0.05 : -0.05);
-            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 질병 리스크 확대
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
+        } else {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 비흡연자 우대
+            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기 계약 유도
         }
+
 
         // 가족 병력
         if (familyMedicalHistory != null) {
             if (familyMedicalHistory.contains("고혈압") || familyMedicalHistory.contains("당뇨")) {
-                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
-                adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);    // 만성질환 대비
+                adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 부담 반영
             }
             if (familyMedicalHistory.contains("암")) {
-                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);
+                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);    // 고위험군 대비
+                adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
             }
         }
+
 
         // 과거 병력
         if ("Y".equalsIgnoreCase(pastMedicalHistory)) {
-            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 재발 가능성 고려
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.05 : 0.05);  // 보험사 리스크 반영
+        } else {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 무병력 우대
         }
+
 
         // 운동 빈도
         if ("매일".equalsIgnoreCase(exerciseFrequency)) {
-            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강 습관 우대
+            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기계약 유지 유도
         } else if ("안함".equalsIgnoreCase(exerciseFrequency)) {
-            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+            adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);        // 건강 리스크 고려
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
         }
+
 
         // 음주 빈도
         if ("자주".equalsIgnoreCase(drinkingFrequency)) {
-            adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 간질환 등 대비
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 고위험 반영
         } else if ("안함".equalsIgnoreCase(drinkingFrequency)) {
-            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강군 우대
+            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);
         }
+
 
         // 정규화 (합 = 1)
         return normalizeWeights(adjusted);
