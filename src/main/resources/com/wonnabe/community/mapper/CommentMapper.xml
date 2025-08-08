@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.community.mapper.CommentMapper">
+
+    <!-- 게시글 존재 여부 확인 -->
+    <select id="existsBoardInCommunity" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM board
+            WHERE id = #{boardId}
+              AND financial_tendency_type_id = #{communityId}
+              AND is_deleted = 0
+        )
+    </select>
+
+    <!-- 댓글 조회 -->
+    <select id="selectCommentsByBoardId" resultType="CommentDTO">
+        SELECT
+            c.user_id AS userId,
+            c.id AS commentId,
+            u.name AS userName,
+            f.name AS nowme,
+            c.content,
+            (
+                SELECT COUNT(*)
+                FROM comment_like cl
+                WHERE cl.comment_id = c.id
+                  AND cl.is_deleted = 0
+            ) AS likeCount,
+            (
+                SELECT CASE
+                           WHEN EXISTS (
+                               SELECT 1
+                               FROM comment_like cl
+                               WHERE cl.comment_id = c.id
+                                 AND cl.user_id = #{userId}
+                                 AND cl.is_deleted = 0
+                           ) THEN TRUE
+                           ELSE FALSE
+                           END
+            ) AS liked
+        FROM comment c
+                 JOIN user_profile u ON c.user_id = u.user_id
+                 JOIN user_info i ON u.user_id = i.user_id
+                 JOIN financial_tendency_type f ON i.nowme_id = f.id
+        WHERE c.parent_comment_id = #{boardId}
+          AND c.post_id = #{communityId}
+          AND c.is_deleted = 0
+    </select>
+
+    <!-- 댓글 생성 -->
+    <insert id="insertComment">
+        INSERT INTO comment (post_id, user_id, parent_comment_id, content, created_at, is_deleted)
+        VALUES (#{postId}, #{userId}, #{parentCommentId}, #{content}, NOW(), 0)
+    </insert>
+
+    <!-- 삭제 전 존재 여부 확인 -->
+    <select id="existsComment" resultType="int">
+        SELECT COUNT(*)
+        FROM comment
+        WHERE id = #{commentId}
+          AND parent_comment_id = #{boardId}
+          AND post_id = #{communityId}
+          AND user_id = #{userId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 삭제 처리 -->
+    <update id="markCommentAsDeleted">
+        UPDATE comment
+        SET is_deleted = 1
+        WHERE id = #{commentId}
+          AND parent_comment_id = #{boardId}
+          AND user_id = #{userId}
+    </update>
+
+
+
+    <!--  댓글 좋아요에 있는지 존재 여부 확인  -->
+    <select id="selectCommentByIdAndBoardAndCommunity" resultType="CommentDTO">
+        SELECT
+            c.id AS commentId,
+            c.content,
+            (
+                SELECT COUNT(*)
+                FROM comment_like cl
+                WHERE cl.comment_id = c.id AND cl.is_deleted = 0
+            ) AS likeCount
+        FROM comment c
+        WHERE c.id = #{commentId}
+          AND c.parent_comment_id = #{boardId}
+          AND c.post_id = #{communityId}
+          AND c.is_deleted = 0
+    </select>
+
+    <!-- 좋아요 상태 확인 -->
+    <select id="getCommentLikeStatus" resultType="Integer">
+        SELECT is_deleted
+        FROM comment_like
+        WHERE user_id = #{userId}
+          AND comment_id = #{commentId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+            LIMIT 1
+    </select>
+
+    <!-- 좋아요 삽입 -->
+    <insert id="insertCommentLike">
+        INSERT INTO comment_like (user_id, comment_id, board_id, financial_tendency_type_id, is_deleted)
+        VALUES (#{userId}, #{commentId}, #{boardId}, #{communityId}, 0)
+    </insert>
+
+    <!-- 좋아요 상태 토글 (0 -> 1 or 1 -> 0) -->
+    <update id="updateCommentLikeStatus">
+        UPDATE comment_like
+        SET is_deleted = #{isDeleted}
+        WHERE user_id = #{userId}
+          AND comment_id = #{commentId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </update>
+
+
+</mapper>
