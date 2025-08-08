@@ -178,7 +178,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                 weights[1] * score.getScoreInterestType() +
                 weights[2] * score.getScorePreferentialCondition() +
                 weights[3] * score.getScoreCancelBenefit() +
-                weights[4] * score.getScoreMaxAmount()) ;
+                weights[4] * score.getScoreMaxAmount()) ; // 100점 만점
     }
 
     // 가중치 정규화

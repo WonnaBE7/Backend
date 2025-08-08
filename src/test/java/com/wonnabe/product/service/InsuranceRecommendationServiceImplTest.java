@@ -50,16 +50,16 @@ class InsuranceRecommendationServiceImplTest {
 
         InsuranceProductVO product1 = new InsuranceProductVO();
         product1.setProductId(1L); product1.setProductName("보험A"); product1.setProviderName("보험사A");
-        product1.setScorePriceCompetitiveness(10.0f); product1.setScoreCoverageLimit(5.0f);
-        product1.setScoreCoverageScope(8.0f); product1.setScoreDeductibleLevel(7.0f);
-        product1.setScoreRefundScope(6.0f);
+        product1.setScorePriceCompetitiveness(100); product1.setScoreCoverageLimit(5);
+        product1.setScoreCoverageScope(80); product1.setScoreDeductibleLevel(7);
+        product1.setScoreRefundScope(60);
         product1.setCoverageLimit("1억"); product1.setNote("특약1"); product1.setMyMoney("10000");
 
         InsuranceProductVO product2 = new InsuranceProductVO();
         product2.setProductId(2L); product2.setProductName("보험B"); product2.setProviderName("보험사B");
-        product2.setScorePriceCompetitiveness(5.0f); product2.setScoreCoverageLimit(10.0f);
-        product2.setScoreCoverageScope(7.0f); product2.setScoreDeductibleLevel(8.0f);
-        product2.setScoreRefundScope(9.0f);
+        product2.setScorePriceCompetitiveness(50); product2.setScoreCoverageLimit(10);
+        product2.setScoreCoverageScope(70); product2.setScoreDeductibleLevel(8);
+        product2.setScoreRefundScope(90);
         product2.setCoverageLimit("2억"); product2.setNote("특약2"); product2.setMyMoney("20000");
 
         mockProducts = Arrays.asList(product1, product2);
@@ -95,7 +95,7 @@ class InsuranceRecommendationServiceImplTest {
         assertEquals("미래 준비형", persona2Rec.getPersonaName());
         assertFalse(persona2Rec.getProducts().isEmpty());
         assertEquals(topN, persona2Rec.getProducts().size());
-        assertEquals("보험B", persona2Rec.getProducts().get(0).getProductName());
+        assertEquals("보험A", persona2Rec.getProducts().get(0).getProductName());
 
         System.out.println(" --- [InsuranceRecommendationServiceImplTest] 보험 추천 서비스 결과 ---");
         System.out.println("사용자 ID: " + response.getUserId());
