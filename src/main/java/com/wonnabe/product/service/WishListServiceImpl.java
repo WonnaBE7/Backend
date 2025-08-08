@@ -324,40 +324,55 @@ public class WishListServiceImpl implements WishListService {
 
 		Map<String, Double> adjusted = new HashMap<>(weights);
 
+		// (‼️ 수정)
 		// 흡연 여부
 		if ("Y".equalsIgnoreCase(smokingStatus)) {
-			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v - 0.05 : -0.05);
-			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 질병 리스크 확대
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
+		} else {
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 비흡연자 우대
+			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기 계약 유도
 		}
+
 
 		// 가족 병력
 		if (familyMedicalHistory != null) {
 			if (familyMedicalHistory.contains("고혈압") || familyMedicalHistory.contains("당뇨")) {
-				adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
-				adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+				adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);    // 만성질환 대비
+				adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 부담 반영
 			}
 			if (familyMedicalHistory.contains("암")) {
-				adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);
+				adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);    // 고위험군 대비
+				adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
 			}
 		}
 
 		// 과거 병력
-		if (!"없음".equals(pastMedicalHistory)) {
-			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+		if ("Y".equalsIgnoreCase(pastMedicalHistory)) {
+			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 재발 가능성 고려
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.05 : 0.05);  // 보험사 리스크 반영
+		} else {
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 무병력 우대
 		}
+
 
 		// 운동 빈도
 		if ("매일".equalsIgnoreCase(exerciseFrequency)) {
-			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강 습관 우대
+			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기계약 유지 유도
 		} else if ("안함".equalsIgnoreCase(exerciseFrequency)) {
-			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+			adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);        // 건강 리스크 고려
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
 		}
+
 
 		// 음주 빈도
 		if ("자주".equalsIgnoreCase(drinkingFrequency)) {
-			adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
+			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 간질환 등 대비
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 고위험 반영
 		} else if ("안함".equalsIgnoreCase(drinkingFrequency)) {
-			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강군 우대
+			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);
 		}
 
 		// 정규화 (합 = 1)
@@ -378,21 +393,21 @@ public class WishListServiceImpl implements WishListService {
 	private double[] adjustWeightsByIncomeSaving(double[] weights, String incomeSource, String employment) {
 		double[] adjusted = weights.clone();
 
+		// (‼️ 수정)
 		// 소득원별 조정
 		if (incomeSource != null && !incomeSource.isEmpty()) {
 			switch (incomeSource) {
-				case "급여":
+				case "근로소득":
 					adjusted[0] += 0.05;  // 금리
-					adjusted[1] += 0.05;  // 단복리
+					adjusted[1] += 0.03;  // 단복리
 					break;
-				case "사업":
-					adjusted[2] += 0.05;  // 우대조건
-					break;
-				case "프리랜스":
+				case "사업소득":
 					adjusted[3] += 0.05;  // 중도해지
+					adjusted[2] += 0.03;  // 우대조건
 					break;
-				case "기타":
+				case "기타소득":
 					adjusted[4] += 0.05;  // 최대한도
+					adjusted[3] += 0.03;  // 중도해지
 					break;
 			}
 		}
@@ -402,15 +417,17 @@ public class WishListServiceImpl implements WishListService {
 			switch (employment) {
 				case "정규직":
 					adjusted[0] += 0.05;  // 금리
+					adjusted[1] += 0.03;  // 단복리
 					break;
 				case "학생":
-					adjusted[4] += 0.05;  // 최대한도
+					adjusted[2] += 0.05;  // 우대조건
+					adjusted[4] += 0.03;  // 최대한도
 					break;
 				case "무직":
 					adjusted[3] += 0.05;  // 중도해지
+					adjusted[1] += 0.03;  // 단복리
 					break;
 			}
-		}
 
 		// 정규화 (합 = 1)
 		return normalizeWeights(adjusted);

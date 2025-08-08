@@ -154,6 +154,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
 
         Map<String, Double> adjusted = new HashMap<>(weights);
 
+        // (‼️ 수정)
         // 흡연 여부
         if ("Y".equalsIgnoreCase(smokingStatus)) {
             adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 질병 리스크 확대

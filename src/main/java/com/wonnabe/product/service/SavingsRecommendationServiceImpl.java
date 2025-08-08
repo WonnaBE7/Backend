@@ -134,6 +134,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     private double[] adjustWeightsByIncome(double[] weights, String incomeSource, String employment) {
         double[] adjusted = weights.clone();
 
+        // (‼️ 수정)
         // 소득원별 조정
         if (incomeSource != null && !incomeSource.isEmpty()) {
             switch (incomeSource) {
@@ -152,7 +153,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
             }
         }
 
-        // 고용상태별 조정 (‼️ 수정)
+        // 고용상태별 조정
         if (employment != null && !employment.isEmpty()) {
             switch (employment) {
                 case "정규직":
@@ -169,6 +170,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                     break;
             }
         }
+
 
         // 정규화 (합 = 1)
         return normalizeWeights(adjusted);
