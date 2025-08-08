@@ -146,17 +146,17 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     // 건강/생활습관에 따른 가중치 조정
     private Map<String, Double> adjustWeightsByHealthAndLifestyle(
             Map<String, Double> weights,
-            String smokingStatus,
-            String familyMedicalHistory,
-            String pastMedicalHistory,
-            String exerciseFrequency,
-            String drinkingFrequency) {
+            int smokingStatus,
+            int familyMedicalHistory,
+            int pastMedicalHistory,
+            int exerciseFrequency,
+            int drinkingFrequency) {
 
         Map<String, Double> adjusted = new HashMap<>(weights);
 
         // (‼️ 수정)
         // 흡연 여부
-        if ("Y".equalsIgnoreCase(smokingStatus)) {
+        if ("1".equalsIgnoreCase(String.valueOf(smokingStatus))) {
             adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 질병 리스크 확대
             adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
         } else {
@@ -166,20 +166,15 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
 
 
         // 가족 병력
-        if (familyMedicalHistory != null) {
-            if (familyMedicalHistory.contains("고혈압") || familyMedicalHistory.contains("당뇨")) {
+        if ("1".equalsIgnoreCase(String.valueOf(familyMedicalHistory))) {
                 adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);    // 만성질환 대비
                 adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 부담 반영
             }
-            if (familyMedicalHistory.contains("암")) {
-                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);    // 고위험군 대비
-                adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
-            }
-        }
+
 
 
         // 과거 병력
-        if ("Y".equalsIgnoreCase(pastMedicalHistory)) {
+        if ("1".equalsIgnoreCase(String.valueOf(pastMedicalHistory))) {
             adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 재발 가능성 고려
             adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.05 : 0.05);  // 보험사 리스크 반영
         } else {
@@ -188,20 +183,20 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
 
 
         // 운동 빈도
-        if ("매일".equalsIgnoreCase(exerciseFrequency)) {
+        if ("1".equalsIgnoreCase(String.valueOf(exerciseFrequency))) {
             adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강 습관 우대
             adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기계약 유지 유도
-        } else if ("안함".equalsIgnoreCase(exerciseFrequency)) {
+        } else if ("0".equalsIgnoreCase(String.valueOf(exerciseFrequency))) {
             adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);        // 건강 리스크 고려
             adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
         }
 
 
         // 음주 빈도
-        if ("자주".equalsIgnoreCase(drinkingFrequency)) {
+        if ("1".equalsIgnoreCase(String.valueOf(drinkingFrequency))) {
             adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 간질환 등 대비
             adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 고위험 반영
-        } else if ("안함".equalsIgnoreCase(drinkingFrequency)) {
+        } else if ("0".equalsIgnoreCase(String.valueOf(drinkingFrequency))) {
             adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강군 우대
             adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);
         }

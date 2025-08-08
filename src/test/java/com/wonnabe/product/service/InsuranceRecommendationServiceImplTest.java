@@ -42,11 +42,11 @@ class InsuranceRecommendationServiceImplTest {
         ReflectionTestUtils.setField(mockUserInfo, "incomeSourceType", "급여");
         ReflectionTestUtils.setField(mockUserInfo, "incomeEmploymentStatus", "정규직");
         // 보험 추천을 위한 건강/생활습관 정보
-        ReflectionTestUtils.setField(mockUserInfo, "smokingStatus", "N");
-        ReflectionTestUtils.setField(mockUserInfo, "familyMedicalHistory", "없음");
-        ReflectionTestUtils.setField(mockUserInfo, "pastMedicalHistory", "N");
-        ReflectionTestUtils.setField(mockUserInfo, "exerciseFrequency", "매일");
-        ReflectionTestUtils.setField(mockUserInfo, "drinkingFrequency", "안함");
+        ReflectionTestUtils.setField(mockUserInfo, "smokingStatus", 1);
+        ReflectionTestUtils.setField(mockUserInfo, "familyMedicalHistory", 0);
+        ReflectionTestUtils.setField(mockUserInfo, "pastMedicalHistory", 1);
+        ReflectionTestUtils.setField(mockUserInfo, "exerciseFrequency", 1);
+        ReflectionTestUtils.setField(mockUserInfo, "drinkingFrequency", 1);
 
         InsuranceProductVO product1 = new InsuranceProductVO();
         product1.setProductId(1L); product1.setProductName("보험A"); product1.setProviderName("보험사A");
