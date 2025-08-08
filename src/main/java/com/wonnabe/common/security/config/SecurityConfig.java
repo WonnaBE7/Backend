@@ -93,9 +93,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*");
+        config.addAllowedOriginPattern("http://localhost:5173");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
@@ -139,7 +140,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     public void configure(HttpSecurity http) throws Exception {
 
         // 한글 인코딩 필터 설정
-        http.addFilterBefore(encodingFilter(), CsrfFilter.class)
+        http
+            .cors()
+            .and()
+            .addFilterBefore(encodingFilter(), CsrfFilter.class)
             .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class) // JWT 예외 감지 후 JSON 에러 응답
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // Authorization 헤더에 access token이 있으면 자동으로 검증 & 사용자 인증을 처리
             .addFilterBefore(jwtUsernamePasswordAuthenticationFilter, UsernamePasswordAuthenticationFilter.class); // 로그인 시도 처리
