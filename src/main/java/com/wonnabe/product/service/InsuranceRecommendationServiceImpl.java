@@ -221,7 +221,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
         score += weights[2] * (product.getScoreCoverageScope());
         score += weights[3] * (product.getScoreDeductibleLevel());
         score += weights[4] * (product.getScoreRefundScope());
-        return score* 10; // 점수를 10배하여 100점 만점으로 조정
+        return score; // 100점 만점으로 조정
     }
 
     // 가중치 정규화
