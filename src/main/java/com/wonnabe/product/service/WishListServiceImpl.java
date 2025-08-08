@@ -34,18 +34,18 @@ public class WishListServiceImpl implements WishListService {
 
 	// 페르소나 이름 매핑
 	private static final Map<Integer, String> PERSONA_NAMES = Map.ofEntries(
-		Map.entry(1, "자린고비형"),
-		Map.entry(2, "소확행형"),
-		Map.entry(3, "YOLO형"),
-		Map.entry(4, "경험 소중형"),
-		Map.entry(5, "새싹 투자형"),
-		Map.entry(6, "공격 투자형"),
-		Map.entry(7, "미래 준비형"),
-		Map.entry(8, "가족 중심형"),
-		Map.entry(9, "루틴러형"),
-		Map.entry(10, "현상 유지형"),
-		Map.entry(11, "균형 성장형"),
-		Map.entry(12, "대문자P형")
+			Map.entry(1, "자린고비형"),
+			Map.entry(2, "소확행형"),
+			Map.entry(3, "YOLO형"),
+			Map.entry(4, "경험 소중형"),
+			Map.entry(5, "새싹 투자형"),
+			Map.entry(6, "공격 투자형"),
+			Map.entry(7, "미래 준비형"),
+			Map.entry(8, "가족 중심형"),
+			Map.entry(9, "루틴러형"),
+			Map.entry(10, "현상 유지형"),
+			Map.entry(11, "균형 성장형"),
+			Map.entry(12, "대문자P형")
 	);
 
 	// 페르소나별 정확한 가중치 [금리, 복리, 우대조건, 중도해지, 가입한도]
@@ -109,9 +109,9 @@ public class WishListServiceImpl implements WishListService {
 		// 예: ["1", "2"] → List<Integer>로 변환
 		String ids = wishList.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
 		return Arrays.stream(ids.split(","))
-			.filter(s -> !s.isEmpty())
-			.map(Long::parseLong)
-			.collect(Collectors.toList());
+				.filter(s -> !s.isEmpty())
+				.map(Long::parseLong)
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -142,9 +142,9 @@ public class WishListServiceImpl implements WishListService {
 
 				// 소득/고용상태로 가중치 조정
 				double[] adjustedWeights = adjustWeightsByIncomeSaving(
-					baseWeights,
-					basicUserInfo.getIncomeSourceType(),
-					basicUserInfo.getIncomeEmploymentStatus()
+						baseWeights,
+						basicUserInfo.getIncomeSourceType(),
+						basicUserInfo.getIncomeEmploymentStatus()
 				);
 
 				// 상품 정보
@@ -155,14 +155,14 @@ public class WishListServiceImpl implements WishListService {
 
 				// 값을 배열에 저장
 				Savings saving = Savings.builder()
-					.productType("savings")
-					.productId(Long.toString(savingProduct.getProductId()))
-					.productName(savingProduct.getProductName())
-					.bankName(savingProduct.getBankName())
-					.baseRate(savingProduct.getBaseRate())
-					.maxRate(Math.round(savingProduct.getMaxRate() * 100.0) / 100.0)
-					.totalScore(Math.round(totalScore * 10.0) / 10.0)
-					.build();
+						.productType("savings")
+						.productId(Long.toString(savingProduct.getProductId()))
+						.productName(savingProduct.getProductName())
+						.bankName(savingProduct.getBankName())
+						.baseRate(savingProduct.getBaseRate())
+						.maxRate(Math.round(savingProduct.getMaxRate() * 100.0) / 100.0)
+						.totalScore(Math.round(totalScore * 10.0) / 10.0)
+						.build();
 
 				savings.add(saving);
 			} else if (id >= 2000 && id < 3000) {
@@ -170,50 +170,50 @@ public class WishListServiceImpl implements WishListService {
 
 				double[] baseWeights = CARD_PERSONA_WEIGHTS.get(basicUserInfo.getNowMeId()).clone();
 				double[] adjustedWeights =  adjustWeightsByIncomeCard(baseWeights,
-					basicUserInfo.getIncomeAnnualAmount());
+						basicUserInfo.getIncomeAnnualAmount());
 
 				int score = (int) calculateScoreCard(cardProduct, adjustedWeights, basicUserInfo.getPreviousConsumption());
 
 				Card card = Card.builder()
-					.productType("card")
-					.cardId(Long.toString(cardProduct.getProductId()))
-					.cardName(cardProduct.getCardName())
-					.cardCompany(cardProduct.getCardCompany())
-					.cardType(cardProduct.getCardTypeLabel())
-					.matchScore(score)
-					.mainBenefit(cardProduct.getBenefitLimit())
-					.annualFeeDomestic(cardProduct.getAnnualFeeDomestic())
-					.annualFeeOverseas(cardProduct.getAnnualFeeOverSeas())
-					.build();
+						.productType("card")
+						.cardId(Long.toString(cardProduct.getProductId()))
+						.cardName(cardProduct.getCardName())
+						.cardCompany(cardProduct.getCardCompany())
+						.cardType(cardProduct.getCardTypeLabel())
+						.matchScore(score)
+						.mainBenefit(cardProduct.getBenefitLimit())
+						.annualFeeDomestic(cardProduct.getAnnualFeeDomestic())
+						.annualFeeOverseas(cardProduct.getAnnualFeeOverSeas())
+						.build();
 
 				cards.add(card);
 			} else if (id >= 3000 && id < 4000) {
 				// 기본 가중치 가져오기
 				Map<String, Double> baseWeights = new HashMap<>(PERSONA_WEIGHTS_INSURANCE.
-					get(PERSONA_NAMES.get(basicUserInfo.getNowMeId())));
+						get(PERSONA_NAMES.get(basicUserInfo.getNowMeId())));
 
 				// 건강/생활습관으로 가중치 조정
 				Map<String, Double> adjustedWeights = adjustWeightsByHealthAndLifestyle(
-					baseWeights,
-					basicUserInfo.getSmokingStatus(),
-					basicUserInfo.getFamilyMedicalHistory(),
-					basicUserInfo.getPastMedicalHistory(),
-					basicUserInfo.getExerciseFrequency(),
-					basicUserInfo.getDrinkingFrequency()
+						baseWeights,
+						basicUserInfo.getSmokingStatus(),
+						basicUserInfo.getFamilyMedicalHistory(),
+						basicUserInfo.getPastMedicalHistory(),
+						basicUserInfo.getExerciseFrequency(),
+						basicUserInfo.getDrinkingFrequency()
 				);
 
 				InsuranceProductVO insuranceProduct = insuranceMapper.findById(id);
 				double totalScore = calculateInsuranceScore(insuranceProduct, adjustedWeights);
 
 				Insurance insurance = Insurance.builder()
-					.productType("insurance")
-					.productId(Long.toString(insuranceProduct.getProductId()))
-					.productName(insuranceProduct.getProductName())
-					.providerName(insuranceProduct.getProviderName())
-					.coverageType(insuranceProduct.getCoverageType())
-					.coverageLimit(insuranceProduct.getCoverageLimit())
-					.totalScore(Math.round(totalScore * 10.0) / 10.0)
-					.build();
+						.productType("insurance")
+						.productId(Long.toString(insuranceProduct.getProductId()))
+						.productName(insuranceProduct.getProductName())
+						.providerName(insuranceProduct.getProviderName())
+						.coverageType(insuranceProduct.getCoverageType())
+						.coverageLimit(insuranceProduct.getCoverageLimit())
+						.totalScore(Math.round(totalScore * 10.0) / 10.0)
+						.build();
 
 				insurances.add(insurance);
 			}
@@ -221,11 +221,11 @@ public class WishListServiceImpl implements WishListService {
 		int totalCount = insurances.size() + cards.size() + savings.size();
 
 		return WishProductResponseDTO.builder()
-			.totalCount(totalCount)
-			.savings(savings)
-			.cards(cards)
-			.insurances(insurances)
-			.build();
+				.totalCount(totalCount)
+				.savings(savings)
+				.cards(cards)
+				.insurances(insurances)
+				.build();
 	}
 
 	@Override
@@ -267,10 +267,10 @@ public class WishListServiceImpl implements WishListService {
 		String updatedScore = score.toString();  // 예: [2, 3, 5, 4, 5]
 		card.setCardScore(updatedScore);
 		return (weights[0] * score.get(0) +
-			weights[1] * score.get(1) +
-			weights[2] * score.get(2) +
-			weights[3] * score.get(3) +
-			weights[4] * score.get(4)) * 20;
+				weights[1] * score.get(1) +
+				weights[2] * score.get(2) +
+				weights[3] * score.get(3) +
+				weights[4] * score.get(4)) * 20;
 	}
 
 	// 카드 활용 점수 계산
@@ -315,49 +315,60 @@ public class WishListServiceImpl implements WishListService {
 
 	// 건강/생활습관에 따른 가중치 조정
 	private Map<String, Double> adjustWeightsByHealthAndLifestyle(
-		Map<String, Double> weights,
-		String smokingStatus,
-		String familyMedicalHistory,
-		String pastMedicalHistory,
-		String exerciseFrequency,
-		String drinkingFrequency) {
+			Map<String, Double> weights,
+			String smokingStatus,
+			String familyMedicalHistory,
+			String pastMedicalHistory,
+			String exerciseFrequency,
+			String drinkingFrequency) {
 
 		Map<String, Double> adjusted = new HashMap<>(weights);
 
+		// (‼️ 수정)
 		// 흡연 여부
-		if ("Y".equalsIgnoreCase(smokingStatus)) {
-			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v - 0.05 : -0.05);
-			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+		if ("1".equalsIgnoreCase(String.valueOf(smokingStatus))) {
+			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 질병 리스크 확대
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
+		} else {
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 비흡연자 우대
+			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기 계약 유도
 		}
+
 
 		// 가족 병력
-		if (familyMedicalHistory != null) {
-			if (familyMedicalHistory.contains("고혈압") || familyMedicalHistory.contains("당뇨")) {
-				adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
-				adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
-			}
-			if (familyMedicalHistory.contains("암")) {
-				adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);
-			}
+		if ("1".equalsIgnoreCase(String.valueOf(familyMedicalHistory))) {
+			adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);    // 만성질환 대비
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 부담 반영
 		}
+
+
 
 		// 과거 병력
-		if (!"없음".equals(pastMedicalHistory)) {
-			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+		if ("1".equalsIgnoreCase(String.valueOf(pastMedicalHistory))) {
+			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 재발 가능성 고려
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.05 : 0.05);  // 보험사 리스크 반영
+		} else {
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 무병력 우대
 		}
+
 
 		// 운동 빈도
-		if ("매일".equalsIgnoreCase(exerciseFrequency)) {
-			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
-		} else if ("안함".equalsIgnoreCase(exerciseFrequency)) {
-			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+		if ("1".equalsIgnoreCase(String.valueOf(exerciseFrequency))) {
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강 습관 우대
+			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기계약 유지 유도
+		} else if ("0".equalsIgnoreCase(String.valueOf(exerciseFrequency))) {
+			adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);        // 건강 리스크 고려
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
 		}
 
+
 		// 음주 빈도
-		if ("자주".equalsIgnoreCase(drinkingFrequency)) {
-			adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
-		} else if ("안함".equalsIgnoreCase(drinkingFrequency)) {
-			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+		if ("1".equalsIgnoreCase(String.valueOf(drinkingFrequency))) {
+			adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 간질환 등 대비
+			adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 고위험 반영
+		} else if ("0".equalsIgnoreCase(String.valueOf(drinkingFrequency))) {
+			adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강군 우대
+			adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);
 		}
 
 		// 정규화 (합 = 1)
@@ -370,7 +381,7 @@ public class WishListServiceImpl implements WishListService {
 			return weights;
 		}
 		return weights.entrySet().stream()
-			.collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() / sum));
+				.collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() / sum));
 	}
 
 
@@ -378,21 +389,21 @@ public class WishListServiceImpl implements WishListService {
 	private double[] adjustWeightsByIncomeSaving(double[] weights, String incomeSource, String employment) {
 		double[] adjusted = weights.clone();
 
+		// (‼️ 수정)
 		// 소득원별 조정
 		if (incomeSource != null && !incomeSource.isEmpty()) {
 			switch (incomeSource) {
-				case "급여":
+				case "근로소득":
 					adjusted[0] += 0.05;  // 금리
-					adjusted[1] += 0.05;  // 단복리
+					adjusted[1] += 0.03;  // 단복리
 					break;
-				case "사업":
-					adjusted[2] += 0.05;  // 우대조건
-					break;
-				case "프리랜스":
+				case "사업소득":
 					adjusted[3] += 0.05;  // 중도해지
+					adjusted[2] += 0.03;  // 우대조건
 					break;
-				case "기타":
+				case "기타소득":
 					adjusted[4] += 0.05;  // 최대한도
+					adjusted[3] += 0.03;  // 중도해지
 					break;
 			}
 		}
@@ -402,12 +413,15 @@ public class WishListServiceImpl implements WishListService {
 			switch (employment) {
 				case "정규직":
 					adjusted[0] += 0.05;  // 금리
+					adjusted[1] += 0.03;  // 단복리
 					break;
 				case "학생":
-					adjusted[4] += 0.05;  // 최대한도
+					adjusted[2] += 0.05;  // 우대조건
+					adjusted[4] += 0.03;  // 최대한도
 					break;
 				case "무직":
 					adjusted[3] += 0.05;  // 중도해지
+					adjusted[1] += 0.03;  // 단복리
 					break;
 			}
 		}
@@ -419,10 +433,10 @@ public class WishListServiceImpl implements WishListService {
 	// 점수 계산
 	private double calculateScoreSaving(SavingsProductVO score, double[] weights) {
 		return (weights[0] * score.getScoreInterestRate() +
-			weights[1] * score.getScoreInterestType() +
-			weights[2] * score.getScorePreferentialCondition() +
-			weights[3] * score.getScoreCancelBenefit() +
-			weights[4] * score.getScoreMaxAmount());
+				weights[1] * score.getScoreInterestType() +
+				weights[2] * score.getScorePreferentialCondition() +
+				weights[3] * score.getScoreCancelBenefit() +
+				weights[4] * score.getScoreMaxAmount());
 	}
 
 	// 가중치 정규화
