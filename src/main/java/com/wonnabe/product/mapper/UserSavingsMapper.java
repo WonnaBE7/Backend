@@ -24,5 +24,7 @@ public interface UserSavingsMapper {
             @Param("userId") String userId,
             @Param("startDate") Date startDate
     );
+
+    List<UserSavingsVO> findAllByUserId(String userId);
 }
 

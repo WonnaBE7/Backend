@@ -1,0 +1,329 @@
+package com.wonnabe.product.service;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.common.security.account.domain.UserVO;
+import com.wonnabe.product.domain.InsuranceProductVO;
+import com.wonnabe.product.domain.SavingsProductVO;
+import com.wonnabe.product.dto.BasicUserInfoDTO;
+import com.wonnabe.product.dto.InsuranceProductDetailResponseDTO;
+import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
+import com.wonnabe.product.mapper.ProductDetailMapper;
+import com.wonnabe.product.mapper.UserInsuranceMapper;
+import com.wonnabe.product.mapper.UserSavingsMapper;
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doReturn;
+
+@ExtendWith(MockitoExtension.class)
+class ProductDetailServiceImplTest {
+
+    @InjectMocks
+    private ProductDetailServiceImpl productService;
+
+    @Mock
+    private ProductDetailMapper productDetailMapper;
+
+    @Mock
+    private UserSavingsMapper userSavingsMapper;
+
+    @Mock
+    private SavingsRecommendationService savingsRecommendationService;
+
+    @Mock
+    private InsuranceRecommendationService insuranceRecommendationService;
+
+    @Mock
+    private UserInsuranceMapper userInsuranceMapper;
+
+    @Mock
+    private SecurityContext securityContext;
+
+    @Mock
+    private Authentication authentication;
+
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setUp() {
+        SecurityContextHolder.setContext(securityContext);
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("예적금 상품 상세 정보 조회 - 사용자가 찜한 상품일 경우")
+    void getSavingProductDetail_whenProductIsWished() {
+        // given
+        String productId = "1110";
+        String userId = "test-user-uuid";
+
+        // CustomUser 객체를 생성하여 반환하도록 모킹
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");
+        userVO.setPasswordHash("password");
+        CustomUser customUser = new CustomUser(userVO);
+
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn(customUser);
+
+        SavingsProductVO product = SavingsProductVO.builder()
+                .productId(Long.valueOf(productId))
+                .productName("테스트 적금")
+                .bankName("테스트 은행")
+                .baseRate(3.5f).maxRate(4.0f).prefer("우대조건 테스트")
+                .mtrtInt("만기 후 이율 정보1,만기 후 이율 정보2").maxJoinPeriod(36)
+                .scoreInterestRate(80).scoreInterestType(70).scorePreferentialCondition(90).scoreCancelBenefit(60).scoreMaxAmount(85)
+                .build();
+
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
+                .userId(userId)
+                .nowMeId(1)
+                .favoriteProductsByType("[" + productId + ", \"1112\"]")
+                .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) { // Check if the productId is in the JSON string
+                return List.of(Long.valueOf(productId), 1112L);
+            }
+            return Collections.emptyList(); // Default for other cases, or throw an exception if expected
+        });
+
+        given(productDetailMapper.findSavingProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+
+        double[] weights = {0.3, 0.1, 0.2, 0.3, 0.2};
+        given(savingsRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));
+        given(savingsRecommendationService.calculateScore(any(SavingsProductVO.class), any(double[].class))).willReturn(78.5);
+
+        given(userSavingsMapper.findAllByUserId(anyString())).willReturn(Collections.emptyList());
+
+        // when
+        SavingsProductDetailResponseDto result = productService.getSavingProductDetail(productId);
+
+        // then
+        assertNotNull(result, "결과 DTO는 null이 아니어야 합니다.");
+
+        // ProductInfo 검증
+        var productInfo = result.getProductInfo();
+        assertNotNull(productInfo, "ProductInfo는 null이 아니어야 합니다.");
+        assertEquals(productId, productInfo.getProductId(), "상품 ID가 일치해야 합니다.");
+        assertEquals("테스트 적금", productInfo.getProductName(), "상품명이 일치해야 합니다.");
+        assertEquals(78, productInfo.getMatchScore(), "Match Score가 일치해야 합니다.");
+        assertTrue(productInfo.isWished(), "찜한 상품이므로 isWished는 true여야 합니다.");
+
+        // ComparisonChart 검증
+        assertTrue(result.getComparisonChart().isEmpty(), "비교 차트 정보는 비어있어야 합니다.");
+
+        // MaturityInfo 검증
+        var maturityInfo = result.getMaturityInfo();
+        assertNotNull(maturityInfo, "만기 정보는 null이 아니어야 합니다.");
+        assertEquals("36개월", maturityInfo.getMaxJoinPeroid(), "최대 가입 기간이 일치해야 합니다.");
+        assertEquals(List.of("만기 후 이율 정보1", "만기 후 이율 정보2"), maturityInfo.getContent(), "만기 후 금리 내용이 일치해야 합니다.");
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("예적금 상품 상세 정보 조회 - 사용자가 찜하지 않은 상품일 경우")
+    void getSavingProductDetail_whenProductIsNotWished() {
+        // given
+        String productId = "1110";
+        String userId = "test-user-uuid";
+
+        // CustomUser 객체를 생성하여 반환하도록 모킹
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");
+        userVO.setPasswordHash("password");
+        CustomUser customUser = new CustomUser(userVO);
+
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn(customUser);
+
+        SavingsProductVO product = SavingsProductVO.builder().productId(Long.valueOf(productId)).mtrtInt("").build();
+
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
+                .userId(userId)
+                .nowMeId(1)
+                .favoriteProductsByType("[\"1112\", \"1113\"]")
+                .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) { // Check if the productId is in the JSON string
+                return List.of(Long.valueOf(productId), 1112L);
+            } else {
+                return List.of(1112L, 1113L);
+            }
+        });
+
+        given(productDetailMapper.findSavingProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+        given(savingsRecommendationService.getPersonaWeights()).willReturn(Map.of(1, new double[]{0.2,0.2,0.2,0.2,0.2}));
+        given(savingsRecommendationService.calculateScore(any(), any())).willReturn(0.0);
+        given(userSavingsMapper.findAllByUserId(anyString())).willReturn(Collections.emptyList());
+
+        // when
+        SavingsProductDetailResponseDto result = productService.getSavingProductDetail(productId);
+
+        // then
+        assertNotNull(result, "결과 DTO는 null이 아니어야 합니다.");
+        assertFalse(result.getProductInfo().isWished(), "찜하지 않은 상품이므로 isWished는 false여야 합니다.");
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("보험 상품 상세 정보 조회 - 사용자가 찜한 상품일 경우")
+    void getInsuranceProductDetail_whenProductIsWished() {
+        // given
+        String productId = "3001";
+        String userId = "test-user-uuid";
+
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");         // 이메일 추가
+        userVO.setPasswordHash("testPassword123");    // 비밀번호 해시 추가
+        CustomUser customUser = new CustomUser(userVO);
+
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn(customUser);
+
+        InsuranceProductVO product = InsuranceProductVO.builder()
+                .productId(Long.valueOf(productId))
+                .productName("테스트 보험")
+                .providerName("테스트 보험사")
+                .femalePremium(BigDecimal.valueOf(10000))
+                .malePremium(BigDecimal.valueOf(12000))
+                .scorePriceCompetitiveness(80)
+                .scoreCoverageLimit(70)
+                .scoreCoverageScope(90)
+                .scoreDeductibleLevel(60)
+                .scoreRefundScope(75)
+                .coverageType("상해급여")
+                .coverageLimit("연간 5천만원 한도")
+                .coverageDesc("상해로 인한 급여 항목 의료비 보장")
+                .note("기준일: 20250701, 유형: 4세대 실손의료보험, 제공기관: 손해보험협회")
+                .build();
+
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
+                .userId(userId)
+                .nowMeId(1)
+                .favoriteProductsByType("[" + productId + ", \"3002\"]")
+                .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) {
+                return List.of(Long.valueOf(productId), 3002L);
+            }
+            return Collections.emptyList();
+        });
+
+        given(productDetailMapper.findInsuranceProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+
+        double[] weights = {0.3, 0.2, 0.2, 0.1, 0.2}; // 예시 가중치
+        given(insuranceRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));
+        given(insuranceRecommendationService.calculateScore(any(InsuranceProductVO.class), any(double[].class))).willReturn(85.0);
+
+        given(userInsuranceMapper.findAllByUserId(anyString())).willReturn(Collections.emptyList());
+
+        // when
+        InsuranceProductDetailResponseDTO result = productService.getInsuranceProductDetail(productId);
+
+        // then
+        assertNotNull(result, "결과 DTO는 null이 아니어야 합니다.");
+
+        var productInfo = result.getProductInfo();
+        assertNotNull(productInfo, "ProductInfo는 null이 아니어야 합니다.");
+        assertEquals(productId, productInfo.getProductId(), "상품 ID가 일치해야 합니다.");
+        assertEquals("테스트 보험", productInfo.getProductName(), "상품명이 일치해야 합니다.");
+        assertEquals("테스트 보험사", productInfo.getProviderName(), "제공사명이 일치해야 합니다.");
+        assertEquals(85, productInfo.getMatchScore(), "Match Score가 일치해야 합니다.");
+        assertEquals("11000", productInfo.getAveragePremium(), "평균 보험료가 일치해야 합니다.");
+        assertTrue(productInfo.isWished(), "찜한 상품이므로 isWished는 true여야 합니다.");
+
+        assertTrue(result.getComparisonChart().isEmpty(), "비교 차트 정보는 비어있어야 합니다.");
+
+        var maturityInfo = result.getMaturityInfo();
+        assertNotNull(maturityInfo, "만기 정보는 null이 아니어야 합니다.");
+        assertEquals("상해로 인한 급여 항목 의료비 보장", maturityInfo.getCoverageDesc(), "보장 설명이 일치해야 합니다.");
+        assertEquals("기준일: 20250701, 유형: 4세대 실손의료보험, 제공기관: 손해보험협회", maturityInfo.getNote(), "기타 유의사항이 일치해야 합니다.");
+    }
+
+    @SneakyThrows
+    @Test
+    @DisplayName("보험 상품 상세 정보 조회 - 사용자가 찜하지 않은 상품일 경우")
+    void getInsuranceProductDetail_whenProductIsNotWished() {
+        // given
+        String productId = "3001";
+        String userId = "test-user-uuid";
+
+        UserVO userVO = new UserVO();
+        userVO.setUserId(userId);
+        userVO.setEmail("test@example.com");         // 이메일 추가
+        userVO.setPasswordHash("testPassword123");    // 비밀번호 해시 추가
+        CustomUser customUser = new CustomUser(userVO);
+
+        given(securityContext.getAuthentication()).willReturn(authentication);
+        given(authentication.getPrincipal()).willReturn(customUser);
+
+        InsuranceProductVO product = InsuranceProductVO.builder()
+                .productId(Long.valueOf(productId))
+                .femalePremium(BigDecimal.valueOf(10000))
+                .malePremium(BigDecimal.valueOf(12000))
+                .build();
+
+        BasicUserInfoDTO basicUserInfo = BasicUserInfoDTO.builder()
+                .userId(userId)
+                .nowMeId(1)
+                .favoriteProductsByType("[\"3002\", \"3003\"]")
+                .build();
+
+        given(objectMapper.readValue(anyString(), any(TypeReference.class))).willAnswer(invocation -> {
+            String json = invocation.getArgument(0);
+            if (json.contains(productId)) {
+                return List.of(Long.valueOf(productId), 3002L);
+            }
+            return List.of(3002L, 3003L);
+        });
+
+        given(productDetailMapper.findInsuranceProductById(anyString())).willReturn(product);
+        given(productDetailMapper.findBasicUserInfoById(anyString())).willReturn(basicUserInfo);
+
+        double[] weights = {0.3, 0.2, 0.2, 0.1, 0.2}; // 예시 가중치
+        given(insuranceRecommendationService.getPersonaWeights()).willReturn(Map.of(1, weights));
+        given(insuranceRecommendationService.calculateScore(any(InsuranceProductVO.class), any(double[].class))).willReturn(0.0);
+
+        given(userInsuranceMapper.findAllByUserId(anyString())).willReturn(Collections.emptyList());
+
+        // when
+        InsuranceProductDetailResponseDTO result = productService.getInsuranceProductDetail(productId);
+
+        // then
+        assertNotNull(result, "결과 DTO는 null이 아니어야 합니다.");
+        assertFalse(result.getProductInfo().isWished(), "찜하지 않은 상품이므로 isWished는 false여야 합니다.");
+    }
+}

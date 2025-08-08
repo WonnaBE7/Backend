@@ -16,7 +16,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 @Log4j2
-@Service
+@Service("SavingsRecommendationServiceImpl")
 @RequiredArgsConstructor
 public class SavingsRecommendationServiceImpl implements SavingsRecommendationService {
 
@@ -39,7 +39,8 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     );
 
     // 페르소나별 정확한 가중치 [금리, 복리, 우대조건, 중도해지, 가입한도]
-    private static final Map<Integer, double[]> PERSONA_WEIGHTS = new HashMap<>() {{        put(1, new double[]{0.3, 0.1, 0.2, 0.3, 0.2});    // 자린고비형
+    private static final Map<Integer, double[]> PERSONA_WEIGHTS = new HashMap<>() {{
+        put(1, new double[]{0.3, 0.1, 0.2, 0.3, 0.2});    // 자린고비형
         put(2, new double[]{0.3, 0.15, 0.2, 0.2, 0.15});  // 소확행형
         put(3, new double[]{0.35, 0.1, 0.15, 0.3, 0.1});  // YOLO형
         put(4, new double[]{0.25, 0.15, 0.25, 0.2, 0.15}); // 경험 소중형
@@ -69,14 +70,12 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
             return new SavingsRecommendationResponseDTO(userId, new ArrayList<>());
         }
 
-        // 3. 상품ID로 빠른 조회를 위한 Map 생성 (이제 필요 없음)
-
-        // 4. 결과 객체 생성
+        // 3. 결과 객체 생성
         SavingsRecommendationResponseDTO response = new SavingsRecommendationResponseDTO();
         response.setUserId(userId);
         response.setRecommendationsByPersona(new ArrayList<>());
 
-        // 5. 각 페르소나별로 추천
+        // 4. 각 페르소나별로 추천
         for (Integer personaId : userInfo.getPersonaIds()) {
             // 기본 가중치 가져오기
             double[] baseWeights = PERSONA_WEIGHTS.get(personaId).clone();
@@ -115,6 +114,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                 rec.setBaseRate(product.getBaseRate() != null ? product.getBaseRate() : 0.0f);
                 rec.setMaxRate(product.getMaxRate() != null ? product.getMaxRate() : 0.0f);
                 rec.setTotalScore(item.score);
+                rec.setProductType("savings");
 
                 personaRec.getProducts().add(rec);
             }
@@ -123,6 +123,11 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
         }
 
         return response;
+    }
+
+    @Override
+    public Map<Integer, double[]> getPersonaWeights() {
+        return PERSONA_WEIGHTS;
     }
 
     // 소득/고용상태에 따른 가중치 조정
@@ -168,16 +173,16 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     }
 
     // 점수 계산
-    private double calculateScore(SavingsProductVO score, double[] weights) {
-        return weights[0] * score.getInterestRateScore() +
-                weights[1] * score.getCompoundInterestScore() +
-                weights[2] * score.getPreferentialScore() +
-                weights[3] * score.getPenaltyScore() +
-                weights[4] * score.getLimitScore();
+    public double calculateScore(SavingsProductVO score, double[] weights) {
+        return (weights[0] * score.getScoreInterestRate() +
+                weights[1] * score.getScoreInterestType() +
+                weights[2] * score.getScorePreferentialCondition() +
+                weights[3] * score.getScoreCancelBenefit() +
+                weights[4] * score.getScoreMaxAmount()) ; // 100점 만점
     }
 
     // 가중치 정규화
-    private double[] normalizeWeights(double[] weights) {
+    public double[] normalizeWeights(double[] weights) {
         double sum = Arrays.stream(weights).sum();
         if (sum == 0) {
             return weights;

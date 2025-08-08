@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.codef.mapper.UserTransactionsMapper">
+    <insert id="upsertBatch" parameterType="java.util.List">
+        INSERT INTO User_Transactions (
+        user_id, account_id, transaction_type, transaction_date, transaction_time,
+        amount, description1, description2, description3, description4, asset_category
+        )
+        VALUES
+        <foreach collection="list" item="tx" separator=",">
+            (
+            #{tx.userId}, #{tx.accountId}, #{tx.transactionType}, #{tx.transactionDate}, #{tx.transactionTime},
+            #{tx.amount}, #{tx.description1}, #{tx.description2}, #{tx.description3}, #{tx.description4}, #{tx.assetCategory}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        amount = VALUES(amount),
+        transaction_date = VALUES(transaction_date),
+        transaction_time = VALUES(transaction_time)
+    </insert>
+
+</mapper>

@@ -60,13 +60,13 @@ class SavingsRecommendationMapperTest {
         // then
         assertNotNull(results);
         assertFalse(results.isEmpty());
-        assertNotNull(results.get(0).getInterestRateScore());
+        assertNotNull(results.get(0).getScoreInterestRate());
         System.out.println("\n--- [SavingsRecommendationMapperTest] 모든 예적금 상품 및 점수 조회 결과 ---");
         System.out.println("조회된 SavingsProductVO 목록 (총 " + results.size() + "개):");
         results.forEach(product -> {
             System.out.println("  - 상품 ID: " + product.getProductId() + ", 상품명: " + product.getProductName() + ", 은행: " + product.getBankName());
             System.out.println("    금리: " + product.getBaseRate() + " ~ " + product.getMaxRate() + ", 최대한도: " + product.getMaxAmount());
-            System.out.println("    점수: 금리(" + product.getInterestRateScore() + "), 복리(" + product.getCompoundInterestScore() + "), 우대(" + product.getPreferentialScore() + "), 중도해지(" + product.getPenaltyScore() + "), 한도(" + product.getLimitScore() + ")");
+            System.out.println("    점수: 금리(" + product.getScoreInterestRate() + "), 복리(" + product.getScoreInterestType() + "), 우대(" + product.getScorePreferentialCondition() + "), 중도해지(" + product.getScoreCancelBenefit() + "), 한도(" + product.getScoreMaxAmount() + ")");
         });
         System.out.println("-------------------------------------------------------------------");
     }

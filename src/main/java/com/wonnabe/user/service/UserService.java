@@ -40,7 +40,16 @@ public class UserService {
      * @param request UpdateUserRequest 객체 (수정할 이름, 비밀번호 포함)
      */
     public void updateUserInfo(CustomUser user, UpdateUserRequest request) {
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        userMapper.updateUser(user.getUser().getUserId(), request.getName(), encodedPassword);
+        if (user == null || user.getUser() == null) {
+            throw new IllegalArgumentException("인증된 사용자 정보가 없습니다.");
+        }
+
+        try {
+            String encodedPassword = passwordEncoder.encode(request.getPassword());
+            userMapper.updateUser(user.getUser().getUserId(), request.getName(), encodedPassword);
+        } catch (Exception e) {
+            throw new IllegalStateException("사용자 정보를 수정하는 중 오류가 발생했습니다.");
+        }
     }
+
 }

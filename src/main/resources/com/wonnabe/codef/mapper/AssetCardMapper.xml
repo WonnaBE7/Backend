@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.codef.mapper.AssetCardMapper">
+
+    <insert id="upsert" parameterType="com.wonnabe.codef.domain.UserCard">
+        INSERT INTO User_card (
+            user_id,
+            product_id,
+            monthly_usage,
+            issue_date,
+            expiry_date,
+            performance_condition,
+            card_number,
+            account_id
+        )
+        VALUES (
+                   #{userId},
+                   #{productId},
+                   0.00,
+                   #{issueDate},
+                   #{validPeriod},
+                   NULL,
+                   #{cardNumber},
+                   #{accountId}
+               )
+        ON DUPLICATE KEY UPDATE
+                             issue_date = VALUES(issue_date),
+                             expiry_date = VALUES(expiry_date),
+                             card_number = VALUES(card_number),
+                             account_id = VALUES(account_id)
+    </insert>
+
+    <select id="findProductIdByKeyword2" parameterType="String" resultType="long">
+        SELECT product_id
+        FROM Card_product
+        WHERE #{cardName} LIKE CONCAT('%', REPLACE(card_name, ' ', ''), '%')
+        LIMIT 1
+    </select>
+
+    <select id="findProductIdByKeyword" parameterType="map" resultType="long">
+        SELECT p.product_id
+        FROM Card_product p
+                 JOIN Institutions i ON p.card_company = i.name
+        WHERE i.code = #{institutionCode}
+          AND REPLACE(#{cardName}, ' ', '') LIKE CONCAT('%', REPLACE(p.card_name, ' ', ''), '%')
+        LIMIT 1;
+    </select>
+
+</mapper>

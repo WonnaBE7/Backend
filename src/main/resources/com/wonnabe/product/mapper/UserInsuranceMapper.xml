@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wonnabe.product.mapper.UserInsuranceMapper">
+
+    <resultMap id="userInsuranceResultMap" type="com.wonnabe.product.domain.UserInsuranceVO">
+        <id property="id" column="ui_id"/>
+        <result property="userId" column="ui_user_id"/>
+        <result property="productId" column="ui_product_id"/>
+        <result property="monthlyPremium" column="ui_monthly_premium"/>
+        <result property="startDate" column="ui_start_date"/>
+        <result property="endDate" column="ui_end_date"/>
+        <result property="totalPaid" column="ui_total_paid"/>
+        <result property="createdAt" column="ui_created_at"/>
+        <association property="product" javaType="com.wonnabe.product.domain.InsuranceProductVO">
+            <id property="productId" column="p_product_id"/>
+            <result property="providerName" column="p_provider_name"/>
+            <result property="productName" column="p_product_name"/>
+            <result property="coverageType" column="p_coverage_type"/>
+            <result property="coverageDesc" column="p_coverage_desc"/>
+            <result property="coverageLimit" column="p_coverage_limit"/>
+        </association>
+    </resultMap>
+
+    <!-- 사용자의 특정 보험 상품에 대한 가입 상세 정보를 조회하는 쿼리 -->
+    <select id="findDetailByProductId" resultMap="userInsuranceResultMap">
+        SELECT
+            ui.id AS ui_id,
+            ui.user_id AS ui_user_id,
+            ui.product_id AS ui_product_id,
+            ui.monthly_premium AS ui_monthly_premium,
+            ui.start_date AS ui_start_date,
+            ui.end_date AS ui_end_date,
+            ui.total_paid AS ui_total_paid,
+            ui.created_at AS ui_created_at,
+
+            p.product_id AS p_product_id,
+            p.provider_name AS p_provider_name,
+            p.product_name AS p_product_name,
+            p.coverage_type AS p_coverage_type,
+            p.coverage_desc AS p_coverage_desc,
+            p.coverage_limit AS p_coverage_limit
+        FROM
+            user_insurance ui
+        JOIN
+            insurance_product p ON ui.product_id = p.product_id
+        WHERE
+            ui.user_id = #{userId} AND ui.product_id = #{productId}
+    </select>
+
+    <!-- Transaction에서 userId랑 Category로 가져오는 것 -->
+    <select id="findMonthlyTransactionSums" resultType="com.wonnabe.product.dto.TransactionSummaryDto">
+        SELECT
+            DATE_FORMAT(transaction_date, '%Y-%m') as month,
+            SUM(amount) as totalSavings
+        FROM
+            User_Transactions
+        WHERE
+            user_id = #{userId}
+          AND asset_category = '보험'
+          AND transaction_date >= #{startDate}
+        GROUP BY
+            month
+        ORDER BY
+            month ASC
+    </select>
+
+    <select id="findAllByUserId" resultType="com.wonnabe.product.domain.UserInsuranceVO">
+        SELECT * FROM User_Insurance WHERE user_id = #{userId}
+    </select>
+
+</mapper>
+
