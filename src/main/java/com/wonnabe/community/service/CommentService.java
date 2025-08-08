@@ -15,13 +15,15 @@ public class CommentService {
     private final CommentMapper commentMapper;
 
     //댓글 조회
-    public List<CommentDTO> getCommentsByBoardId(int communityId, Long boardId) {
+    public List<CommentDTO> getCommentsByBoardId(int communityId, Long boardId, String userId) {
         boolean exists = commentMapper.existsBoardInCommunity(communityId, boardId);
         if (!exists) {
             throw new NoSuchElementException("조회할 댓글을 확인해주세요.");
         }
-        return commentMapper.selectCommentsByBoardId(communityId, boardId);
+
+        return commentMapper.selectCommentsByBoardId(communityId, boardId, userId);
     }
+
 
 
     //댓글 생성

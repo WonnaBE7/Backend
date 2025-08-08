@@ -25,24 +25,24 @@ public class CommentController {
     // 댓글 조회
     @GetMapping("/board/comment")
     public ResponseEntity<Object> getComments(@RequestParam int communityId,
-                                              @RequestParam Long boardId) {
+                                              @RequestParam Long boardId,
+                                              @AuthenticationPrincipal CustomUser customUser) {
         try {
-            List<CommentDTO> comments = commentService.getCommentsByBoardId(communityId, boardId);
+            String userId = customUser.getUser().getUserId(); // 현재 로그인 유저 ID 추출
+            List<CommentDTO> comments = commentService.getCommentsByBoardId(communityId, boardId, userId);
 
             if (comments.isEmpty()) {
-                return JsonResponse.ok("조회할 댓글을 확인해주세요.", Map.of("comments", comments));
+                return JsonResponse.error(HttpStatus.NOT_FOUND, "해당 게시글에 댓글이 존재하지 않습니다.");
             }
 
             return JsonResponse.ok("댓글 조회에 성공하였습니다.", Map.of("comments", comments));
 
         } catch (NoSuchElementException e) {
-            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return JsonResponse.error(HttpStatus.NOT_FOUND, e.getMessage());
         } catch (Exception e) {
             return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 조회 중 오류가 발생했습니다.");
         }
     }
-
-
 
 
 

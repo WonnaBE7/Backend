@@ -1,5 +1,7 @@
 package com.wonnabe.community.dto.comment;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class CommentDTO {
     private String userId;
     private Long commentId;
@@ -8,53 +10,30 @@ public class CommentDTO {
     private String content;
     private int likeCount;
 
+    @JsonProperty("isLiked") // JSON에서는 isLiked로 출력
+    private boolean liked;
+
     public CommentDTO() {}
 
-    public String getUserId() {
-        return userId;
-    }
+    // Getters/Setters
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
+    public Long getCommentId() { return commentId; }
+    public void setCommentId(Long commentId) { this.commentId = commentId; }
 
-    public Long getCommentId() {
-        return commentId;
-    }
+    public String getUserName() { return userName; }
+    public void setUserName(String userName) { this.userName = userName; }
 
-    public void setCommentId(Long commentId) {
-        this.commentId = commentId;
-    }
+    public String getNowme() { return nowme; }
+    public void setNowme(String nowme) { this.nowme = nowme; }
 
-    public String getUserName() {
-        return userName;
-    }
+    public String getContent() { return content; }
+    public void setContent(String content) { this.content = content; }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
+    public int getLikeCount() { return likeCount; }
+    public void setLikeCount(int likeCount) { this.likeCount = likeCount; }
 
-    public String getNowme() {
-        return nowme;
-    }
-
-    public void setNowme(String nowme) {
-        this.nowme = nowme;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public int getLikeCount() {
-        return likeCount;
-    }
-
-    public void setLikeCount(int likeCount) {
-        this.likeCount = likeCount;
-    }
+    public boolean isLiked() { return liked; }
+    public void setLiked(boolean liked) { this.liked = liked; }
 }

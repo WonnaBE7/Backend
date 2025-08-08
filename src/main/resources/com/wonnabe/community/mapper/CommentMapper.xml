@@ -29,7 +29,19 @@
                 FROM comment_like cl
                 WHERE cl.comment_id = c.id
                   AND cl.is_deleted = 0
-            ) AS likeCount
+            ) AS likeCount,
+            (
+                SELECT CASE
+                           WHEN EXISTS (
+                               SELECT 1
+                               FROM comment_like cl
+                               WHERE cl.comment_id = c.id
+                                 AND cl.user_id = #{userId}
+                                 AND cl.is_deleted = 0
+                           ) THEN TRUE
+                           ELSE FALSE
+                           END
+            ) AS liked
         FROM comment c
                  JOIN user_profile u ON c.user_id = u.user_id
                  JOIN user_info i ON u.user_id = i.user_id
