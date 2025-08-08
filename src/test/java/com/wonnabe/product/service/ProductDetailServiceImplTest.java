@@ -216,11 +216,11 @@ class ProductDetailServiceImplTest {
                 .providerName("테스트 보험사")
                 .femalePremium(BigDecimal.valueOf(10000))
                 .malePremium(BigDecimal.valueOf(12000))
-                .scorePriceCompetitiveness(80.0f)
-                .scoreCoverageLimit(70.0f)
-                .scoreCoverageScope(90.0f)
-                .scoreDeductibleLevel(60.0f)
-                .scoreRefundScope(75.0f)
+                .scorePriceCompetitiveness(80)
+                .scoreCoverageLimit(70)
+                .scoreCoverageScope(90)
+                .scoreDeductibleLevel(60)
+                .scoreRefundScope(75)
                 .coverageType("상해급여")
                 .coverageLimit("연간 5천만원 한도")
                 .coverageDesc("상해로 인한 급여 항목 의료비 보장")
@@ -262,7 +262,7 @@ class ProductDetailServiceImplTest {
         assertEquals("테스트 보험", productInfo.getProductName(), "상품명이 일치해야 합니다.");
         assertEquals("테스트 보험사", productInfo.getProviderName(), "제공사명이 일치해야 합니다.");
         assertEquals(85, productInfo.getMatchScore(), "Match Score가 일치해야 합니다.");
-        assertEquals("11000원", productInfo.getAveragePremium(), "평균 보험료가 일치해야 합니다.");
+        assertEquals("11000", productInfo.getAveragePremium(), "평균 보험료가 일치해야 합니다.");
         assertTrue(productInfo.isWished(), "찜한 상품이므로 isWished는 true여야 합니다.");
 
         assertTrue(result.getComparisonChart().isEmpty(), "비교 차트 정보는 비어있어야 합니다.");

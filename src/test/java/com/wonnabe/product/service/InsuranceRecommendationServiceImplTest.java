@@ -50,16 +50,16 @@ class InsuranceRecommendationServiceImplTest {
 
         InsuranceProductVO product1 = new InsuranceProductVO();
         product1.setProductId(1L); product1.setProductName("보험A"); product1.setProviderName("보험사A");
-        product1.setScorePriceCompetitiveness(10.0f); product1.setScoreCoverageLimit(5.0f);
-        product1.setScoreCoverageScope(8.0f); product1.setScoreDeductibleLevel(7.0f);
-        product1.setScoreRefundScope(6.0f);
+        product1.setScorePriceCompetitiveness(10); product1.setScoreCoverageLimit(5);
+        product1.setScoreCoverageScope(8); product1.setScoreDeductibleLevel(7);
+        product1.setScoreRefundScope(6);
         product1.setCoverageLimit("1억"); product1.setNote("특약1"); product1.setMyMoney("10000");
 
         InsuranceProductVO product2 = new InsuranceProductVO();
         product2.setProductId(2L); product2.setProductName("보험B"); product2.setProviderName("보험사B");
-        product2.setScorePriceCompetitiveness(5.0f); product2.setScoreCoverageLimit(10.0f);
-        product2.setScoreCoverageScope(7.0f); product2.setScoreDeductibleLevel(8.0f);
-        product2.setScoreRefundScope(9.0f);
+        product2.setScorePriceCompetitiveness(5); product2.setScoreCoverageLimit(10);
+        product2.setScoreCoverageScope(7); product2.setScoreDeductibleLevel(8);
+        product2.setScoreRefundScope(9);
         product2.setCoverageLimit("2억"); product2.setNote("특약2"); product2.setMyMoney("20000");
 
         mockProducts = Arrays.asList(product1, product2);
