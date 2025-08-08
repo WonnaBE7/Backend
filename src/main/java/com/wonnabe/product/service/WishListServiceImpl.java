@@ -285,11 +285,11 @@ public class WishListServiceImpl implements WishListService {
 	// 점수 계산
 	private double calculateInsuranceScore(InsuranceProductVO product, Map<String, Double> weights) {
 		double score = 0.0;
-		score += weights.getOrDefault("가격_경쟁력", 0.0) * (product.getScorePriceCompetitiveness() != null ? product.getScorePriceCompetitiveness() : 0.0f);
-		score += weights.getOrDefault("보장한도", 0.0) * (product.getScoreCoverageLimit() != null ? product.getScoreCoverageLimit() : 0.0f);
-		score += weights.getOrDefault("보장범위", 0.0) * (product.getScoreCoverageScope() != null ? product.getScoreCoverageScope() : 0.0f);
-		score += weights.getOrDefault("자기부담금", 0.0) * (product.getScoreDeductibleLevel() != null ? product.getScoreDeductibleLevel() : 0.0f);
-		score += weights.getOrDefault("환급범위", 0.0) * (product.getScoreRefundScope() != null ? product.getScoreRefundScope() : 0.0f);
+		score += weights.getOrDefault("가격_경쟁력", 0.0) * (product.getScorePriceCompetitiveness());
+		score += weights.getOrDefault("보장한도", 0.0) * (product.getScoreCoverageLimit());
+		score += weights.getOrDefault("보장범위", 0.0) * (product.getScoreCoverageScope());
+		score += weights.getOrDefault("자기부담금", 0.0) * (product.getScoreDeductibleLevel());
+		score += weights.getOrDefault("환급범위", 0.0) * (product.getScoreRefundScope());
 		return score;
 	}
 
