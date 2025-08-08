@@ -52,27 +52,18 @@ public class NowMeService {
      * [금융활동성, 소비패턴, 계획방식, 리스크성향] 순서 (0~1 범위)
      */
     private static final List<PersonaVector> PERSONA_VECTORS = Arrays.asList(
-            // 계획적 + 안전형 (Planning 높음, Risk 낮음)
-            new PersonaVector("자린고비형", new double[]{0.1, 0.0, 0.9, 0.0}),    // 극도로 보수적
-            new PersonaVector("가족중심형", new double[]{0.3, 0.2, 0.9, 0.1}),     // 가족 중심 계획
-            new PersonaVector("루틴러형", new double[]{0.2, 0.1, 0.8, 0.1}),      // 고정 패턴
-            new PersonaVector("미래계획형", new double[]{0.6, 0.3, 1.0, 0.3}),    // 장기 계획
-
-            // 계획적 + 적극형 (Planning 높음, Risk 중간~높음)
-            new PersonaVector("균형 성장형", new double[]{0.8, 0.5, 0.8, 0.7}),   // 균형잡힌 성장
-            new PersonaVector("공격투자형", new double[]{1.0, 0.6, 0.8, 1.0}),    // 최고 리스크
-
-            // 중간형 (모든 축 중간값 - 하나만 남기고 차별화)
-            new PersonaVector("새싹 투자자형", new double[]{0.7, 0.3, 0.5, 0.6}), // 학습형 (중간 전체)
-
-            // 즉흥적 + 안전형 (Planning 낮음, Risk 낮음)
-            new PersonaVector("느긋한 관망형", new double[]{0.0, 0.3, 0.1, 0.0}), // 극도로 수동적
-            new PersonaVector("소확행형", new double[]{0.3, 0.7, 0.2, 0.2}),      // 감성 소비 특화
-
-            // 즉흥적 + 적극형 (Planning 낮음, Risk 중간~높음)
-            new PersonaVector("무계획형", new double[]{0.1, 0.9, 0.0, 0.2}),     // 극도로 무계획
-            new PersonaVector("YOLO형", new double[]{0.4, 1.0, 0.0, 0.5}),       // 최고 소비
-            new PersonaVector("경험소비형", new double[]{0.6, 0.9, 0.3, 0.4})    // 체험 중심
+            new PersonaVector("자린고비형", new double[]{0.1, 0.0, 0.9, 0.0}),     // ID 1
+            new PersonaVector("소확행형", new double[]{0.3, 0.7, 0.2, 0.2}),       // ID 2
+            new PersonaVector("YOLO형", new double[]{0.4, 1.0, 0.0, 0.5}),        // ID 3
+            new PersonaVector("경험 소통형", new double[]{0.6, 0.9, 0.3, 0.4}),    // ID 4
+            new PersonaVector("새싹 투자형", new double[]{0.7, 0.3, 0.5, 0.6}),    // ID 5
+            new PersonaVector("공격 투자형", new double[]{1.0, 0.6, 0.8, 1.0}),    // ID 6
+            new PersonaVector("미래 준비형", new double[]{0.6, 0.3, 1.0, 0.3}),    // ID 7
+            new PersonaVector("가족 중심형", new double[]{0.3, 0.2, 0.9, 0.1}),    // ID 8
+            new PersonaVector("루틴러형", new double[]{0.2, 0.1, 0.8, 0.1}),       // ID 9
+            new PersonaVector("현상 유지형", new double[]{0.0, 0.3, 0.1, 0.0}),    // ID 10
+            new PersonaVector("균형 성장형", new double[]{0.8, 0.5, 0.8, 0.7}),    // ID 11
+            new PersonaVector("대문자P형", new double[]{0.1, 0.9, 0.0, 0.2})       // ID 12
     );
 
     /**
@@ -80,17 +71,17 @@ public class NowMeService {
      */
     private static final Map<String, Integer> PERSONA_NAME_TO_ID = new HashMap<String, Integer>() {{
         put("자린고비형", 1);
-        put("가족중심형", 2);
-        put("루틴러형", 3);
-        put("미래계획형", 4);
-        put("균형 성장형", 5);
-        put("새싹 투자자형", 6);
-        put("느긋한 관망형", 7);
-        put("소확행형", 8);
-        put("경험소비형", 9);
-        put("YOLO형", 10);
-        put("무계획형", 11);
-        put("공격투자형", 12);
+        put("소확행형", 2);
+        put("YOLO형", 3);
+        put("경험 소통형", 4);
+        put("새싹 투자형", 5);
+        put("공격 투자형", 6);
+        put("미래 준비형", 7);
+        put("가족 중심형", 8);
+        put("루틴러형", 9);
+        put("현상 유지형", 10);
+        put("균형 성장형", 11);
+        put("대문자P형", 12);
     }};
 
     /**

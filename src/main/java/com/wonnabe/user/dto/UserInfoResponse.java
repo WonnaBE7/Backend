@@ -17,9 +17,7 @@ public class UserInfoResponse {
 
     @Builder
     public UserInfoResponse(String userId, String name, String email, String nowME,
-                            List<String> wonnaBE, String job, Long monthlyIncome,
-                            Boolean lifestyleSmoking, Boolean lifestyleDrinking, Boolean lifestyleExercise,
-                            Integer householdSize, Boolean lifestyleFamilyMedical, Boolean lifestyleBeforeDiseases) {
+                            List<String> wonnaBE, String job, Long monthlyIncome) {
         this.userId = userId;
         this.name = name;
         this.email = email;

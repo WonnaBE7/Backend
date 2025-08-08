@@ -18,4 +18,5 @@ public class UserDetailRequest {
     private Boolean lifestyleFamilyMedical;
     private Boolean lifestyleBeforeDiseases;
     private String incomeJobType;
+    private Long incomeAnnualAmount;
 }

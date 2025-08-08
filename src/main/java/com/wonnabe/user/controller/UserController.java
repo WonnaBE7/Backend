@@ -115,7 +115,6 @@ public class UserController {
     public ResponseEntity<?> createUserDetail(@AuthenticationPrincipal CustomUser user,
                                               @RequestBody UserDetailRequest request) {
         try {
-            // 보안: 실제 로그인한 사용자 ID로 강제 설정
             String userId = user.getUser().getUserId();
             request = UserDetailRequest.builder()
                     .userId(userId)
@@ -126,6 +125,7 @@ public class UserController {
                     .lifestyleFamilyMedical(request.getLifestyleFamilyMedical())
                     .lifestyleBeforeDiseases(request.getLifestyleBeforeDiseases())
                     .incomeJobType(request.getIncomeJobType())
+                    .incomeAnnualAmount(request.getIncomeAnnualAmount())  // 추가
                     .build();
 
             userService.createUserDetail(request);
@@ -146,7 +146,6 @@ public class UserController {
     public ResponseEntity<?> updateUserDetail(@AuthenticationPrincipal CustomUser user,
                                               @RequestBody UserDetailRequest request) {
         try {
-            // 보안: 실제 로그인한 사용자 ID로 강제 설정
             String userId = user.getUser().getUserId();
             request = UserDetailRequest.builder()
                     .userId(userId)
@@ -157,6 +156,7 @@ public class UserController {
                     .lifestyleFamilyMedical(request.getLifestyleFamilyMedical())
                     .lifestyleBeforeDiseases(request.getLifestyleBeforeDiseases())
                     .incomeJobType(request.getIncomeJobType())
+                    .incomeAnnualAmount(request.getIncomeAnnualAmount())  // 추가
                     .build();
 
             List<String> updatedFields = userService.updateUserDetail(request);

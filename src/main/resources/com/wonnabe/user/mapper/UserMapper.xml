@@ -126,7 +126,8 @@
         household_size,
         lifestyle_family_medical,
         lifestyle_before_diseases,
-        income_job_type
+        income_job_type,
+        income_annual_amount
         ) VALUES (
         #{userId},
         <choose>
@@ -150,7 +151,8 @@
             <when test="lifestyleBeforeDiseases != null and lifestyleBeforeDiseases == true">'있음'</when>
             <otherwise>NULL</otherwise>
         </choose>,
-        #{incomeJobType}
+        #{incomeJobType},
+        #{incomeAnnualAmount}
         )
     </insert>
 
@@ -198,6 +200,9 @@
             </if>
             <if test="incomeJobType != null">
                 income_job_type = #{incomeJobType},
+            </if>
+            <if test="incomeAnnualAmount != null">
+                income_annual_amount = #{incomeAnnualAmount},
             </if>
         </set>
         WHERE user_id = #{userId}

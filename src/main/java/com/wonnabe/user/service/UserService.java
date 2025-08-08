@@ -27,8 +27,11 @@ public class UserService {
     public UserInfoResponse getUserInfo(CustomUser user) {
         String userId = user.getUser().getUserId();
 
+        // 사용자 기본 정보 조회
         Map<String, Object> userInfoMap = userMapper.selectUserInfo(userId);
-        if (userInfoMap == null) {
+
+        // User_Info가 없는 경우 기본값으로 응답
+        if (userInfoMap == null || userInfoMap.get("userId") == null) {
             return UserInfoResponse.builder()
                     .userId(user.getUser().getUserId())
                     .name(user.getUser().getName())
@@ -40,6 +43,7 @@ public class UserService {
                     .build();
         }
 
+        // nowME (현재 진단된 금융성향) 조회
         String nowME = null;
         Object nowmeIdObj = userInfoMap.get("nowmeId");
         if (nowmeIdObj != null) {
@@ -47,8 +51,13 @@ public class UserService {
             nowME = userMapper.selectFinancialTendencyName(nowmeId);
         }
 
+        // wonnaBE (선택한 워너비들) 조회
         List<String> wonnaBE = userMapper.selectFinancialTendencyNames(userId);
+        if (wonnaBE == null) {
+            wonnaBE = new ArrayList<>();
+        }
 
+        // monthlyIncome 타입 변환 처리
         Long monthlyIncome = null;
         Object monthlyIncomeObj = userInfoMap.get("monthlyIncome");
         if (monthlyIncomeObj != null) {
@@ -66,7 +75,7 @@ public class UserService {
                 .name((String) userInfoMap.get("name"))
                 .email((String) userInfoMap.get("email"))
                 .nowME(nowME)
-                .wonnaBE(wonnaBE != null ? wonnaBE : new ArrayList<>())
+                .wonnaBE(wonnaBE)
                 .job((String) userInfoMap.get("job"))
                 .monthlyIncome(monthlyIncome)
                 .build();
@@ -161,6 +170,7 @@ public class UserService {
         if (request.getLifestyleFamilyMedical() != null) updatedFields.add("lifestyleFamilyMedical");
         if (request.getLifestyleBeforeDiseases() != null) updatedFields.add("lifestyleBeforeDiseases");
         if (request.getIncomeJobType() != null) updatedFields.add("incomeJobType");
+        if (request.getIncomeAnnualAmount() != null) updatedFields.add("incomeAnnualAmount");  // 추가
 
         userMapper.updateUserDetail(request);
         return updatedFields;
