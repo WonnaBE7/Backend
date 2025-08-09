@@ -1,11 +1,15 @@
 package com.wonnabe.community.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.community.dto.ProductDTO;
 import com.wonnabe.community.dto.board.BoardDTO;
 import com.wonnabe.community.dto.community.CommunityDTO;
+import com.wonnabe.community.service.CommunityProductService;
 import com.wonnabe.community.service.CommunityService;
 import com.wonnabe.common.util.JsonResponse;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +18,19 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/community")
 public class CommunityController {
 
+    private final CommunityProductService service;
+
     private final CommunityService communityService;
+
+    public CommunityController(@Qualifier("communityProductServiceImpl") CommunityProductService service,
+        CommunityService communityService) {
+        this.service = service;
+        this.communityService = communityService;
+    }
+
 
     // 전체 커뮤니티 리스트 조회
     @GetMapping("/list")
@@ -64,6 +76,22 @@ public class CommunityController {
         String userId = customUser.getUser().getUserId();
         List<BoardDTO> writtenBoards = communityService.getWrittenBoards(userId);
         return JsonResponse.ok("작성한 게시글 조회에 성공했습니다.", Map.of("boards", writtenBoards));
+    }
+
+    /**
+     * 게시판별 인기 상품 조회
+     * @param communityId 게시판 아이디
+     * @return 게시판별 인기 상품
+     */
+    @GetMapping("/popular/{communityId}")
+    public ResponseEntity<Object> findTop3ProductsByCommunityId(@PathVariable int communityId) {
+        if (communityId < 1 || communityId > 12) {
+            throw new IllegalArgumentException("게시판 아이디는 1~12 사이여야 합니다.");
+        }
+
+        List<ProductDTO> products = service.findTop3ProductsByCommunityId(communityId);
+
+        return JsonResponse.ok("성공적으로 인기 상품을 불러왔습니다.", products);
     }
 
 }
