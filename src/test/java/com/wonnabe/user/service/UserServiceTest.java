@@ -3,6 +3,8 @@ package com.wonnabe.user.service;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.user.dto.UpdateUserRequest;
 import com.wonnabe.user.dto.UpdateWonnabeRequest;
+import com.wonnabe.user.dto.UserDetailRequest;
+import com.wonnabe.user.dto.UserDetailResponse;
 import com.wonnabe.user.mapper.UserMapper;
 import com.wonnabe.common.security.account.domain.UserVO;
 
@@ -75,5 +77,61 @@ class UserServiceTest {
                 .thenReturn(List.of());
 
         assertDoesNotThrow(() -> userService.getNowmeHistory("user123"));
+    }
+
+    // 🔧 새로운 테스트 추가
+    @Test
+    void getUserDetail() {
+        CustomUser mockUser = createFakeUser();
+
+        UserDetailResponse.UserDetailData mockData = UserDetailResponse.UserDetailData.builder()
+                .userId("user123")
+                .lifestyleSmoking(0)
+                .lifestyleFamilyMedical(1)
+                .lifestyleBeforeDiseases(0)
+                .lifestyleExerciseFreq(1)
+                .lifestyleAlcoholFreq(0)
+                .incomeSourceType("근로소득")
+                .incomeEmploymentStatus("재직")
+                .householdSize(2)
+                .incomeJobType("개발자")
+                .build();
+
+        when(userMapper.selectUserDetail("user123")).thenReturn(mockData);
+
+        assertDoesNotThrow(() -> userService.getUserDetail("user123"));
+    }
+
+    @Test
+    void createUserDetail() {
+        UserDetailRequest request = UserDetailRequest.builder()
+                .userId("user123")
+                .lifestyleSmoking(0)
+                .lifestyleFamilyMedical(1)
+                .lifestyleBeforeDiseases(0)
+                .lifestyleExerciseFreq(1)
+                .lifestyleAlcoholFreq(0)
+                .incomeSourceType("근로소득")
+                .incomeEmploymentStatus("재직")
+                .householdSize(2)
+                .incomeJobType("개발자")
+                .build();
+
+        when(userMapper.checkUserDetailExists("user123")).thenReturn(0);
+
+        assertDoesNotThrow(() -> userService.createUserDetail(request));
+    }
+
+    @Test
+    void updateUserDetail() {
+        UserDetailRequest request = UserDetailRequest.builder()
+                .userId("user123")
+                .lifestyleSmoking(1)
+                .householdSize(3)
+                .build();
+
+        when(userMapper.checkUserDetailExists("user123")).thenReturn(1);
+
+        assertDoesNotThrow(() -> userService.updateUserDetail(request));
     }
 }

@@ -1,6 +1,7 @@
 package com.wonnabe.user.controller;
 
 import com.wonnabe.user.dto.UpdateUserRequest;
+import com.wonnabe.user.dto.UserDetailRequest;
 import com.wonnabe.user.service.UserService;
 import org.junit.jupiter.api.Test;
 
@@ -18,10 +19,7 @@ class UserControllerTest {
             var mockUser = mock(com.wonnabe.common.security.account.domain.CustomUser.class);
             when(userService.getUserInfo(mockUser)).thenReturn(null);
 
-            // when
             userController.getMyInfo(mockUser);
-
-            // then: 예외없이 통과
         });
     }
 
@@ -63,7 +61,18 @@ class UserControllerTest {
     void createUserDetail() {
         assertDoesNotThrow(() -> {
             var mockUser = mock(com.wonnabe.common.security.account.domain.CustomUser.class);
-            var req = mock(com.wonnabe.user.dto.UserDetailRequest.class);
+            // 🔧 실제 UserDetailRequest 객체 생성 (Integer 타입으로 변경됨)
+            UserDetailRequest req = UserDetailRequest.builder()
+                    .lifestyleSmoking(0)
+                    .lifestyleFamilyMedical(1)
+                    .lifestyleBeforeDiseases(0)
+                    .lifestyleExerciseFreq(1)
+                    .lifestyleAlcoholFreq(0)
+                    .incomeSourceType("근로소득")
+                    .incomeEmploymentStatus("재직")
+                    .householdSize(2)
+                    .incomeJobType("개발자")
+                    .build();
             userController.createUserDetail(mockUser, req);
         });
     }
@@ -72,7 +81,11 @@ class UserControllerTest {
     void updateUserDetail() {
         assertDoesNotThrow(() -> {
             var mockUser = mock(com.wonnabe.common.security.account.domain.CustomUser.class);
-            var req = mock(com.wonnabe.user.dto.UserDetailRequest.class);
+            // 🔧 실제 UserDetailRequest 객체 생성
+            UserDetailRequest req = UserDetailRequest.builder()
+                    .lifestyleSmoking(1)
+                    .householdSize(3)
+                    .build();
             userController.updateUserDetail(mockUser, req);
         });
     }
