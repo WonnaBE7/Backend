@@ -11,7 +11,6 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,8 +103,9 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
 
             // 각 상품의 점수 계산
             List<ProductWithScore<InsuranceProductVO>> scoredProducts = new ArrayList<>();
+            double[] weightsArray = convertWeightsMapToArray(adjustedWeights);
             for (InsuranceProductVO product : allInsuranceProducts) {
-                double totalScore = calculateInsuranceScore(product, adjustedWeights);
+                double totalScore = calculateScore(product, weightsArray);
                 scoredProducts.add(new ProductWithScore<>(product, totalScore));
             }
 
@@ -146,63 +146,94 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     // 건강/생활습관에 따른 가중치 조정
     private Map<String, Double> adjustWeightsByHealthAndLifestyle(
             Map<String, Double> weights,
-            String smokingStatus,
-            String familyMedicalHistory,
-            String pastMedicalHistory,
-            String exerciseFrequency,
-            String drinkingFrequency) {
+            int smokingStatus,
+            int familyMedicalHistory,
+            int pastMedicalHistory,
+            int exerciseFrequency,
+            int drinkingFrequency) {
 
         Map<String, Double> adjusted = new HashMap<>(weights);
 
+        // (‼️ 수정)
         // 흡연 여부
-        if ("Y".equalsIgnoreCase(smokingStatus)) {
-            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v - 0.05 : -0.05);
-            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+        if ("1".equalsIgnoreCase(String.valueOf(smokingStatus))) {
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 질병 리스크 확대
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
+        } else {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 비흡연자 우대
+            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기 계약 유도
         }
+
 
         // 가족 병력
-        if (familyMedicalHistory != null) {
-            if (familyMedicalHistory.contains("고혈압") || familyMedicalHistory.contains("당뇨")) {
-                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
-                adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+        if ("1".equalsIgnoreCase(String.valueOf(familyMedicalHistory))) {
+                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);    // 만성질환 대비
+                adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 부담 반영
             }
-            if (familyMedicalHistory.contains("암")) {
-                adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.10 : 0.10);
-            }
-        }
+
+
 
         // 과거 병력
-        if ("Y".equalsIgnoreCase(pastMedicalHistory)) {
-            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+        if ("1".equalsIgnoreCase(String.valueOf(pastMedicalHistory))) {
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 재발 가능성 고려
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.05 : 0.05);  // 보험사 리스크 반영
+        } else {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 무병력 우대
         }
+
 
         // 운동 빈도
-        if ("매일".equalsIgnoreCase(exerciseFrequency)) {
-            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
-        } else if ("안함".equalsIgnoreCase(exerciseFrequency)) {
-            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);
+        if ("1".equalsIgnoreCase(String.valueOf(exerciseFrequency))) {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강 습관 우대
+            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);        // 장기계약 유지 유도
+        } else if ("0".equalsIgnoreCase(String.valueOf(exerciseFrequency))) {
+            adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);        // 건강 리스크 고려
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 보험사 리스크 반영
         }
 
+
         // 음주 빈도
-        if ("자주".equalsIgnoreCase(drinkingFrequency)) {
-            adjusted.compute("보장한도", (k, v) -> v != null ? v + 0.05 : 0.05);
-        } else if ("안함".equalsIgnoreCase(drinkingFrequency)) {
-            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);
+        if ("1".equalsIgnoreCase(String.valueOf(drinkingFrequency))) {
+            adjusted.compute("보장범위", (k, v) -> v != null ? v + 0.05 : 0.05);        // 간질환 등 대비
+            adjusted.compute("자기부담금수준", (k, v) -> v != null ? v + 0.03 : 0.03);  // 고위험 반영
+        } else if ("0".equalsIgnoreCase(String.valueOf(drinkingFrequency))) {
+            adjusted.compute("가격_경쟁력", (k, v) -> v != null ? v + 0.05 : 0.05);     // 건강군 우대
+            adjusted.compute("환급범위", (k, v) -> v != null ? v + 0.03 : 0.03);
         }
+
 
         // 정규화 (합 = 1)
         return normalizeWeights(adjusted);
     }
 
-    // 점수 계산
-    private double calculateInsuranceScore(InsuranceProductVO product, Map<String, Double> weights) {
+    @Override
+    public Map<Integer, double[]> getPersonaWeights() {
+        Map<Integer, double[]> result = new HashMap<>();
+        PERSONA_NAMES.forEach((id, name) -> {
+            Map<String, Double> weightsMap = PERSONA_WEIGHTS_INSURANCE.get(name);
+            if (weightsMap != null) {
+                double[] weightsArray = new double[5]; // 가격, 보장한도, 보장범위, 자기부담금, 환급범위
+                weightsArray[0] = weightsMap.getOrDefault("가격_경쟁력", 0.0);
+                weightsArray[1] = weightsMap.getOrDefault("보장한도", 0.0);
+                weightsArray[2] = weightsMap.getOrDefault("보장범위", 0.0);
+                weightsArray[3] = weightsMap.getOrDefault("자기부담금", 0.0);
+                weightsArray[4] = weightsMap.getOrDefault("환급범위", 0.0);
+                result.put(id, weightsArray);
+            }
+        });
+        return result;
+    }
+
+    @Override
+    public double calculateScore(InsuranceProductVO product, double[] weights) {
+        // weights 배열의 순서: 가격 경쟁력, 보장한도, 보장범위, 자기부담금 수준, 환급범위
         double score = 0.0;
-        score += weights.getOrDefault("가격_경쟁력", 0.0) * (product.getPriceCompetitivenessScore() != null ? product.getPriceCompetitivenessScore() : 0.0f);
-        score += weights.getOrDefault("보장한도", 0.0) * (product.getCoverageLimitScore() != null ? product.getCoverageLimitScore() : 0.0f);
-        score += weights.getOrDefault("보장범위", 0.0) * (product.getCoverageScopeScore() != null ? product.getCoverageScopeScore() : 0.0f);
-        score += weights.getOrDefault("자기부담금", 0.0) * (product.getDeductibleScore() != null ? product.getDeductibleScore() : 0.0f);
-        score += weights.getOrDefault("환급범위", 0.0) * (product.getRefundScopeScore() != null ? product.getRefundScopeScore() : 0.0f);
-        return score * 10;
+        score += weights[0] * (product.getScorePriceCompetitiveness());
+        score += weights[1] * (product.getScoreCoverageLimit());
+        score += weights[2] * (product.getScoreCoverageScope());
+        score += weights[3] * (product.getScoreDeductibleLevel());
+        score += weights[4] * (product.getScoreRefundScope());
+        return score; // 100점 만점으로 조정
     }
 
     // 가중치 정규화
@@ -213,6 +244,17 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
         }
         return weights.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue() / sum));
+    }
+
+    // Map<String, Double> 형태의 가중치를 double[] 형태로 변환
+    private double[] convertWeightsMapToArray(Map<String, Double> weightsMap) {
+        double[] weightsArray = new double[5]; // 가격, 보장한도, 보장범위, 자기부담금, 환급범위
+        weightsArray[0] = weightsMap.getOrDefault("가격_경쟁력", 0.0);
+        weightsArray[1] = weightsMap.getOrDefault("보장한도", 0.0);
+        weightsArray[2] = weightsMap.getOrDefault("보장범위", 0.0);
+        weightsArray[3] = weightsMap.getOrDefault("자기부담금", 0.0);
+        weightsArray[4] = weightsMap.getOrDefault("환급범위", 0.0);
+        return weightsArray;
     }
 
     // 내부 클래스: 상품과 점수

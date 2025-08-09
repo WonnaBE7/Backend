@@ -66,5 +66,9 @@
             month ASC
     </select>
 
+    <select id="findAllByUserId" resultType="com.wonnabe.product.domain.UserInsuranceVO">
+        SELECT * FROM User_Insurance WHERE user_id = #{userId}
+    </select>
+
 </mapper>
 

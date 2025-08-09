@@ -1,4 +1,3 @@
-// com.wonnabe.common.security.account.mapper.UserDetailsMapper.java
 package com.wonnabe.common.security.account.mapper;
 
 import com.wonnabe.common.security.account.domain.UserVO;

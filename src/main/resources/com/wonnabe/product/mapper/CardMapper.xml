@@ -167,6 +167,13 @@
             ui.income_annual_amount,
             ui.favorite_products_by_type,
             ui.nowme_id,
+            ui.income_source_type,
+            ui.income_employment_status,
+            ui.lifestyle_smoking AS smokingStatus,
+            ui.lifestyle_family_medical AS familyMedicalHistory,
+            ui.lifestyle_before_diseases AS pastMedicalHistory,
+            ui.lifestyle_exercise_freq AS exerciseFrequency,
+            ui.lifestyle_alcohol_freq AS drinkingFrequency,
             MAX(card_usage.previous_consumption) AS previousConsumption
         FROM user_info ui
                  LEFT JOIN (

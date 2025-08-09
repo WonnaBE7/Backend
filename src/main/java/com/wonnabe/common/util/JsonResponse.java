@@ -77,5 +77,4 @@ public class JsonResponse {
             e.printStackTrace(); // 혹은 log 처리
         }
     }
-
 }

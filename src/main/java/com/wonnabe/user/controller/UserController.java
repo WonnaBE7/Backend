@@ -2,61 +2,175 @@ package com.wonnabe.user.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.util.JsonResponse;
-import com.wonnabe.user.dto.UpdateUserRequest;
-import com.wonnabe.user.dto.UserInfoResponse;
+import com.wonnabe.user.dto.*;
 import com.wonnabe.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
+@Log4j2
 public class UserController {
 
     private final UserService userService;
 
     /**
      * 로그인한 사용자의 정보를 조회합니다.
-     * - AccessToken을 통해 인증된 사용자 정보를 기반으로
-     *   유저의 이름, 이메일 등 정보를 조회합니다.
-     *
-     * @param user 인증된 사용자 정보 (SecurityContext에서 주입)
-     * @return UserInfoResponse 객체 (사용자 정보 포함), 상태코드 200 OK
      */
     @GetMapping("/me")
-    public ResponseEntity<Object> getMyInfo(@AuthenticationPrincipal CustomUser user) {
+    public ResponseEntity<?> getMyInfo(@AuthenticationPrincipal CustomUser user) {
         try {
-            if (user == null || user.getUser() == null) {
-                return JsonResponse.error(HttpStatus.UNAUTHORIZED, "로그인 정보가 확인되지 않습니다. 다시 로그인해 주세요.");
-            }
-            return JsonResponse.ok("사용자 정보 조회 성공", userService.getUserInfo(user));
+            UserInfoResponse result = userService.getUserInfo(user);
+            return JsonResponse.ok("사용자 정보 조회 성공", result);
         } catch (Exception e) {
-            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 정보를 불러오는 데 실패했습니다. 잠시 후 다시 시도해 주세요.");
+            log.error("사용자 정보 조회 실패: {}", e.getMessage());
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 정보 조회 실패");
         }
     }
 
     /**
      * 로그인한 사용자의 이름 또는 비밀번호를 수정합니다.
-     * - 인증된 사용자의 요청에 따라 이름 변경 또는 비밀번호 변경을 처리합니다.
-     * - 비밀번호 변경 시, 현재 비밀번호와 새로운 비밀번호를 비교 및 인코딩 처리
-     *
-     * @param user 인증된 사용자 정보 (SecurityContext에서 주입)
-     * @param request UpdateUserRequest 객체 (변경 요청 정보 포함)
-     * @return 상태코드 200 OK (변경 성공)
      */
     @PutMapping("/me")
-    public ResponseEntity<Object> updateMyInfo(@AuthenticationPrincipal CustomUser user,
-                                               @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<?> updateMyInfo(@AuthenticationPrincipal CustomUser user,
+                                          @RequestBody UpdateUserRequest request) {
         try {
             userService.updateUserInfo(user, request);
-            return JsonResponse.ok("사용자 정보가 성공적으로 수정되었습니다.");
-        } catch (IllegalArgumentException e) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (IllegalStateException e) {
-            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
+            return JsonResponse.ok("사용자 정보 수정 성공");
+        } catch (Exception e) {
+            log.error("사용자 정보 수정 실패: {}", e.getMessage());
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 정보 수정 실패");
+        }
+    }
+
+    /**
+     * 로그인한 사용자의 워너비(선택한 금융 성향) 정보를 저장합니다.
+     */
+    @PatchMapping("/mypage/wonnabe")
+    public ResponseEntity<?> updateWonnabe(@AuthenticationPrincipal CustomUser user,
+                                           @RequestBody UpdateWonnabeRequest request) {
+        try {
+            userService.updateWonnabe(user, request);
+            return JsonResponse.ok("워너비 정보 수정 성공", Map.of("isSuccess", true));
+        } catch (Exception e) {
+            log.error("워너비 정보 수정 실패: {}", e.getMessage());
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "워너비 정보 수정 실패");
+        }
+    }
+
+    /**
+     * 로그인한 사용자의 진단 결과 히스토리를 조회합니다. (실제 로그인 사용자만)
+     */
+    @GetMapping("/users/{id}/nowme/history")
+    public ResponseEntity<?> getNowmeHistory(@PathVariable("id") String id,
+                                             @AuthenticationPrincipal CustomUser user) {
+        try {
+            // 보안: 본인 정보만 조회 가능
+            String currentUserId = user.getUser().getUserId();
+            if (!currentUserId.equals(id)) {
+                return JsonResponse.error(HttpStatus.FORBIDDEN, "본인의 히스토리만 조회할 수 있습니다.");
+            }
+
+            DiagnosisHistoryResponse result = userService.getNowmeHistory(id);
+            return JsonResponse.ok("진단 히스토리 조회 성공", result);
+        } catch (Exception e) {
+            log.error("진단 히스토리 조회 실패: {}", e.getMessage());
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "진단 히스토리 조회 실패");
+        }
+    }
+
+    /**
+     * 로그인한 사용자의 상세 정보를 조회합니다. (GET)
+     */
+    @GetMapping("/info")
+    public ResponseEntity<?> getUserDetail(@AuthenticationPrincipal CustomUser user) {
+        try {
+            String userId = user.getUser().getUserId();
+            UserDetailResponse result = userService.getUserDetail(userId);
+
+            if (result.getCode() == 404) {
+                return JsonResponse.error(HttpStatus.NOT_FOUND, result.getMessage());
+            }
+
+            return JsonResponse.ok("사용자 상세 정보 조회 성공", result.getData());
+        } catch (Exception e) {
+            log.error("사용자 상세 정보 조회 실패: {}", e.getMessage());
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 상세 정보 조회 실패");
+        }
+    }
+
+    /**
+     * 로그인한 사용자의 상세 정보를 등록합니다. (POST)
+     */
+    @PostMapping("/info")
+    public ResponseEntity<?> createUserDetail(@AuthenticationPrincipal CustomUser user,
+                                              @RequestBody UserDetailRequest request) {
+        try {
+            // 보안: 실제 로그인한 사용자 ID로 강제 설정
+            String userId = user.getUser().getUserId();
+            request = UserDetailRequest.builder()
+                    .userId(userId)
+                    .lifestyleSmoking(request.getLifestyleSmoking())
+                    .lifestyleFamilyMedical(request.getLifestyleFamilyMedical())
+                    .lifestyleBeforeDiseases(request.getLifestyleBeforeDiseases())
+                    .lifestyleExerciseFreq(request.getLifestyleExerciseFreq())
+                    .lifestyleAlcoholFreq(request.getLifestyleAlcoholFreq())
+                    .incomeSourceType(request.getIncomeSourceType())
+                    .incomeEmploymentStatus(request.getIncomeEmploymentStatus())
+                    .householdSize(request.getHouseholdSize())
+                    .incomeJobType(request.getIncomeJobType())
+                    .build();
+
+            userService.createUserDetail(request);
+            return JsonResponse.ok("사용자 정보가 성공적으로 생성되었습니다.",
+                    Map.of("userId", userId, "createdAt", new Date()));
+        } catch (RuntimeException e) {
+            return JsonResponse.error(HttpStatus.CONFLICT, e.getMessage());
+        } catch (Exception e) {
+            log.error("사용자 상세 정보 등록 실패: {}", e.getMessage());
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 상세 정보 등록 실패");
+        }
+    }
+
+    /**
+     * 로그인한 사용자의 상세 정보를 수정합니다. (PATCH) - 부분 업데이트
+     */
+    @PatchMapping("/info")
+    public ResponseEntity<?> updateUserDetail(@AuthenticationPrincipal CustomUser user,
+                                              @RequestBody UserDetailRequest request) {
+        try {
+            // 보안: 실제 로그인한 사용자 ID로 강제 설정
+            String userId = user.getUser().getUserId();
+            request = UserDetailRequest.builder()
+                    .userId(userId)
+                    .lifestyleSmoking(request.getLifestyleSmoking())
+                    .lifestyleFamilyMedical(request.getLifestyleFamilyMedical())
+                    .lifestyleBeforeDiseases(request.getLifestyleBeforeDiseases())
+                    .lifestyleExerciseFreq(request.getLifestyleExerciseFreq())
+                    .lifestyleAlcoholFreq(request.getLifestyleAlcoholFreq())
+                    .incomeSourceType(request.getIncomeSourceType())
+                    .incomeEmploymentStatus(request.getIncomeEmploymentStatus())
+                    .householdSize(request.getHouseholdSize())
+                    .incomeJobType(request.getIncomeJobType())
+                    .build();
+
+            List<String> updatedFields = userService.updateUserDetail(request);
+            return JsonResponse.ok("사용자 정보가 성공적으로 수정되었습니다.",
+                    Map.of("userId", userId, "updatedFields", updatedFields));
+        } catch (RuntimeException e) {
+            return JsonResponse.error(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (Exception e) {
+            log.error("사용자 상세 정보 수정 실패: {}", e.getMessage());
+            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 상세 정보 수정 실패");
         }
     }
 }

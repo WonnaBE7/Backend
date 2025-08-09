@@ -1,6 +1,8 @@
 package com.wonnabe.product.mapper;
 
+import com.wonnabe.common.security.account.domain.UserVO;
 import com.wonnabe.product.domain.UserInsuranceVO;
+import com.wonnabe.product.domain.UserSavingsVO;
 import com.wonnabe.product.dto.TransactionSummaryDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -33,4 +35,6 @@ public interface UserInsuranceMapper {
      */
     List<TransactionSummaryDto> findMonthlyTransactionSums(@Param("userId") String userId,
                                                            @Param("startDate") Date startDate);
+
+    List<UserInsuranceVO> findAllByUserId(String userId);
 }
