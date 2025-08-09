@@ -89,7 +89,7 @@ public class UserController {
     }
 
     /**
-     * 로그인한 사용자의 상세 정보를 조회합니다.
+     * 로그인한 사용자의 상세 정보를 조회합니다. (GET)
      */
     @GetMapping("/info")
     public ResponseEntity<?> getUserDetail(@AuthenticationPrincipal CustomUser user) {
@@ -109,23 +109,25 @@ public class UserController {
     }
 
     /**
-     * 로그인한 사용자의 상세 정보를 등록합니다.
+     * 로그인한 사용자의 상세 정보를 등록합니다. (POST)
      */
     @PostMapping("/info")
     public ResponseEntity<?> createUserDetail(@AuthenticationPrincipal CustomUser user,
                                               @RequestBody UserDetailRequest request) {
         try {
+            // 보안: 실제 로그인한 사용자 ID로 강제 설정
             String userId = user.getUser().getUserId();
             request = UserDetailRequest.builder()
                     .userId(userId)
                     .lifestyleSmoking(request.getLifestyleSmoking())
-                    .lifestyleDrinking(request.getLifestyleDrinking())
-                    .lifestyleExercise(request.getLifestyleExercise())
-                    .householdSize(request.getHouseholdSize())
                     .lifestyleFamilyMedical(request.getLifestyleFamilyMedical())
                     .lifestyleBeforeDiseases(request.getLifestyleBeforeDiseases())
+                    .lifestyleExerciseFreq(request.getLifestyleExerciseFreq())
+                    .lifestyleAlcoholFreq(request.getLifestyleAlcoholFreq())
+                    .incomeSourceType(request.getIncomeSourceType())
+                    .incomeEmploymentStatus(request.getIncomeEmploymentStatus())
+                    .householdSize(request.getHouseholdSize())
                     .incomeJobType(request.getIncomeJobType())
-                    .incomeAnnualAmount(request.getIncomeAnnualAmount())  // 추가
                     .build();
 
             userService.createUserDetail(request);
@@ -140,23 +142,25 @@ public class UserController {
     }
 
     /**
-     * 로그인한 사용자의 상세 정보를 수정합니다.
+     * 로그인한 사용자의 상세 정보를 수정합니다. (PATCH) - 부분 업데이트
      */
-    @PutMapping("/info")
+    @PatchMapping("/info")
     public ResponseEntity<?> updateUserDetail(@AuthenticationPrincipal CustomUser user,
                                               @RequestBody UserDetailRequest request) {
         try {
+            // 보안: 실제 로그인한 사용자 ID로 강제 설정
             String userId = user.getUser().getUserId();
             request = UserDetailRequest.builder()
                     .userId(userId)
                     .lifestyleSmoking(request.getLifestyleSmoking())
-                    .lifestyleDrinking(request.getLifestyleDrinking())
-                    .lifestyleExercise(request.getLifestyleExercise())
-                    .householdSize(request.getHouseholdSize())
                     .lifestyleFamilyMedical(request.getLifestyleFamilyMedical())
                     .lifestyleBeforeDiseases(request.getLifestyleBeforeDiseases())
+                    .lifestyleExerciseFreq(request.getLifestyleExerciseFreq())
+                    .lifestyleAlcoholFreq(request.getLifestyleAlcoholFreq())
+                    .incomeSourceType(request.getIncomeSourceType())
+                    .incomeEmploymentStatus(request.getIncomeEmploymentStatus())
+                    .householdSize(request.getHouseholdSize())
                     .incomeJobType(request.getIncomeJobType())
-                    .incomeAnnualAmount(request.getIncomeAnnualAmount())  // 추가
                     .build();
 
             List<String> updatedFields = userService.updateUserDetail(request);

@@ -164,13 +164,14 @@ public class UserService {
 
         List<String> updatedFields = new ArrayList<>();
         if (request.getLifestyleSmoking() != null) updatedFields.add("lifestyleSmoking");
-        if (request.getLifestyleDrinking() != null) updatedFields.add("lifestyleDrinking");
-        if (request.getLifestyleExercise() != null) updatedFields.add("lifestyleExercise");
-        if (request.getHouseholdSize() != null) updatedFields.add("householdSize");
         if (request.getLifestyleFamilyMedical() != null) updatedFields.add("lifestyleFamilyMedical");
         if (request.getLifestyleBeforeDiseases() != null) updatedFields.add("lifestyleBeforeDiseases");
+        if (request.getLifestyleExerciseFreq() != null) updatedFields.add("lifestyleExerciseFreq");
+        if (request.getLifestyleAlcoholFreq() != null) updatedFields.add("lifestyleAlcoholFreq");
+        if (request.getIncomeSourceType() != null) updatedFields.add("incomeSourceType");
+        if (request.getIncomeEmploymentStatus() != null) updatedFields.add("incomeEmploymentStatus");
+        if (request.getHouseholdSize() != null) updatedFields.add("householdSize");
         if (request.getIncomeJobType() != null) updatedFields.add("incomeJobType");
-        if (request.getIncomeAnnualAmount() != null) updatedFields.add("incomeAnnualAmount");  // 추가
 
         userMapper.updateUserDetail(request);
         return updatedFields;

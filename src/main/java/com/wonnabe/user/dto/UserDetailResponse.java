@@ -19,49 +19,49 @@ public class UserDetailResponse {
     @Getter
     public static class UserDetailData {
         private final String userId;
-        private final Boolean lifestyleSmoking;
-        private final Boolean lifestyleDrinking;
-        private final Boolean lifestyleExercise;
+
+        // 보험 추천시 필요 (tinyint -> Integer)
+        private final Integer lifestyleSmoking;
+        private final Integer lifestyleFamilyMedical;
+        private final Integer lifestyleBeforeDiseases;
+        private final Integer lifestyleExerciseFreq;
+        private final Integer lifestyleAlcoholFreq;
+
+        // 예적금 추천시 필요
+        private final String incomeSourceType;
+        private final String incomeEmploymentStatus;
+
+        // 나우미설정시 필요
         private final Integer householdSize;
-        private final Boolean lifestyleFamilyMedical;
-        private final Boolean lifestyleBeforeDiseases;
         private final String incomeJobType;
 
         public UserDetailData() {
             this.userId = null;
             this.lifestyleSmoking = null;
-            this.lifestyleDrinking = null;
-            this.lifestyleExercise = null;
-            this.householdSize = null;
             this.lifestyleFamilyMedical = null;
             this.lifestyleBeforeDiseases = null;
+            this.lifestyleExerciseFreq = null;
+            this.lifestyleAlcoholFreq = null;
+            this.incomeSourceType = null;
+            this.incomeEmploymentStatus = null;
+            this.householdSize = null;
             this.incomeJobType = null;
         }
 
-        public UserDetailData(String userId, Long lifestyleSmoking, Long lifestyleDrinking,
-                              Long lifestyleExercise, Integer householdSize, Long lifestyleFamilyMedical,
-                              Long lifestyleBeforeDiseases, String incomeJobType) {
-            this.userId = userId;
-            this.lifestyleSmoking = lifestyleSmoking != null && lifestyleSmoking == 1;
-            this.lifestyleDrinking = lifestyleDrinking != null && lifestyleDrinking == 1;
-            this.lifestyleExercise = lifestyleExercise != null && lifestyleExercise == 1;
-            this.householdSize = householdSize;
-            this.lifestyleFamilyMedical = lifestyleFamilyMedical != null && lifestyleFamilyMedical == 1;
-            this.lifestyleBeforeDiseases = lifestyleBeforeDiseases != null && lifestyleBeforeDiseases == 1;
-            this.incomeJobType = incomeJobType;
-        }
-
         @Builder
-        public UserDetailData(String userId, Boolean lifestyleSmoking, Boolean lifestyleDrinking,
-                              Boolean lifestyleExercise, Integer householdSize, Boolean lifestyleFamilyMedical,
-                              Boolean lifestyleBeforeDiseases, String incomeJobType) {
+        public UserDetailData(String userId, Integer lifestyleSmoking, Integer lifestyleFamilyMedical,
+                              Integer lifestyleBeforeDiseases, Integer lifestyleExerciseFreq,
+                              Integer lifestyleAlcoholFreq, String incomeSourceType,
+                              String incomeEmploymentStatus, Integer householdSize, String incomeJobType) {
             this.userId = userId;
             this.lifestyleSmoking = lifestyleSmoking;
-            this.lifestyleDrinking = lifestyleDrinking;
-            this.lifestyleExercise = lifestyleExercise;
-            this.householdSize = householdSize;
             this.lifestyleFamilyMedical = lifestyleFamilyMedical;
             this.lifestyleBeforeDiseases = lifestyleBeforeDiseases;
+            this.lifestyleExerciseFreq = lifestyleExerciseFreq;
+            this.lifestyleAlcoholFreq = lifestyleAlcoholFreq;
+            this.incomeSourceType = incomeSourceType;
+            this.incomeEmploymentStatus = incomeEmploymentStatus;
+            this.householdSize = householdSize;
             this.incomeJobType = incomeJobType;
         }
     }
