@@ -71,11 +71,16 @@ class AuthServiceTest {
         // Given
         SignupDTO dto = new SignupDTO();
         dto.setEmail("existing@example.com");
+        dto.setPassword("any_password");
+        dto.setName("홍길동");
 
         when(authMapper.existsByEmail("existing@example.com")).thenReturn(1);
 
-        // When & Then
-        assertThrows(RuntimeException.class, () -> authService.registerUser(dto));
+        // When
+        boolean result = authService.registerUser(dto);
+
+        // Then
+        assertFalse(result); // 결과가 false인지 확인
 
         // 필요한 메서드만 verify
         verify(authMapper, times(1)).existsByEmail("existing@example.com");
