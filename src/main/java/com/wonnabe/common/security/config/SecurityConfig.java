@@ -109,9 +109,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Override
     public void configure(WebSecurity web) throws Exception {
-        web.ignoring().antMatchers("/assets/**", "/*", "/api/member/**",
-                // Swagger 관련 url은 보안에서 제외
-                "/swagger-ui.html", "/webjars/**", "/swagger-resources/**", "/v2/api-docs"
+        web.ignoring().antMatchers(
+                "/assets/**",
+                "/*",
+                "/api/member/**",
+                "/swagger-ui.html",
+                "/webjars/**",
+                "/swagger-resources/**",
+                "/v2/api-docs"
         );
     }
 

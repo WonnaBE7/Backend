@@ -36,5 +36,3 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         JsonResponse.sendError(response, HttpStatus.FORBIDDEN, "권한이 부족합니다.");
     }
 }
-
-
