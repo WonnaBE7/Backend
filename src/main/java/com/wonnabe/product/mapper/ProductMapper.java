@@ -25,5 +25,5 @@ public interface ProductMapper {
 	 * @param userId 사용자 아이디
 	 * @return 사용자 예적금 요약 목록
 	 */
-	List<Deposit> findDepositSummaryByUserId(String userId);
+	List<Savings> findDepositSummaryByUserId(String userId);
 }

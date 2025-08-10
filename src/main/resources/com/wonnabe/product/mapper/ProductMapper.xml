@@ -22,7 +22,7 @@
                  JOIN insurance_product i ON ui.product_id = i.product_id
         WHERE ui.user_id = #{userId}
     </select>
-    <select id="findDepositSummaryByUserId" resultType="com.wonnabe.product.dto.ProductResponseDTO$Deposit">
+    <select id="findDepositSummaryByUserId" resultType="com.wonnabe.product.dto.ProductResponseDTO$Savings">
         SELECT
             s.product_id AS productId,
             s.product_name AS productName,
