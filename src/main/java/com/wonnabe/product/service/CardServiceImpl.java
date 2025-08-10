@@ -137,7 +137,7 @@ public class CardServiceImpl implements CardService {
                     .matchScore((int) scoredCards.get(i).score)
                     .mainBenefit(card.getBenefitLimit())
                     .annualFeeDomestic(card.getAnnualFeeDomestic())
-                    .annualFeeOverSeas(card.getAnnualFeeOverSeas())
+                    .annualFeeOverSeas(card.getAnnualFeeOverseas())
                     .build();
                 personaRec.getProducts().add(item);
             }
@@ -432,14 +432,14 @@ public class CardServiceImpl implements CardService {
         String usage = "";
         if (!card.getAnnualFeeDomestic().equals("해당안함")) {
             usage += "국내 전용";
-            if (!card.getAnnualFeeOverSeas().equals("해당안함")) {
+            if (!card.getAnnualFeeOverseas().equals("해당안함")) {
                 usage += " / 해외 겸용";
             }
         } else {
             usage += "해외 겸용";
         }
         String annual_fee = "국내 연회비: "+ card.getAnnualFeeDomestic()
-            + " / 해외 연회비: " + card.getAnnualFeeOverSeas();
+            + " / 해외 연회비: " + card.getAnnualFeeOverseas();
 
         Note note = Note.builder()
             .category(category)
