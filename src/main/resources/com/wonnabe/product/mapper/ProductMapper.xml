@@ -5,7 +5,7 @@
 <mapper namespace="com.wonnabe.product.mapper.ProductMapper">
     <select id="findCardSummaryByUserId" resultType="com.wonnabe.product.dto.ProductResponseDTO$Card">
         SELECT
-            c.product_id AS productId,
+            c.product_id AS cardId,
             c.card_name AS cardName,
             c.benefit_limit AS benefitDescription
         FROM user_card uc
