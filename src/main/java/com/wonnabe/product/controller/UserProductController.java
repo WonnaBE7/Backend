@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/user/products")
+@RequestMapping("/api/user/products/cards")
 @Log4j2
 public class UserProductController {
 
@@ -32,7 +32,7 @@ public class UserProductController {
      * @param customuser 인증된 사용자 정보
      * @return
      */
-    @GetMapping("{cardId}")
+    @GetMapping("/{cardId}")
     public ResponseEntity<Object> getUserCardDetail(
             @PathVariable("cardId") int cardId, // url 경로를 파라미터로 매핑할때
             @AuthenticationPrincipal CustomUser customuser // 인증된 사용자 정보
