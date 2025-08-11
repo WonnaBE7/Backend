@@ -183,7 +183,7 @@ public class WishListServiceImpl implements WishListService {
 						.matchScore(score)
 						.mainBenefit(cardProduct.getBenefitLimit())
 						.annualFeeDomestic(cardProduct.getAnnualFeeDomestic())
-						.annualFeeOverseas(cardProduct.getAnnualFeeOverSeas())
+						.annualFeeOverseas(cardProduct.getAnnualFeeOverseas())
 						.build();
 
 				cards.add(card);
