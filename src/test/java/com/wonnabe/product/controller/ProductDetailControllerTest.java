@@ -152,7 +152,7 @@ class ProductDetailControllerTest {
         setupAuthentication(userId);
 
         // when
-        MvcResult result = mockMvc.perform(get("/api/products/insurance/{productId}", productId))
+        MvcResult result = mockMvc.perform(get("/api/products/insurances/{productId}", productId))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -184,7 +184,7 @@ class ProductDetailControllerTest {
         setupAuthentication(userId);
 
         // when & then
-        mockMvc.perform(get("/api/products/insurance/{productId}", nonExistentProductId))
+        mockMvc.perform(get("/api/products/insurances/{productId}", nonExistentProductId))
                 .andExpect(status().isInternalServerError()); // 500 Internal Server Error를 기대
     }
 }
