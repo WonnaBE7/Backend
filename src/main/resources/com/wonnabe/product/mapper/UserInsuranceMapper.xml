@@ -23,6 +23,26 @@
         </association>
     </resultMap>
 
+    <resultMap id="insuranceProductResultMap" type="com.wonnabe.product.domain.InsuranceProductVO">
+        <id property="productId" column="product_id"/>
+        <result property="providerName" column="provider_name"/>
+        <result property="productName" column="product_name"/>
+        <result property="minAge" column="min_age"/>
+        <result property="maxAge" column="max_age"/>
+        <result property="femalePremium" column="female_premium"/>
+        <result property="malePremium" column="male_premium"/>
+        <result property="scorePriceCompetitiveness" column="score_price_competitiveness"/>
+        <result property="scoreCoverageLimit" column="score_coverage_limit"/>
+        <result property="scoreCoverageScope" column="score_coverage_scope"/>
+        <result property="scoreDeductibleLevel" column="score_deductible_level"/>
+        <result property="scoreRefundScope" column="score_refund_scope"/>
+        <result property="coverageType" column="coverage_type"/>
+        <result property="coverageLimit" column="coverage_limit"/>
+        <result property="myMoney" column="my_money"/>
+        <result property="coverageDesc" column="coverage_desc"/>
+        <result property="note" column="note"/>
+    </resultMap>
+
     <!-- 사용자의 특정 보험 상품에 대한 가입 상세 정보를 조회하는 쿼리 -->
     <select id="findDetailByProductId" resultMap="userInsuranceResultMap">
         SELECT
@@ -68,6 +88,77 @@
 
     <select id="findAllByUserId" resultType="com.wonnabe.product.domain.UserInsuranceVO">
         SELECT * FROM User_Insurance WHERE user_id = #{userId}
+    </select>
+
+    <!-- 특정 상품 ID로 보험 상품 상세 정보를 조회하는 쿼리 -->
+    <select id="findInsuranceProductById" resultMap="insuranceProductResultMap">
+        SELECT
+            product_id,
+            provider_name,
+            product_name,
+            min_age,
+            max_age,
+            female_premium,
+            male_premium,
+            score_price_competitiveness,
+            score_coverage_limit,
+            score_coverage_scope,
+            score_deductible_level,
+            score_refund_scope,
+            coverage_type,
+            coverage_limit,
+            my_money,
+            coverage_desc,
+            note
+        FROM
+            insurance_product
+        WHERE
+            product_id = #{productId}
+    </select>
+
+    <!-- 특정 사용자의 특정 보험 상품에 대한 총 수령액(입금)을 조회하는 쿼리 -->
+    <select id="findTotalReceiptAmount" resultType="java.lang.Long">
+        SELECT
+            COALESCE(SUM(amount), 0)
+        FROM
+            User_Transactions
+        WHERE
+            user_id = #{userId}
+            AND product_id = #{productId}
+            AND asset_category = '보험'
+            AND transaction_type = '입금'
+    </select>
+
+    <!-- 특정 사용자의 특정 보험 상품에 대한 총 납입액(출금)을 조회하는 쿼리 -->
+    <select id="findTotalPaymentAmount" resultType="java.lang.Long">
+        SELECT
+            COALESCE(SUM(amount), 0)
+        FROM
+            User_Transactions
+        WHERE
+            user_id = #{userId}
+            AND product_id = #{productId}
+            AND asset_category = '보험'
+            AND transaction_type = '출금'
+    </select>
+
+    <!-- 특정 사용자의 특정 보험 상품에 대한 월별 수령액(입금)을 조회하는 쿼리 -->
+    <select id="findMonthlyInsuranceReceipts" resultType="com.wonnabe.product.dto.MonthlyInsuranceReceiptDto">
+        SELECT
+            DATE_FORMAT(transaction_date, '%Y-%m') as month,
+            COALESCE(SUM(amount), 0) as amount
+        FROM
+            User_Transactions
+        WHERE
+            user_id = #{userId}
+            AND product_id = #{productId}
+            AND asset_category = '보험'
+            AND transaction_type = '입금'
+            AND transaction_date >= #{startDate}
+        GROUP BY
+            month
+        ORDER BY
+            month ASC
     </select>
 
 </mapper>
