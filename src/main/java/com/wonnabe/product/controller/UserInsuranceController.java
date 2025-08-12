@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 사용자의 보유 보험 상품 관련 API 요청을 처리하는 컨트롤러.
  */
 @RestController
-@RequestMapping("/api/user/insurances")
+@RequestMapping("/api/user/products/insurances")
 @Log4j2
 public class UserInsuranceController {
 
