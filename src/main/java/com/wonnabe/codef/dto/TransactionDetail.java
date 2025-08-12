@@ -32,10 +32,4 @@ public class TransactionDetail {
     @JsonProperty("resAccountDesc4")
     private String description4;
 
-//    @JsonProperty("resAfterTranBalance")
-//    private String balanceAfter;
-//
-//    @JsonProperty("tranDesc")
-//    private String transactionDescription;
-
 }

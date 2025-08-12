@@ -49,4 +49,69 @@
         LIMIT 1;
     </select>
 
+    <select id="findUserCardIdByKeyword" parameterType="map" resultType="long">
+        SELECT uc.id
+        FROM Card_product p
+                 JOIN Institutions i ON p.card_company = i.name
+                 JOIN User_card uc ON uc.product_id = p.product_id AND uc.user_id = #{userId}
+        WHERE i.code = #{institutionCode}
+          AND REPLACE(#{cardName}, ' ', '') LIKE CONCAT('%', REPLACE(p.card_name, ' ', ''), '%')
+        LIMIT 1
+    </select>
+
+    <insert id="upsertBatch" parameterType="java.util.List">
+        INSERT INTO Card_Transactions (
+        user_id,
+        card_id,
+        transaction_date,
+        transaction_time,
+        card_number,
+        card_name,
+        merchant_name,
+        merchant_corp_no,
+        merchant_store_no,
+        merchant_store_type,
+        merchant_category,
+        amount
+        )
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.userId},
+            #{item.cardId},
+            #{item.transactionDate},
+            #{item.transactionTime},
+            #{item.cardNumber},
+            #{item.cardName},
+            #{item.merchantName},
+            #{item.merchantCorpNo},
+            #{item.merchantStoreNo},
+            #{item.merchantStoreType},
+            #{item.merchantCategory},
+            #{item.amount}
+            )
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        card_number     = VALUES(card_number),
+        merchant_name = VALUES(merchant_name),
+        merchant_category = VALUES(merchant_category),
+        merchant_corp_no = VALUES(merchant_corp_no),
+        merchant_store_no = VALUES(merchant_store_no),
+        amount = VALUES(amount)
+    </insert>
+
+    <select id="findUserCardIdByTwoCardNumbers"
+            parameterType="map"
+            resultType="long">
+        SELECT id
+        FROM User_card
+        WHERE user_id = #{userId}
+          AND (
+            RIGHT(card_number, 4) = RIGHT(#{cardNumber1}, 4)
+                OR RIGHT(card_number, 4) = RIGHT(#{cardNumber2}, 4)
+            )
+        ORDER BY issue_date DESC
+        LIMIT 1
+    </select>
+
 </mapper>

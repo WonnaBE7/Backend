@@ -35,7 +35,7 @@
 
     <select id="getAccountsByCategory" resultType="map">
         SELECT
-            LEFT(account_name, LOCATE(' ', account_name) - 1) AS bankName,
+            bank_name AS bankName,
             account_name AS accountName,
             account_number AS accountNumber,
             balance
@@ -43,7 +43,5 @@
         WHERE user_id = #{userId}
           AND category = #{category}
     </select>
-
-
 
 </mapper>

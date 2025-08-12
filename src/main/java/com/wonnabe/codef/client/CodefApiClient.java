@@ -44,18 +44,24 @@ public class CodefApiClient {
     }
 
     private Object parseApiResponse(String endpoint, String rawJson) throws Exception {
-        if (endpoint.contains("/card-list")) {
+        if (endpoint.contains("/card/p/account/card-list")) {
             // 카드 보유카드 조회
             return objectMapper.readValue(rawJson, CardListWrapper.class);
-        } else if (endpoint.contains("/account-list")) {
+        } else if (endpoint.contains("/card/p/account/approval-list")) {
+            // 카드 승인내역 조회
+            return objectMapper.readValue(rawJson, CardTransactionListWrapper.class);
+        } else if (endpoint.contains("/bank/p/account/account-list")) {
             // 은행 보유계좌 조회
             return objectMapper.readValue(rawJson, AccountListResponse.class);
-        } else if (endpoint.contains("/account/transaction-list")) {
+        } else if (endpoint.contains("/bank/p/account/transaction-list")) {
             // 은행 수시입출 거래내역 조회
-            return objectMapper.readValue(rawJson, CodefTransactionResponse.class);
-        } else if (endpoint.contains("/installment-savings/transaction-list")) {
+            return objectMapper.readValue(rawJson, AccountTransactionListWrapper.class);
+        } else if (endpoint.contains("/bank/p/installment-savings/transaction-list")) {
             // 은행 적금 거래내역 조회
-            return objectMapper.readValue(rawJson, SavingTransactionResponse.class);
+            return objectMapper.readValue(rawJson, SavingTransactionListResponse.class);
+        } else if (endpoint.contains("/stock/a/account/account-list")) {
+            // 증권 보유계좌 조회
+            return objectMapper.readValue(rawJson, InvestAccountListWrapper.class);
         } else {
             throw new UnsupportedOperationException("지원하지 않는 CODEF API 엔드포인트: " + endpoint);
         }

@@ -11,8 +11,9 @@
         category,
         balance,
         last_updated,
-        created_at,  <!-- 여기에 추가 -->
-        institution_code
+        created_at,
+        institution_code,
+        bank_name
         ) VALUES (
         #{account.userId},
         #{account.accountNumber},
@@ -20,13 +21,20 @@
         #{account.category},
         #{account.accountBalance},
         NOW(),
-        #{account.accountStartDate},  <!-- 이 값으로 삽입 -->
-        #{account.institutionCode}
+        #{account.accountStartDate},
+        #{account.institutionCode},
+        #{account.bankName}
         )
         ON DUPLICATE KEY UPDATE
         balance = VALUES(balance),
+        bank_name = VALUES(bank_name),
         last_updated = NOW()
     </insert>
 
+    <select id="findBankName" parameterType="string" resultType="string">
+        SELECT name
+        FROM Institutions
+        WHERE code = #{bankCode}
+    </select>
 
 </mapper>

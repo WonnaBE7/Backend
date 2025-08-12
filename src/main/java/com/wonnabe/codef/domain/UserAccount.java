@@ -16,6 +16,7 @@ public class UserAccount {
     private String accountStartDate;
     private String accountEndDate;
 
+    private String bankName;
     private String accountName;
     private String accountDisplay;
     private String category;
