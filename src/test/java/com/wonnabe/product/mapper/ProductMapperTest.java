@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +14,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import com.wonnabe.common.config.RedisConfig;
 import com.wonnabe.common.config.RootConfig;
-import com.wonnabe.product.dto.ProductResponseDTO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,7 +48,7 @@ class ProductMapperTest {
 	@Test
 	@DisplayName("[성공] 예적금 요약 정보 조회")
 	void findDepositSummaryByUserId() {
-		List<Deposit> deposits = mapper.findDepositSummaryByUserId(userId);
+		List<Savings> deposits = mapper.findDepositSummaryByUserId(userId);
 		assertNotNull(deposits);
 		log.info(deposits.toString());
 	}

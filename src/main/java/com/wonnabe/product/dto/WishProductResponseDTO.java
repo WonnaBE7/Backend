@@ -30,7 +30,7 @@ public class WishProductResponseDTO {
 		private String bankName;
 		private double baseRate;
 		private double maxRate;
-		private double totalScore;
+		private double score;
 	}
 
 	// 카드
@@ -44,7 +44,7 @@ public class WishProductResponseDTO {
 		private String cardName;
 		private String cardCompany;
 		private String cardType;
-		private int matchScore;
+		private double score;
 		private String mainBenefit;
 		private String annualFeeDomestic;
 		private String annualFeeOverseas;
@@ -62,6 +62,6 @@ public class WishProductResponseDTO {
 		private String providerName;
 		private String coverageType;
 		private String coverageLimit;
-		private double totalScore;
+		private double score;
 	}
 }

@@ -17,7 +17,7 @@ import com.wonnabe.product.service.CardService;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
-@RequestMapping("/api/user/products/cards")
+@RequestMapping("/api/products/cards")
 public class CardProductController {
 	private final CardService cardService;
 

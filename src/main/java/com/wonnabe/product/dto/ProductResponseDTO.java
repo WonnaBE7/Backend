@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ProductResponseDTO {
 
-	DepositsWithCount deposits; // 예적금
+	SavingsWithCount savings; // 예적금
 	CardWithCount cards; // 카드
 	InsuranceWithCount insurances; // 보험
 
@@ -22,7 +22,7 @@ public class ProductResponseDTO {
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class Deposit {
+	public static class Savings {
 		private String productId;
 		private String productName;
 		private double interestRate;
@@ -57,9 +57,9 @@ public class ProductResponseDTO {
 	@Builder
 	@NoArgsConstructor
 	@AllArgsConstructor
-	public static class DepositsWithCount {
+	public static class SavingsWithCount {
 		int count;
-		public List<Deposit> products;
+		public List<Savings> products;
 	}
 
 	// 카드

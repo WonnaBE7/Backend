@@ -73,10 +73,12 @@
                cp.card_name,
                cp.card_company,
                DATE_FORMAT(ct.transaction_date, '%Y-%m') AS month,
-               SUM(ct.amount)                            AS amount
+               ABS(SUM(ct.amount))                            AS amount
         FROM user_card uc
                  JOIN card_product cp ON uc.product_id = cp.product_id
-                 LEFT JOIN card_transactions ct ON uc.id = ct.card_id
+                 LEFT JOIN card_transactions ct
+                     ON uc.id = ct.card_id
+                     AND ct.amount &lt; 0
         WHERE uc.product_id = #{productId}
           AND uc.user_id = #{userId}
           AND ct.transaction_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
@@ -116,9 +118,11 @@
             SELECT
                 uc.user_id,
                 ct.card_id,
-                SUM(ct.amount) AS previous_consumption
+                ABS(SUM(ct.amount)) AS previous_consumption
             FROM user_card uc
-                     JOIN card_transactions ct ON uc.id = ct.card_id
+                     JOIN card_transactions ct
+                         ON uc.id = ct.card_id
+                         AND ct.amount &lt; 0
             WHERE MONTH(ct.transaction_date) = MONTH(CURDATE() - INTERVAL 1 MONTH)
               AND YEAR(ct.transaction_date) = YEAR(CURDATE() - INTERVAL 1 MONTH)
             GROUP BY uc.user_id, ct.card_id
@@ -179,9 +183,11 @@
                  LEFT JOIN (
             SELECT
                 uc.user_id,
-                SUM(ct.amount) AS previous_consumption
+                ABS(SUM(ct.amount)) AS previous_consumption
             FROM user_card uc
-                     JOIN card_transactions ct ON uc.id = ct.card_id
+                     JOIN card_transactions ct
+                         ON uc.id = ct.card_id
+                         AND ct.amount &lt; 0
             WHERE MONTH(ct.transaction_date) = MONTH(CURDATE() - INTERVAL 1 MONTH)
               AND YEAR(ct.transaction_date) = YEAR(CURDATE() - INTERVAL 1 MONTH)
             GROUP BY uc.id

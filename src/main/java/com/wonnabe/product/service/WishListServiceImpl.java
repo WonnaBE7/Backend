@@ -151,7 +151,7 @@ public class WishListServiceImpl implements WishListService {
 				SavingsProductVO savingProduct = savingsMapper.findById(id);
 
 				// 점수 계산
-				double totalScore = calculateScoreSaving(savingProduct, adjustedWeights);
+				double score = calculateScoreSaving(savingProduct, adjustedWeights);
 
 				// 값을 배열에 저장
 				Savings saving = Savings.builder()
@@ -161,7 +161,7 @@ public class WishListServiceImpl implements WishListService {
 						.bankName(savingProduct.getBankName())
 						.baseRate(savingProduct.getBaseRate())
 						.maxRate(Math.round(savingProduct.getMaxRate() * 100.0) / 100.0)
-						.totalScore(Math.round(totalScore * 10.0) / 10.0)
+						.score(Math.round(score * 10.0) / 10.0)
 						.build();
 
 				savings.add(saving);
@@ -172,7 +172,7 @@ public class WishListServiceImpl implements WishListService {
 				double[] adjustedWeights =  adjustWeightsByIncomeCard(baseWeights,
 						basicUserInfo.getIncomeAnnualAmount());
 
-				int score = (int) calculateScoreCard(cardProduct, adjustedWeights, basicUserInfo.getPreviousConsumption());
+				double score = calculateScoreCard(cardProduct, adjustedWeights, basicUserInfo.getPreviousConsumption());
 
 				Card card = Card.builder()
 						.productType("card")
@@ -180,10 +180,10 @@ public class WishListServiceImpl implements WishListService {
 						.cardName(cardProduct.getCardName())
 						.cardCompany(cardProduct.getCardCompany())
 						.cardType(cardProduct.getCardTypeLabel())
-						.matchScore(score)
+						.score(Math.round(score * 10.0) / 10.0)
 						.mainBenefit(cardProduct.getBenefitLimit())
 						.annualFeeDomestic(cardProduct.getAnnualFeeDomestic())
-						.annualFeeOverseas(cardProduct.getAnnualFeeOverSeas())
+						.annualFeeOverseas(cardProduct.getAnnualFeeOverseas())
 						.build();
 
 				cards.add(card);
@@ -203,7 +203,7 @@ public class WishListServiceImpl implements WishListService {
 				);
 
 				InsuranceProductVO insuranceProduct = insuranceMapper.findById(id);
-				double totalScore = calculateInsuranceScore(insuranceProduct, adjustedWeights);
+				double score = calculateInsuranceScore(insuranceProduct, adjustedWeights);
 
 				Insurance insurance = Insurance.builder()
 						.productType("insurance")
@@ -212,7 +212,7 @@ public class WishListServiceImpl implements WishListService {
 						.providerName(insuranceProduct.getProviderName())
 						.coverageType(insuranceProduct.getCoverageType())
 						.coverageLimit(insuranceProduct.getCoverageLimit())
-						.totalScore(Math.round(totalScore * 10.0) / 10.0)
+						.score(Math.round(score * 10.0) / 10.0)
 						.build();
 
 				insurances.add(insurance);
