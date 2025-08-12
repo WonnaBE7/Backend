@@ -54,8 +54,8 @@ public class UserInsuranceDetailDTO {
         // 가입 기간 계산
         String term = "";
         if (userInsurance.getStartDate() != null && userInsurance.getEndDate() != null) {
-            LocalDate start = userInsurance.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-            LocalDate end = userInsurance.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            LocalDate start = userInsurance.getStartDate().toLocalDate(); // Use toLocalDate() directly
+            LocalDate end = userInsurance.getEndDate().toLocalDate();     // Use toLocalDate() directly
             Period period = Period.between(start, end);
             int months = period.getYears() * 12 + period.getMonths();
             term = months + "개월";
