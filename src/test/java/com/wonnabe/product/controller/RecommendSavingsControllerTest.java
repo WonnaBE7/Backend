@@ -120,7 +120,7 @@ class RecommendSavingsControllerTest {
             savings.setBankName("테스트은행" + i);
             savings.setBaseRate(3.0f + i * 0.1f);
             savings.setMaxRate(4.0f + i * 0.1f);
-            savings.setTotalScore(85.0 + i);
+            savings.setScore(85.0 + i);
 
             personaRec.getProducts().add(savings);
             log.info("    > 상품 추가: {} (ID: {})", savings.getProductName(), savings.getProductId());
@@ -221,7 +221,7 @@ class RecommendSavingsControllerTest {
                     .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].bankName").exists()) // 첫 번째 추천 상품의 bankName 필드 존재 여부 검증
                     .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].baseRate").exists()) // 첫 번째 추천 상품의 baseRate 필드 존재 여부 검증
                     .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].maxRate").exists()) // 첫 번째 추천 상품의 maxRate 필드 존재 여부 검증
-                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].totalScore").exists()); // 첫 번째 추천 상품의 totalScore 필드 존재 여부 검증
+                    .andExpect(jsonPath("$.recommendationsByPersona[0].products[0].score").exists()); // 첫 번째 추천 상품의 score 필드 존재 여부 검증
 
             log.info("--- [recommendSavings_success_withTopN] API 호출 및 응답 검증 완료 ---");
             log.info("  - 예상 HTTP 상태: 200 OK, 실제 HTTP 상태: {}", result.andReturn().getResponse().getStatus());

@@ -121,7 +121,7 @@ class RecommendInsuranceControllerTest {
             insurance.setCoverageLimit("1억");
             insurance.setNote("테스트 노트 " + i);
             insurance.setMyMoney("10000");
-            insurance.setTotalScore(90.0 + i);
+            insurance.setScore(90.0 + i);
             insurance.setProductType("insurance");
 
             personaRec.getProducts().add(insurance);
@@ -170,7 +170,7 @@ class RecommendInsuranceControllerTest {
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].coverageLimit").exists())
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].note").exists())
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].myMoney").exists())
-                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].totalScore").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].score").exists())
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productType").value("insurance"));
 
             log.info("--- [recommendInsurance_success] API 호출 및 응답 검증 완료 ---");
@@ -232,7 +232,7 @@ class RecommendInsuranceControllerTest {
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].coverageLimit").exists())
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].note").exists())
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].myMoney").exists())
-                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].totalScore").exists())
+                    .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].score").exists())
                     .andExpect(jsonPath("$.data.recommendationsByPersona[0].products[0].productType").value("insurance"));
 
             log.info("--- [recommendInsurance_success_withTopN] API 호출 및 응답 검증 완료 ---");

@@ -134,10 +134,10 @@ public class CardServiceImpl implements CardService {
                     .cardName(card.getCardName())
                     .cardCompany(card.getCardCompany())
                     .cardType(card.getCardTypeLabel())
-                    .matchScore((int) scoredCards.get(i).score)
+                    .score(Math.round(scoredCards.get(i).score * 10.0) / 10.0)
                     .mainBenefit(card.getBenefitLimit())
                     .annualFeeDomestic(card.getAnnualFeeDomestic())
-                    .annualFeeOverSeas(card.getAnnualFeeOverSeas())
+                    .annualFeeOverSeas(card.getAnnualFeeOverseas())
                     .build();
                 personaRec.getProducts().add(item);
             }
@@ -149,7 +149,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 소득/고용상태에 따른 가중치 조정
-    private double[] adjustWeightsByIncome(double[] weights, double incomeAnnualAmount) {
+    public double[] adjustWeightsByIncome(double[] weights, double incomeAnnualAmount) {
         double[] adjusted = weights.clone();
 
         // 소득원별 조정
@@ -170,7 +170,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 활용 점수 계산
-    int calculateUsageScore(int performanceRate) {
+    public int calculateUsageScore(int performanceRate) {
         if (performanceRate >= 100) return 5;
         if (performanceRate >= 80) return 4;
         if (performanceRate >= 60) return 3;
@@ -179,7 +179,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 가중치 정규화
-    private double[] normalizeWeights(double[] weights) {
+    public double[] normalizeWeights(double[] weights) {
         double sum = Arrays.stream(weights).sum();
         if (sum == 0) {
             return weights;
@@ -188,7 +188,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 점수 계산
-    private double calculateScore(CardProductVO card, double[] weights, double amount) {
+    public double calculateScore(CardProductVO card, double[] weights, double amount) {
         List<Integer> score = card.getCardScores();
         int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
         int usageScore = calculateUsageScore(performanceRate);
@@ -384,7 +384,7 @@ public class CardServiceImpl implements CardService {
             .cardId(card.getProductId())
             .cardName(card.getCardName())
             .cardCompany(card.getCardCompany())
-            .matchScore((int)cardScore)
+            .score(Math.round(cardScore * 10.0) / 10.0)
             .mainBenefit(card.getBenefitLimit())
             .cardType(card.getCardType().toValue())
             .benefitSummary(card.getBenefitSummary())
@@ -432,14 +432,14 @@ public class CardServiceImpl implements CardService {
         String usage = "";
         if (!card.getAnnualFeeDomestic().equals("해당안함")) {
             usage += "국내 전용";
-            if (!card.getAnnualFeeOverSeas().equals("해당안함")) {
+            if (!card.getAnnualFeeOverseas().equals("해당안함")) {
                 usage += " / 해외 겸용";
             }
         } else {
             usage += "해외 겸용";
         }
         String annual_fee = "국내 연회비: "+ card.getAnnualFeeDomestic()
-            + " / 해외 연회비: " + card.getAnnualFeeOverSeas();
+            + " / 해외 연회비: " + card.getAnnualFeeOverseas();
 
         Note note = Note.builder()
             .category(category)

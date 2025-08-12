@@ -19,6 +19,13 @@ public class BasicUserInfoDTO {
 	private long incomeAnnualAmount;
 	private int nowMeId;
 	private double previousConsumption;
+	private String incomeSourceType;
+	private String incomeEmploymentStatus;
+	private String smokingStatus;
+	private String familyMedicalHistory;
+	private String pastMedicalHistory;
+	private String exerciseFrequency;
+	private String drinkingFrequency;
 
 	// 내 카드 Id 리스트로 변환
 	public List<Long> getMyFavorite() {

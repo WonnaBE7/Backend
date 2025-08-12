@@ -44,17 +44,17 @@ class SavingsRecommendationServiceImplTest {
 
         SavingsProductVO product1 = new SavingsProductVO();
         product1.setProductId(1L); product1.setProductName("상품A");
-        product1.setInterestRateScore(10); product1.setCompoundInterestScore(5);
-        product1.setPreferentialScore(3); product1.setPenaltyScore(8);
-        product1.setLimitScore(8);
+        product1.setScoreInterestRate(100); product1.setScoreInterestType(5);
+        product1.setScorePreferentialCondition(30); product1.setScoreCancelBenefit(8);
+        product1.setScoreMaxAmount(80);
         product1.setBaseRate(1.0f);
         product1.setMaxRate(1.5f);
 
         SavingsProductVO product2 = new SavingsProductVO();
         product2.setProductId(2L); product2.setProductName("상품B");
-        product2.setInterestRateScore(5); product2.setCompoundInterestScore(8);
-        product2.setPreferentialScore(10); product2.setPenaltyScore(3);
-        product2.setLimitScore(4);
+        product2.setScoreInterestRate(50); product2.setScoreInterestType(8);
+        product2.setScorePreferentialCondition(100); product2.setScoreCancelBenefit(3);
+        product2.setScoreMaxAmount(40);
         product2.setBaseRate(2.0f);
         product2.setMaxRate(2.5f);
 
@@ -89,7 +89,7 @@ class SavingsRecommendationServiceImplTest {
             } else {
                 personaRec.getProducts().forEach(product -> {
                     System.out.println("      - 상품 ID: " + product.getProductId() + ", 상품명: " + product.getProductName() + ", 은행: " + product.getBankName());
-                    System.out.println("        기본 금리: " + product.getBaseRate() + ", 최고 금리: " + product.getMaxRate() + ", 총 점수: " + product.getTotalScore());
+                    System.out.println("        기본 금리: " + product.getBaseRate() + ", 최고 금리: " + product.getMaxRate() + ", 총 점수: " + product.getScore());
                 });
             }
         });

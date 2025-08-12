@@ -90,8 +90,8 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
             // 각 상품의 점수 계산
             List<ProductWithScore> scoredProducts = new ArrayList<>();
             for (SavingsProductVO product : productsWithScores) {
-                double totalScore = calculateScore(product, adjustedWeights);
-                scoredProducts.add(new ProductWithScore(product, totalScore));
+                double score = calculateScore(product, adjustedWeights);
+                scoredProducts.add(new ProductWithScore(product, score));
             }
 
             // 점수 순으로 정렬
@@ -113,7 +113,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                 rec.setBankName(product.getBankName());
                 rec.setBaseRate(product.getBaseRate() != null ? product.getBaseRate() : 0.0f);
                 rec.setMaxRate(product.getMaxRate() != null ? product.getMaxRate() : 0.0f);
-                rec.setTotalScore(item.score);
+                rec.setScore(item.score);
                 rec.setProductType("savings");
 
                 personaRec.getProducts().add(rec);
@@ -125,25 +125,30 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
         return response;
     }
 
+    @Override
+    public Map<Integer, double[]> getPersonaWeights() {
+        return PERSONA_WEIGHTS;
+    }
+
     // 소득/고용상태에 따른 가중치 조정
     private double[] adjustWeightsByIncome(double[] weights, String incomeSource, String employment) {
         double[] adjusted = weights.clone();
 
+        // (‼️ 수정)
         // 소득원별 조정
         if (incomeSource != null && !incomeSource.isEmpty()) {
             switch (incomeSource) {
-                case "급여":
+                case "근로소득":
                     adjusted[0] += 0.05;  // 금리
-                    adjusted[1] += 0.05;  // 단복리
+                    adjusted[1] += 0.03;  // 단복리
                     break;
-                case "사업":
-                    adjusted[2] += 0.05;  // 우대조건
-                    break;
-                case "프리랜스":
+                case "사업소득":
                     adjusted[3] += 0.05;  // 중도해지
+                    adjusted[2] += 0.03;  // 우대조건
                     break;
-                case "기타":
+                case "기타소득":
                     adjusted[4] += 0.05;  // 최대한도
+                    adjusted[3] += 0.03;  // 중도해지
                     break;
             }
         }
@@ -153,27 +158,31 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
             switch (employment) {
                 case "정규직":
                     adjusted[0] += 0.05;  // 금리
+                    adjusted[1] += 0.03;  // 단복리
                     break;
                 case "학생":
-                    adjusted[4] += 0.05;  // 최대한도
+                    adjusted[2] += 0.05;  // 우대조건
+                    adjusted[4] += 0.03;  // 최대한도
                     break;
                 case "무직":
                     adjusted[3] += 0.05;  // 중도해지
+                    adjusted[1] += 0.03;  // 단복리
                     break;
             }
         }
+
 
         // 정규화 (합 = 1)
         return normalizeWeights(adjusted);
     }
 
     // 점수 계산
-    private double calculateScore(SavingsProductVO score, double[] weights) {
-        return (weights[0] * score.getInterestRateScore() +
-                weights[1] * score.getCompoundInterestScore() +
-                weights[2] * score.getPreferentialScore() +
-                weights[3] * score.getPenaltyScore() +
-                weights[4] * score.getLimitScore()) *10 ;
+    public double calculateScore(SavingsProductVO score, double[] weights) {
+        return (weights[0] * score.getScoreInterestRate() +
+                weights[1] * score.getScoreInterestType() +
+                weights[2] * score.getScorePreferentialCondition() +
+                weights[3] * score.getScoreCancelBenefit() +
+                weights[4] * score.getScoreMaxAmount()) ; // 100점 만점
     }
 
     // 가중치 정규화

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.nowme.mapper.NowMeMapper">
+
+    <!-- [SpendingEvaluator] 소비패턴 정량 평가용 -->
+
+    <!-- 1. 전체 소비 금액 (최근 1개월) -->
+    <select id="getTotalSpending" resultType="double">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+    </select>
+
+    <!-- 2. 필수소비 카테고리 합계 (food, transport, living, fixcost) -->
+    <select id="getSpendingByCategories" resultType="double">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+        AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+        AND merchant_category IN
+        <foreach item="item" collection="categories" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 3. 선택소비 카테고리 종류 수 (필수소비 제외) -->
+    <select id="getMonthlySelectableCategoryCount" resultType="int">
+        SELECT COUNT(DISTINCT merchant_category)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+          AND merchant_category NOT IN ('food', 'transport', 'living', 'fixcost')
+    </select>
+
+    <!-- 4. 주별 소비 표준편차 (최근 1개월) -->
+    <select id="getWeeklySpendingStdDev" resultType="double">
+        SELECT COALESCE(STDDEV(weekly_total), 0)
+        FROM (
+                 SELECT YEARWEEK(transaction_date) AS week_key,
+                        SUM(amount) AS weekly_total
+                 FROM Card_Transactions
+                 WHERE user_id = #{userId}
+                   AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+                 GROUP BY week_key
+             ) AS weekly_data
+    </select>
+
+    <!-- [ActivityEvaluator] 금융활동성 정량 평가용 -->
+
+    <!-- 5. 계좌 카테고리 수 (입출금, 투자, 연금 등 종류) -->
+    <select id="getAccountCategoryCount" resultType="int">
+        SELECT COUNT(DISTINCT category)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 6. 저축상품 가입 수 -->
+    <select id="getSavingsProductCount" resultType="int">
+        SELECT COUNT(*)
+        FROM User_Savings
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 7. 보험상품 가입 수 -->
+    <select id="getInsuranceProductCount" resultType="int">
+        SELECT COUNT(*)
+        FROM User_Insurance
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 8. 최근 1개월 거래 건수 -->
+    <select id="getMonthlyTransactionCount" resultType="int">
+        SELECT COUNT(*)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+    </select>
+
+    <!-- 9. 최근 1개월 소비처 다양성 (merchant_category 기준) -->
+    <select id="getMonthlyMerchantCategoryCount" resultType="int">
+        SELECT COUNT(DISTINCT merchant_category)
+        FROM Card_Transactions
+        WHERE user_id = #{userId}
+          AND transaction_date >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+    </select>
+
+    <!-- [RiskEvaluator] 리스크성향 정량 평가용 -->
+
+    <!-- 10. 전체 계좌 잔액 합계 -->
+    <select id="getTotalBalance" resultType="double">
+        SELECT COALESCE(SUM(balance), 0)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 11. 특정 카테고리 계좌들의 잔액 합계 (투자, 주식, 펀드 등) -->
+    <select id="getBalanceByCategories" resultType="double">
+        SELECT COALESCE(SUM(balance), 0)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+        AND category IN
+        <foreach item="item" collection="categories" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 12. 특정 카테고리 계좌 수 (투자상품 다양성용) -->
+    <select id="getAccountCountByCategories" resultType="int">
+        SELECT COUNT(DISTINCT account_name)
+        FROM User_Accounts
+        WHERE user_id = #{userId}
+        AND category IN
+        <foreach item="item" collection="categories" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
+    <!-- 13. 가입한 저축상품의 평균 max_rate (고금리 선호 경향) -->
+    <select id="getAvgSavingsRate" resultType="double">
+        SELECT COALESCE(AVG(sp.max_rate), 0)
+        FROM User_Savings us
+                 JOIN Savings_Product sp ON us.product_id = sp.product_id
+        WHERE us.user_id = #{userId}
+    </select>
+
+    <!-- [PlanningEvaluator] 계획방식 정량 평가용 -->
+
+    <!-- 16. 목표 개수 -->
+    <select id="getGoalCount" resultType="int">
+        SELECT COUNT(*)
+        FROM user_goal
+        WHERE user_id = #{userId}
+          AND status = 'PUBLISHED'
+    </select>
+
+    <!-- 17. 평균 목표 진척률 (progress_rate 평균) -->
+    <select id="getAverageGoalProgressRate" resultType="double">
+        SELECT COALESCE(AVG(progress_rate), 0)
+        FROM user_goal
+        WHERE user_id = #{userId}
+          AND status = 'PUBLISHED'
+    </select>
+
+    <!-- 18. 계획된 월 저축 금액 합계 (목표 기준) -->
+    <select id="getPlannedMonthlySaving" resultType="double">
+        SELECT COALESCE(SUM(monthly_save_amount), 0)
+        FROM user_goal
+        WHERE user_id = #{userId}
+          AND status = 'PUBLISHED'
+          AND monthly_save_amount > 0
+    </select>
+
+    <!-- 19. 실제 월 저축 금액 합계 (User_Savings 기준) -->
+    <select id="getActualMonthlySaving" resultType="double">
+        SELECT COALESCE(SUM(monthly_payment), 0)
+        FROM User_Savings
+        WHERE user_id = #{userId}
+          AND monthly_payment > 0
+    </select>
+
+    <!-- 20. 월별 소비 표준편차 (최근 6개월, Summaries_Cache 활용) -->
+    <select id="getMonthlySpendingStdDev" resultType="double">
+        SELECT COALESCE(STDDEV(monthly_total), 0)
+        FROM (
+                 SELECT SUM(amount) AS monthly_total
+                 FROM Summaries_Cache
+                 WHERE user_id = #{userId}
+                   AND period_type = 'monthly'
+                   AND date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                 GROUP BY yearMonth
+             ) AS monthly_data
+    </select>
+
+    <!-- 21. 월별 소비 평균 (최근 6개월, Summaries_Cache 활용) -->
+    <select id="getMonthlySpendingAverage" resultType="double">
+        SELECT COALESCE(AVG(monthly_total), 0)
+        FROM (
+                 SELECT SUM(amount) AS monthly_total
+                 FROM Summaries_Cache
+                 WHERE user_id = #{userId}
+                   AND period_type = 'monthly'
+                   AND date >= DATE_SUB(CURDATE(), INTERVAL 6 MONTH)
+                 GROUP BY yearMonth
+             ) AS monthly_data
+    </select>
+
+    <!-- [공통 정보] -->
+
+    <!-- 14. 사용자 가구원 수 -->
+    <select id="getHouseholdSize" resultType="int">
+        SELECT COALESCE(household_size, 1)
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 15. 연소득 -->
+    <select id="getAnnualIncome" resultType="double">
+        SELECT COALESCE(income_annual_amount, 0)
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- [진단 결과 저장용] -->
+
+    <!-- 22. 진단 이력 저장 -->
+    <insert id="insertDiagnosisHistory">
+        INSERT INTO diagnosis_history (
+            user_id,
+            nowme_id,
+            similarity,
+            user_vector,
+            diagnosed_at
+        ) VALUES (
+                     #{userId},
+                     #{nowmeId},
+                     #{similarity},
+                     #{userVector},
+                     NOW()
+                 )
+    </insert>
+
+    <!-- 23. User_Info의 nowme_id 업데이트 -->
+    <update id="updateUserNowmeId">
+        UPDATE User_Info
+        SET nowme_id = #{nowmeId}
+        WHERE user_id = #{userId}
+    </update>
+</mapper>

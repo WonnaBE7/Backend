@@ -44,7 +44,7 @@ import lombok.extern.log4j.Log4j2;
 	ServletConfig.class
 })
 @Log4j2
-class CardProductControllerTest {
+class CardProductDetailControllerTest {
 
 	private MockMvc mockMvc; // 컨트롤러 테스트용 가짜 브라우저인 mockmvc
 
@@ -73,7 +73,7 @@ class CardProductControllerTest {
 	}
 
 	@Test
-	@DisplayName("[성공] 사용자 카드 상세 정보 조회")
+	@DisplayName("[성공] 사용자가 선택한 카드 상품 정보 상세 정보 조회")
 	void getUserCardDetail() throws Exception{
 		// 가짜 유저 데이터 생성
 		UserVO userVO = new UserVO();
@@ -88,7 +88,7 @@ class CardProductControllerTest {
 		SecurityContextHolder.getContext().setAuthentication(auth);
 
 		// 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-		MvcResult result = mockMvc.perform(get("/api/user/products/cards/2500"))
+		MvcResult result = mockMvc.perform(get("/api/products/cards/2500"))
 			.andExpect(status().isOk())
 			.andReturn();
 
@@ -124,7 +124,7 @@ class CardProductControllerTest {
 		SecurityContextHolder.getContext().setAuthentication(auth);
 
 		// 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-		MvcResult result = mockMvc.perform(get("/api/user/products/cards/3333"))
+		MvcResult result = mockMvc.perform(get("/api/products/cards/3333"))
 			.andExpect(status().is4xxClientError())
 			.andReturn();
 
@@ -160,7 +160,7 @@ class CardProductControllerTest {
 		SecurityContextHolder.getContext().setAuthentication(auth);
 
 		// 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-		MvcResult result = mockMvc.perform(get("/api/user/products/cards/2300"))
+		MvcResult result = mockMvc.perform(get("/api/products/cards/2300"))
 			.andExpect(status().is4xxClientError())
 			.andReturn();
 

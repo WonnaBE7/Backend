@@ -7,16 +7,12 @@ import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.dto.AuthResultDTO;
 import com.wonnabe.common.security.account.dto.UserInfoDTO;
 import com.wonnabe.common.security.service.CustomUserDetailsService;
-import com.wonnabe.common.util.JsonResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.wonnabe.common.security.util.JwtProcessor;
@@ -24,10 +20,11 @@ import com.wonnabe.common.security.util.JwtProcessor;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Map;
 import java.util.UUID;
 
-@Log4j2
 @Service
+@Log4j2
 public class AuthService {
 
     @Autowired
@@ -45,6 +42,9 @@ public class AuthService {
     @Autowired
     private RefreshTokenRedisRepository refreshTokenRedisRepository;
 
+    @Autowired
+    private KakaoService kakaoService;
+
     /**
      * 회원가입 요청을 처리합니다.
      * - 이메일 중복 여부 확인
@@ -54,15 +54,40 @@ public class AuthService {
      * @return 가입 성공 여부 (true: 성공, false: 이메일 중복)
      */
     public boolean registerUser(SignupDTO dto) {
+        validateSignupDTO(dto);
+
         if (authMapper.existsByEmail(dto.getEmail()) > 0) {
             return false; // 이메일 중복
         }
 
         String userId = UUID.randomUUID().toString();
         String hashedPw = passwordEncoder.encode(dto.getPassword());
-        authMapper.insertUserProfile(userId, dto.getName(), dto.getEmail(), hashedPw, "email");
+        authMapper.insertUserProfile(userId, dto.getName(), dto.getEmail(), hashedPw, dto.getSignupType());
 
         return true;
+    }
+
+    private void validateSignupDTO(SignupDTO dto) {
+        if (dto.getEmail() == null || dto.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("이메일은 필수 입력 항목입니다.");
+        }
+        if (dto.getPassword() == null || dto.getPassword().trim().isEmpty()) {
+            throw new IllegalArgumentException("비밀번호는 필수 입력 항목입니다.");
+        }
+        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("이름은 필수 입력 항목입니다.");
+        }
+
+        if (!isValidEmail(dto.getEmail())) {
+            throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다.");
+        }
+        if (dto.getPassword().length() < 6) {
+            throw new IllegalArgumentException("비밀번호는 최소 6자 이상이어야 합니다.");
+        }
+    }
+
+    private boolean isValidEmail(String email) {
+        return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
 
     /**
@@ -170,4 +195,95 @@ public class AuthService {
         return null;
     }
 
+    /**
+     * 카카오 로그인 처리 (완전 수정된 버전)
+     * 기존 회원가입/로그인 로직을 최대한 재사용
+     */
+    public AuthResultDTO processKakaoLogin(String code, HttpServletResponse response) {
+        try {
+            // 1. 카카오에서 사용자 정보 받아오기
+            String accessToken = kakaoService.getAccessToken(code);
+            Map<String, String> kakaoUserInfo = kakaoService.getUserInfo(accessToken);
+
+            String email = kakaoUserInfo.get("email");
+            String nickname = kakaoUserInfo.get("nickname");
+            String kakaoId = kakaoUserInfo.get("kakaoId");
+
+            // 2. 이메일이 없는 경우 임시 이메일 생성 (수정된 부분!)
+            if (email == null || email.isEmpty()) {
+                email = kakaoId + "@kakao.temp";  // 4357475616@kakao.temp
+                log.info("카카오 이메일 권한 없음. 임시 이메일 사용: {}", email);
+            }
+
+            // 3. 기존 회원 확인
+            boolean userExists = authMapper.existsByEmail(email) > 0;
+            log.info("사용자 존재 여부 확인: email={}, exists={}", email, userExists);
+
+            if (!userExists) {
+                // 4. 신규 회원 - 기존 회원가입 로직 활용
+                SignupDTO kakaoSignup = new SignupDTO();
+                kakaoSignup.setEmail(email);
+                kakaoSignup.setName(nickname);
+                kakaoSignup.setPassword(UUID.randomUUID().toString().substring(0, 16));
+                kakaoSignup.setSignupType("kakao");
+
+                log.info("카카오 신규 회원가입 시도: email={}, name={}", email, nickname);
+
+                // 기존 회원가입 메서드 재사용
+                boolean signupResult = registerUser(kakaoSignup);
+                if (!signupResult) {
+                    log.error("카카오 회원가입 실패: {}", email);
+                    throw new RuntimeException("카카오 회원가입 처리 실패");
+                }
+
+                log.info("카카오 신규 회원 가입 완료: {}", email);
+            } else {
+                log.info("카카오 기존 회원 로그인: {}", email);
+            }
+
+            // 5. 사용자 정보 조회 (기존 로직 재사용)
+            log.info("사용자 정보 조회 시도: {}", email);
+            UserDetails userDetails = customUserDetailsService.loadUserByUsername(email);
+            log.info("사용자 정보 조회 성공: {}", email);
+
+            CustomUser customUser = (CustomUser) userDetails;
+            String userId = customUser.getUser().getUserId();
+
+            // 6. JWT 토큰 발급
+            log.info("JWT 토큰 발급 시작: userId={}", userId);
+            String jwtAccessToken = jwtProcessor.generateAccessToken(userId);
+            String refreshToken = jwtProcessor.generateRefreshToken(userId);
+
+            // 7. 토큰 저장 및 쿠키 설정
+            log.info("Redis 토큰 저장 및 쿠키 설정 시작");
+
+            // Redis 저장 시도 (실패해도 로그인은 성공 처리)
+            try {
+                refreshTokenRedisRepository.save(userId, refreshToken, 60 * 60 * 24 * 7);
+                log.info("Redis 토큰 저장 성공");
+            } catch (Exception redisException) {
+                log.warn("Redis 저장 실패, 쿠키만 설정: {}", redisException.getMessage());
+                // Redis 실패해도 계속 진행 (쿠키는 설정됨)
+            }
+
+            Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true);
+            refreshCookie.setPath("/");
+            refreshCookie.setMaxAge(60 * 60 * 24 * 7);
+            response.addCookie(refreshCookie);
+
+            // 8. 응답 생성
+            log.info("응답 생성 시작");
+            UserInfoDTO userInfo = UserInfoDTO.of(customUser.getUser());
+            AuthResultDTO result = new AuthResultDTO(jwtAccessToken, userInfo);
+
+            log.info("카카오 로그인 처리 완료: userId={}", userId);
+            return result;
+
+        } catch (Exception e) {
+            log.error("카카오 로그인 처리 실패", e);
+            throw new RuntimeException("카카오 로그인 처리 중 오류가 발생했습니다: " + e.getMessage());
+        }
+    }
 }

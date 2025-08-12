@@ -3,7 +3,6 @@ package com.wonnabe.product.dto;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wonnabe.product.domain.enums.CardType;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,7 +30,7 @@ public class CardProductDetailResponseDTO {
 		private long cardId;
 		private String cardName;
 		private String cardCompany;
-		private int matchScore;
+		private double score;
 		private String mainBenefit;
 		private String cardType;
 		private String benefitSummary;

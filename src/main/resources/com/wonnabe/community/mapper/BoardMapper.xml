@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.community.mapper.BoardMapper">
+
+    <!-- 게시판 전체 글 조회 - 페이지네이션 -->
+    <select id="selectBoardsByCommunityId" resultType="BoardDTO">
+        SELECT
+        b.id AS boardId,
+        b.title,
+        b.content,
+        u.name AS userName,
+        f.id AS categoryId,
+        f.name AS categoryName,
+        (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+        (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
+
+        CASE
+        WHEN EXISTS (
+        SELECT 1 FROM board_scrap
+        WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+        ) THEN TRUE ELSE FALSE
+        END AS scraped,
+
+        CASE
+        WHEN EXISTS (
+        SELECT 1 FROM board_like
+        WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+        ) THEN TRUE ELSE FALSE
+        END AS liked,
+
+        DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+
+        FROM board b
+        JOIN user_profile u ON b.user_id = u.user_id
+        JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
+        WHERE b.financial_tendency_type_id = #{communityId}
+        AND b.is_deleted = 0
+        <if test="lastBoardId != null">
+            AND b.id &lt; #{lastBoardId}
+        </if>
+        ORDER BY b.id DESC
+        LIMIT #{pageSize}
+    </select>
+
+
+    <!-- 게시글 생성 -->
+    <insert id="insertBoard">
+        INSERT INTO board (
+            financial_tendency_type_id,
+            user_id,
+            title,
+            content,
+            view_count,
+            created_at,
+            is_deleted
+        ) VALUES (
+                     #{communityId},
+                     #{userId},
+                     #{title},
+                     #{content},
+                     0,
+                     NOW(),
+                     0
+                 )
+    </insert>
+
+    <!--  게시글 존재 여부 확인용  -->
+    <select id="selectBoardByIdAndCommunityId" resultType="com.wonnabe.community.dto.board.BoardDTO">
+        SELECT *
+        FROM board
+        WHERE id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 게시글 삭제 (is_deleted 플래그 업데이트) -->
+    <update id="markBoardAsDeleted">
+        UPDATE board
+        SET is_deleted = 1
+        WHERE id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+          AND user_id = #{userId}
+    </update>
+
+    <!-- 게시글 상세 조회 -->
+    <select id="selectBoardDetail" resultType="BoardDTO">
+        SELECT
+            b.id AS boardId,
+            b.title,
+            b.content,
+            u.name AS userName,
+            f.id AS categoryId,
+            f.name AS categoryName,
+            (SELECT COUNT(*) FROM board_like WHERE board_id = b.id AND is_deleted = 0) AS likeCount,
+            (SELECT COUNT(*) FROM comment WHERE post_id = b.id AND is_deleted = 0) AS commentCount,
+
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM board_scrap
+                    WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                ) THEN TRUE ELSE FALSE
+                END AS scraped,
+
+            CASE
+                WHEN EXISTS (
+                    SELECT 1 FROM board_like
+                    WHERE board_id = b.id AND user_id = #{userId} AND is_deleted = 0
+                ) THEN TRUE ELSE FALSE
+                END AS liked,
+
+            DATE_FORMAT(b.created_at, '%Y-%m-%d %H:%i:%s') AS createdAt
+
+        FROM board b
+                 JOIN user_profile u ON b.user_id = u.user_id
+                 JOIN financial_tendency_type f ON b.financial_tendency_type_id = f.id
+        WHERE b.id = #{boardId}
+          AND b.financial_tendency_type_id = #{communityId}
+          AND b.is_deleted = 0
+    </select>
+
+
+    <!-- 게시글 스크랩 상태 조회 -->
+    <select id="getScrapStatus" resultType="int">
+        SELECT is_deleted
+        FROM board_scrap
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </select>
+
+    <!-- 게시글 스크랩 추가 -->
+    <insert id="insertBoardScrap">
+        INSERT INTO board_scrap (user_id, board_id, financial_tendency_type_id, is_deleted)
+        VALUES (#{userId}, #{boardId}, #{communityId}, 0)
+    </insert>
+
+    <!-- 게시글 스크랩 상태 업데이트 -->
+    <update id="updateScrapStatus">
+        UPDATE board_scrap
+        SET is_deleted = #{isDeleted}
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </update>
+
+
+    <!-- 게시글 좋아요 상태 조회 -->
+    <select id="getBoardLikeStatus" resultType="int">
+        SELECT is_deleted
+        FROM board_like
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </select>
+
+    <!-- 게시글 좋아요 추가 -->
+    <insert id="insertBoardLike">
+        INSERT INTO board_like (user_id, board_id, financial_tendency_type_id, is_deleted)
+        VALUES (#{userId}, #{boardId}, #{communityId}, 0)
+    </insert>
+
+    <!-- 게시글 좋아요 상태 업데이트 -->
+    <update id="updateBoardLikeStatus">
+        UPDATE board_like
+        SET is_deleted = #{isDeleted}
+        WHERE user_id = #{userId}
+          AND board_id = #{boardId}
+          AND financial_tendency_type_id = #{communityId}
+    </update>
+</mapper>

@@ -4,11 +4,203 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.wonnabe.user.mapper.UserMapper">
+
     <!-- 사용자의 이름과 비밀번호를 수정하는 쿼리 -->
     <update id="updateUser">
         UPDATE User_Profile
         SET name = #{name},
-        password_hash = #{passwordHash}
+            password_hash = #{passwordHash}
         WHERE user_id = #{userId}
     </update>
+
+    <!-- 사용자의 워너비 선택 정보를 수정하는 쿼리 -->
+    <update id="updateWonnabe">
+        UPDATE User_Info
+        SET selected_wonnabe_ids = #{selectedWonnabeIds}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 사용자의 전체 진단 히스토리를 조회하는 쿼리 -->
+    <select id="selectDiagnosisHistory" resultType="com.wonnabe.user.dto.DiagnosisHistoryResponse$DiagnosisHistoryItem">
+        SELECT
+            DATE_FORMAT(dh.diagnosed_at, '%Y-%m-%d %H:%i:%s') AS diagnosedDate,
+            ftt.name AS typeName,
+            ROUND(dh.similarity * 100) AS score
+        FROM diagnosis_history dh
+                 JOIN Financial_Tendency_Type ftt ON dh.nowme_id = ftt.id
+        WHERE dh.user_id = #{userId}
+        ORDER BY dh.diagnosed_at DESC
+    </select>
+
+    <!-- 사용자의 최근 12개월 월별 최신 진단 히스토리 조회 (각 월의 가장 최신 데이터만) -->
+    <select id="selectDiagnosisHistoryLast12Months" resultType="com.wonnabe.user.dto.DiagnosisHistoryResponse$DiagnosisHistoryItem">
+        SELECT
+            DATE_FORMAT(dh.diagnosed_at, '%Y-%m-%d') AS diagnosedDate,
+            ftt.name AS typeName,
+            ROUND(dh.similarity * 100) AS score
+        FROM diagnosis_history dh
+                 JOIN Financial_Tendency_Type ftt ON dh.nowme_id = ftt.id
+        WHERE dh.user_id = #{userId}
+          AND dh.diagnosed_at >= DATE_SUB(CURDATE(), INTERVAL 12 MONTH)
+          AND dh.diagnosed_at = (
+            SELECT MAX(dh2.diagnosed_at)
+            FROM diagnosis_history dh2
+            WHERE dh2.user_id = dh.user_id
+              AND YEAR(dh2.diagnosed_at) = YEAR(dh.diagnosed_at)
+              AND MONTH(dh2.diagnosed_at) = MONTH(dh.diagnosed_at)
+        )
+        ORDER BY dh.diagnosed_at DESC
+    </select>
+
+    <!-- 사용자 기본 정보 조회 (User_Profile + User_Info 조인) -->
+    <select id="selectUserInfo" resultType="map">
+        SELECT
+            up.user_id as userId,
+            up.name as name,
+            up.email as email,
+            ui.income_job_type as job,
+            ui.nowme_id as nowmeId,
+            CASE
+                WHEN ui.income_annual_amount IS NOT NULL
+                    THEN ROUND(ui.income_annual_amount / 12)
+                ELSE NULL
+                END as monthlyIncome
+        FROM User_Profile up
+                 LEFT JOIN User_Info ui ON up.user_id = ui.user_id
+        WHERE up.user_id = #{userId}
+    </select>
+
+    <!-- 현재 진단된 금융성향 이름 조회 -->
+    <select id="selectFinancialTendencyName" resultType="String">
+        SELECT name
+        FROM Financial_Tendency_Type
+        WHERE id = #{nowmeId}
+    </select>
+
+    <!-- 선택한 워너비 이름들 조회 -->
+    <select id="selectFinancialTendencyNames" resultType="String">
+        SELECT ftt.name
+        FROM Financial_Tendency_Type ftt
+        WHERE JSON_CONTAINS(
+                      (SELECT selected_wonnabe_ids FROM User_Info WHERE user_id = #{userId}),
+                      CAST(ftt.id AS JSON)
+              )
+    </select>
+
+    <!-- UserDetailData용 ResultMap 정의 -->
+    <resultMap id="userDetailDataMap" type="com.wonnabe.user.dto.UserDetailResponse$UserDetailData">
+        <constructor>
+            <arg column="user_id" javaType="String"/>
+            <arg column="lifestyle_smoking" javaType="Integer"/>
+            <arg column="lifestyle_family_medical" javaType="Integer"/>
+            <arg column="lifestyle_before_diseases" javaType="Integer"/>
+            <arg column="lifestyle_exercise_freq" javaType="Integer"/>
+            <arg column="lifestyle_alcohol_freq" javaType="Integer"/>
+            <arg column="income_source_type" javaType="String"/>
+            <arg column="income_employment_status" javaType="String"/>
+            <arg column="household_size" javaType="Integer"/>
+            <arg column="income_job_type" javaType="String"/>
+        </constructor>
+    </resultMap>
+
+    <!-- 사용자 상세 정보 조회 쿼리 (안전한 변환 처리) -->
+    <select id="selectUserDetail" resultMap="userDetailDataMap">
+        SELECT
+            user_id,
+            CASE
+                WHEN lifestyle_smoking = 'Y' OR lifestyle_smoking = 1 THEN 1
+                ELSE 0
+                END AS lifestyle_smoking,
+            CASE
+                WHEN lifestyle_family_medical IS NOT NULL AND lifestyle_family_medical != '' AND lifestyle_family_medical != 0 THEN 1
+                ELSE 0
+                END AS lifestyle_family_medical,
+            CASE
+                WHEN lifestyle_before_diseases IS NOT NULL AND lifestyle_before_diseases != '' AND lifestyle_before_diseases != 0 THEN 1
+                ELSE 0
+                END AS lifestyle_before_diseases,
+            CASE
+                WHEN lifestyle_exercise_freq = '운동 안 함' OR lifestyle_exercise_freq = 0 THEN 0
+                ELSE 1
+                END AS lifestyle_exercise_freq,
+            CASE
+                WHEN lifestyle_alcohol_freq = '전혀 안 함' OR lifestyle_alcohol_freq = 0 THEN 0
+                ELSE 1
+                END AS lifestyle_alcohol_freq,
+            income_source_type,
+            income_employment_status,
+            household_size,
+            income_job_type
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 사용자 상세 정보 등록 쿼리 -->
+    <insert id="insertUserDetail" parameterType="com.wonnabe.user.dto.UserDetailRequest">
+        INSERT INTO User_Info (
+            user_id,
+            lifestyle_smoking,
+            lifestyle_family_medical,
+            lifestyle_before_diseases,
+            lifestyle_exercise_freq,
+            lifestyle_alcohol_freq,
+            income_source_type,
+            income_employment_status,
+            household_size,
+            income_job_type
+        ) VALUES (
+                     #{userId},
+                     #{lifestyleSmoking},
+                     #{lifestyleFamilyMedical},
+                     #{lifestyleBeforeDiseases},
+                     #{lifestyleExerciseFreq},
+                     #{lifestyleAlcoholFreq},
+                     #{incomeSourceType},
+                     #{incomeEmploymentStatus},
+                     #{householdSize},
+                     #{incomeJobType}
+                 )
+    </insert>
+
+    <!-- 사용자 상세 정보 수정 쿼리 -->
+    <update id="updateUserDetail" parameterType="com.wonnabe.user.dto.UserDetailRequest">
+        UPDATE User_Info
+        <set>
+            <if test="lifestyleSmoking != null">
+                lifestyle_smoking = #{lifestyleSmoking},
+            </if>
+            <if test="lifestyleFamilyMedical != null">
+                lifestyle_family_medical = #{lifestyleFamilyMedical},
+            </if>
+            <if test="lifestyleBeforeDiseases != null">
+                lifestyle_before_diseases = #{lifestyleBeforeDiseases},
+            </if>
+            <if test="lifestyleExerciseFreq != null">
+                lifestyle_exercise_freq = #{lifestyleExerciseFreq},
+            </if>
+            <if test="lifestyleAlcoholFreq != null">
+                lifestyle_alcohol_freq = #{lifestyleAlcoholFreq},
+            </if>
+            <if test="incomeSourceType != null">
+                income_source_type = #{incomeSourceType},
+            </if>
+            <if test="incomeEmploymentStatus != null">
+                income_employment_status = #{incomeEmploymentStatus},
+            </if>
+            <if test="householdSize != null">
+                household_size = #{householdSize},
+            </if>
+            <if test="incomeJobType != null">
+                income_job_type = #{incomeJobType},
+            </if>
+        </set>
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 사용자 상세 정보 존재 여부 확인 쿼리 -->
+    <select id="checkUserDetailExists" resultType="int">
+        SELECT COUNT(*)
+        FROM User_Info
+        WHERE user_id = #{userId}
+    </select>
 </mapper>

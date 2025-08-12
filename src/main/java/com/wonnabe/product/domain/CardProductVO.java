@@ -1,6 +1,5 @@
 package com.wonnabe.product.domain;
 
-import com.wonnabe.product.domain.enums.BenefitCategory;
 import com.wonnabe.product.domain.enums.CardType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,7 +24,7 @@ public class CardProductVO {
     private String benefitLimit; // 혜택 한도
     private long performanceCondition; // 실적 조건
     private String annualFeeDomestic; // 국내전용 연회비
-    private String annualFeeOverSeas; // 해외겸용 연회비
+    private String annualFeeOverseas; // 해외겸용 연회비
     private String performanceConditionDescription; // 실적 한도 글로
     private Long benefitLimitAmount; // 실적 한도 숫자
     private String mainCategories; // 카드 혜택 main 5개로 요약
@@ -55,7 +54,7 @@ public class CardProductVO {
     // 주요 혜택 리스트로 변환
     public List<String> getMainCategories() {
         // 예: ["1", "2"] → List<String>로 변환
-        String ids = cardScore.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
+        String ids = mainCategories.replaceAll("[\\[\\]\\s\"]", ""); // 대괄호, 공백, 쌍따옴표 제거
         return Arrays.stream(ids.split(","))
             .filter(s -> !s.isEmpty())
             .map(String::toString)

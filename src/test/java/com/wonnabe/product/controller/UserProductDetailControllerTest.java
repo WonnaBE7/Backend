@@ -35,7 +35,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 })
 @Log4j2
 @ActiveProfiles("test")
-class UserProductControllerTest {
+class UserProductDetailControllerTest {
 
     private MockMvc mockMvc; // 컨트롤러 테스트용 가짜 브라우저인 mockmvc
 
@@ -69,7 +69,7 @@ class UserProductControllerTest {
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         // 목 객체로 api 호출 후 응답 결과가 200인지 확인함
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/user/products/2001"))
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/user/products/cards/2001"))
                 .andExpect(status().isOk())
                 .andReturn();
 

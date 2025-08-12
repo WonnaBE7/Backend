@@ -28,11 +28,11 @@
             note AS note,
             my_money AS myMoney,
 
-            score_price_competitiveness AS priceCompetitivenessScore,
-            score_coverage_limit AS coverageLimitScore,
-            score_coverage_scope AS coverageScopeScore,
-            score_deductible_level AS deductibleScore,
-            score_refund_scope AS refundScopeScore
+            score_price_competitiveness,
+            score_coverage_limit,
+            score_coverage_scope,
+            score_deductible_level,
+            score_refund_scope
         FROM
             insurance_product
     </select>

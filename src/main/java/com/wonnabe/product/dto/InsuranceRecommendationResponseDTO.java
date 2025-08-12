@@ -40,6 +40,6 @@ public class InsuranceRecommendationResponseDTO {
         private String coverageLimit;
         private String note;
         private String myMoney;
-        private double totalScore;
+        private double score;
     }
 }
