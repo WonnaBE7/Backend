@@ -131,7 +131,7 @@ class ProductDetailServiceImplTest {
         assertNotNull(productInfo, "ProductInfo는 null이 아니어야 합니다.");
         assertEquals(productId, productInfo.getProductId(), "상품 ID가 일치해야 합니다.");
         assertEquals("테스트 적금", productInfo.getProductName(), "상품명이 일치해야 합니다.");
-        assertEquals(78, productInfo.getMatchScore(), "Match Score가 일치해야 합니다.");
+        assertEquals(78.5, productInfo.getScore(), "Match Score가 일치해야 합니다.");
         assertTrue(productInfo.isWished(), "찜한 상품이므로 isWished는 true여야 합니다.");
 
         // ComparisonChart 검증
@@ -261,7 +261,7 @@ class ProductDetailServiceImplTest {
         assertEquals(productId, productInfo.getProductId(), "상품 ID가 일치해야 합니다.");
         assertEquals("테스트 보험", productInfo.getProductName(), "상품명이 일치해야 합니다.");
         assertEquals("테스트 보험사", productInfo.getProviderName(), "제공사명이 일치해야 합니다.");
-        assertEquals(85, productInfo.getMatchScore(), "Match Score가 일치해야 합니다.");
+        assertEquals(85, productInfo.getScore(), "Match Score가 일치해야 합니다.");
         assertEquals("11000", productInfo.getAveragePremium(), "평균 보험료가 일치해야 합니다.");
         assertTrue(productInfo.isWished(), "찜한 상품이므로 isWished는 true여야 합니다.");
 

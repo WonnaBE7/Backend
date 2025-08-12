@@ -19,7 +19,7 @@ public class InsuranceProductDetailResponseDTO {
         private String productName;
         private String providerName;
 
-        private int matchScore;
+        private double score;
         private String coverageType;
         private String coverageLimit;
         private String deductible;
