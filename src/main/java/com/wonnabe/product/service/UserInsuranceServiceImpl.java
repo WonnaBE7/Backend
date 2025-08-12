@@ -2,7 +2,6 @@ package com.wonnabe.product.service;
 
 import com.wonnabe.product.domain.UserInsuranceVO;
 import com.wonnabe.product.dto.MonthlyChartDto;
-import com.wonnabe.product.dto.TransactionSummaryDto;
 import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.dto.MonthlyInsuranceReceiptDto;
 import com.wonnabe.product.dto.UserInsuranceDetailDTO;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +28,6 @@ import java.util.stream.Collectors;
 public class UserInsuranceServiceImpl implements UserInsuranceService {
 
     private final UserInsuranceMapper userInsuranceMapper;
-    private final Clock clock;
 
     /**
      * {@inheritDoc}
@@ -67,13 +64,9 @@ public class UserInsuranceServiceImpl implements UserInsuranceService {
             achievementRate = "0.00%"; // 납입액이 없거나 0인 경우
         }
 
-        // 월별 보험 거래 내역 조회 (최근 12개월 또는 보험 시작일부터)
-        // 차트 시작 날짜를 현재로부터 11개월 전의 1일로 설정
-        LocalDate chartStartMonth = LocalDate.now().minusMonths(11).withDayOfMonth(1);
-        // 보험 시작일이 차트 시작일보다 늦으면 보험 시작일을 차트 시작일로 설정
-        if (userInsuranceVO.getStartDate().toLocalDate().isAfter(chartStartMonth)) {
-            chartStartMonth = userInsuranceVO.getStartDate().toLocalDate().withDayOfMonth(1);
-        }
+        // 월별 보험 거래 내역 조회 (최근 5개월)
+        // 차트 시작 날짜를 현재로부터 4개월 전의 1일로 설정 (현재 월 포함 5개월)
+        LocalDate chartStartMonth = LocalDate.now().minusMonths(4).withDayOfMonth(1);
 
         List<MonthlyInsuranceReceiptDto> monthlyReceipts = userInsuranceMapper.findMonthlyInsuranceReceipts(userId, productId, java.sql.Date.valueOf(chartStartMonth));
 
@@ -100,7 +93,7 @@ public class UserInsuranceServiceImpl implements UserInsuranceService {
      */
     private List<MonthlyChartDto> createMonthlyInsuranceChart(List<MonthlyInsuranceReceiptDto> monthlyReceipts, LocalDate chartStartMonth) {
         List<MonthlyChartDto> fullChartData = new ArrayList<>();
-        LocalDate currentDate = LocalDate.now(clock);
+        LocalDate currentDate = LocalDate.now();
 
         // Map monthly receipts for easy lookup
         Map<String, Long> monthlyReceiptMap = monthlyReceipts.stream()

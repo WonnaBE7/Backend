@@ -22,17 +22,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
-
 @ExtendWith(MockitoExtension.class)
 class UserInsuranceServiceImplTest {
 
     @Mock
     private UserInsuranceMapper userInsuranceMapper;
-    @Mock
-    private Clock clock; // Mock Clock
 
     @InjectMocks
     private UserInsuranceServiceImpl userInsuranceService;
@@ -41,12 +35,6 @@ class UserInsuranceServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // Fixed date for testing LocalDate.now(clock)
-        Instant fixedInstant = Instant.parse("2025-08-12T10:00:00Z");
-        ZoneId zoneId = ZoneId.systemDefault();
-        when(clock.instant()).thenReturn(fixedInstant);
-        when(clock.getZone()).thenReturn(zoneId);
-
         // Mock InsuranceProductVO
         InsuranceProductVO mockProduct = InsuranceProductVO.builder()
                 .productId(3001L)
@@ -60,10 +48,10 @@ class UserInsuranceServiceImplTest {
                 .userId("user123")
                 .productId(3001L)
                 .monthlyPremium(new BigDecimal("100000"))
-                .startDate(java.sql.Date.valueOf(java.time.LocalDate.now(clock).minusMonths(6))) // Use clock here
-                .endDate(java.sql.Date.valueOf(java.time.LocalDate.now(clock).plusMonths(6))) // Use clock here
-                .totalPaid(new BigDecimal("600000")) // Example total paid
-                .product(mockProduct) // Set the mocked product
+                .startDate(java.sql.Date.valueOf(java.time.LocalDate.now().minusMonths(6)))
+                .endDate(java.sql.Date.valueOf(java.time.LocalDate.now().plusMonths(6)))
+                .totalPaid(new BigDecimal("500000")) // 5개월 납입 총액
+                .product(mockProduct)
                 .build();
     }
 
@@ -72,35 +60,23 @@ class UserInsuranceServiceImplTest {
     void getDetailByProductId_should_return_dto_when_data_exists() {
         // given: Mock Mapper가 mockUserInsurance 객체를 반환하도록 설정
         String userId = "user123";
-        Long productId = 3001L; // Use the productId from mockUserInsurance
+        Long productId = 3001L;
 
         // Mock mapper calls
         when(userInsuranceMapper.findDetailByProductId(userId, productId)).thenReturn(mockUserInsurance);
-        when(userInsuranceMapper.findInsuranceProductById(productId)).thenReturn(mockUserInsurance.getProduct()); // Return the product from mockUserInsurance
-        when(userInsuranceMapper.findTotalReceiptAmount(userId, productId)).thenReturn(500000L); // Example total receipt amount
-        when(userInsuranceMapper.findTotalPaymentAmount(userId, productId)).thenReturn(600000L); // Example total payment amount
+        when(userInsuranceMapper.findInsuranceProductById(productId)).thenReturn(mockUserInsurance.getProduct());
+        when(userInsuranceMapper.findTotalReceiptAmount(userId, productId)).thenReturn(400000L); // 5개월 총 수령액
+        when(userInsuranceMapper.findTotalPaymentAmount(userId, productId)).thenReturn(500000L); // 5개월 총 납입액
 
-        // Mock monthly receipts
+        // Mock monthly receipts - 최근 5달 데이터 (2025-04 ~ 2025-08)
         List<MonthlyInsuranceReceiptDto> mockMonthlyReceipts = new ArrayList<>();
-        // Mock data for the full 12-month range (Sep 2024 to Aug 2025)
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2024-09", 100000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2024-10", 150000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2024-11", 120000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2024-12", 180000L));
+        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-04", 80000L));
+        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-05", 90000L));
+        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-06", 75000L));
+        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-07", 85000L));
+        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-08", 70000L));
 
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-01", 90000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-02", 110000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-03", 130000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-04", 160000L));
-
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-05", 140000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-06", 170000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-07", 100000L));
-        mockMonthlyReceipts.add(new MonthlyInsuranceReceiptDto("2025-08", 190000L));
-
-        // Add more as needed for your test scenario
         when(userInsuranceMapper.findMonthlyInsuranceReceipts(eq(userId), eq(productId), any(java.sql.Date.class))).thenReturn(mockMonthlyReceipts);
-
 
         // when: 서비스 메소드 호출
         UserInsuranceDetailDTO responseDTO = userInsuranceService.getDetailByProductId(userId, productId);
@@ -112,24 +88,26 @@ class UserInsuranceServiceImplTest {
         assertEquals("테스트보험사", responseDTO.getInsuranceCompany(), "보험 회사명이 일치해야 합니다.");
 
         // Verify calculated fields
-        assertEquals("83.33%", responseDTO.getAchievementRate(), "달성률이 올바르게 계산되어야 합니다."); // (500000 / 600000) * 100 = 83.333...
-        assertEquals("500000", responseDTO.getGetAmount(), "총 수령액이 일치해야 합니다.");
-        assertEquals("600000", responseDTO.getCurrentAmount(), "총 납입액이 일치해야 합니다."); // This comes from UserInsuranceVO.totalPaid
+        assertEquals("80.00%", responseDTO.getAchievementRate(), "달성률이 올바르게 계산되어야 합니다."); // (400000 / 500000) * 100 = 80%
+        assertEquals("400000", responseDTO.getGetAmount(), "총 수령액이 일치해야 합니다.");
+        assertEquals("500000", responseDTO.getCurrentAmount(), "총 납입액이 일치해야 합니다.");
 
         // Verify monthly chart
         assertNotNull(responseDTO.getMonthlyChart(), "월별 차트 데이터는 null이 아니어야 합니다.");
         assertFalse(responseDTO.getMonthlyChart().isEmpty(), "월별 차트 데이터는 비어있지 않아야 합니다.");
-        assertEquals(12, responseDTO.getMonthlyChart().size(), "월별 차트 데이터 개수가 일치해야 합니다."); // Corrected size to 12
-        assertEquals("9월", responseDTO.getMonthlyChart().get(0).getMonth(), "첫 번째 월이 일치해야 합니다."); // Corrected month
-        assertEquals(100000L, responseDTO.getMonthlyChart().get(0).getAmount(), "첫 번째 월의 금액이 일치해야 합니다.");
-        assertEquals("10월", responseDTO.getMonthlyChart().get(1).getMonth(), "두 번째 월이 일치해야 합니다."); // Corrected month
-        assertEquals(150000L, responseDTO.getMonthlyChart().get(1).getAmount(), "두 번째 월의 금액이 일치해야 합니다.");
-        // Add more assertions for other months if desired, or iterate through the list.
+        assertEquals(5, responseDTO.getMonthlyChart().size(), "월별 차트 데이터 개수가 일치해야 합니다.");
+        assertEquals("4월", responseDTO.getMonthlyChart().get(0).getMonth(), "첫 번째 월이 일치해야 합니다.");
+        assertEquals(80000L, responseDTO.getMonthlyChart().get(0).getAmount(), "첫 번째 월의 금액이 일치해야 합니다.");
+        assertEquals("5월", responseDTO.getMonthlyChart().get(1).getMonth(), "두 번째 월이 일치해야 합니다.");
+        assertEquals(90000L, responseDTO.getMonthlyChart().get(1).getAmount(), "두 번째 월의 금액이 일치해야 합니다.");
+        assertEquals("8월", responseDTO.getMonthlyChart().get(4).getMonth(), "마지막 월이 일치해야 합니다.");
+        assertEquals(70000L, responseDTO.getMonthlyChart().get(4).getAmount(), "마지막 월의 금액이 일치해야 합니다.");
 
         // Verify term calculation
         assertNotNull(responseDTO.getTerm(), "납입 기간은 null이 아니어야 합니다.");
-        assertEquals("12개월", responseDTO.getTerm(), "납입 기간이 일치해야 합니다."); // Added precise assertion
-}
+        assertEquals("12개월", responseDTO.getTerm(), "납입 기간이 일치해야 합니다.");
+    }
+
     @Test
     @DisplayName("조회된 데이터가 없을 경우, null을 반환해야 한다.")
     void getDetailByProductId_should_return_null_when_no_data() {
