@@ -7,8 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CodefTransactionResponse {
-    private Result result;
-    private TransactionListResponse data;
+public class AccountTransactionListWrapper {
+    private AccountTransactionListWrapperResult result;
+    private AccountTransactionListResponse data;
     private String connectedId;
 }

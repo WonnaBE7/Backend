@@ -2,8 +2,6 @@ package com.wonnabe.codef.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.wonnabe.codef.domain.UserAccount;
-import com.wonnabe.codef.domain.UserInsurance;
 import com.wonnabe.codef.domain.UserTransactions;
 import com.wonnabe.codef.mapper.AccountMapper;
 import com.wonnabe.codef.mapper.CodefSavingsMapper;
@@ -17,10 +15,10 @@ import java.util.Map;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SavingTransactionResponse {
+public class SavingTransactionListResponse {
 
     @JsonProperty("data")
-    private SavingData data;
+    private SavingListResponse data;
 
     public List<UserTransactions> toUserTransactions(String userId, String institutionCode, AccountMapper accountMapper, CodefSavingsMapper savingMapper) {
         List<UserTransactions> transactions = new ArrayList<>();
@@ -28,7 +26,7 @@ public class SavingTransactionResponse {
 
         for (Map<String, Object> detail : data.getResTrHistoryList()) {
             Long deposit = parseLong(detail.get("resAccountIn"));
-            Long balance = parseLong(detail.get("resAfterTranBalance"));
+//            Long balance = parseLong(detail.get("resAfterTranBalance"));
 
             if ((deposit == null || deposit == 0)) {
                 // 입금 금액이 없으면 무시
@@ -60,17 +58,17 @@ public class SavingTransactionResponse {
             }
 
             tx.setAccountId(String.valueOf(accountId));
-
-            Integer productId = savingMapper.findProductIdByAccountId(accountId);
-            if (productId != null) {
-                if (productId >= 1300 && productId < 1400) {
-                    tx.setAssetCategory("적금");
-                } else if (productId >= 1500 && productId < 1600) {
-                    tx.setAssetCategory("예금");
-                } else {
-                    tx.setAssetCategory("기타");
-                }
-            }
+            tx.setAssetCategory("예적금");
+//            Integer productId = savingMapper.findProductIdByAccountId(accountId);
+//            if (productId != null) {
+//                if (productId >= 1300 && productId < 1400) {
+//                    tx.setAssetCategory("적금");
+//                } else if (productId >= 1500 && productId < 1600) {
+//                    tx.setAssetCategory("예금");
+//                } else {
+//                    tx.setAssetCategory("기타");
+//                }
+//            }
             transactions.add(tx);
         }
         return transactions;

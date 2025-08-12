@@ -1,18 +1,18 @@
 package com.wonnabe.codef.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.Data;
 
 @Data
+@JsonNaming(PropertyNamingStrategy.SnakeCaseStrategy.class)
 public class AccessTokenResponseDto {
 
-    @JsonProperty("access_token")
     private String accessToken;
 
-    @JsonProperty("expires_in")
     private String expiresIn;
 
-    @JsonProperty("token_type")
     private String tokenType;
 
     private String scope;

@@ -11,7 +11,7 @@ import java.util.Map;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class SavingData {
+public class SavingListResponse {
 
     @JsonProperty("resAccount")
     private String resAccount;

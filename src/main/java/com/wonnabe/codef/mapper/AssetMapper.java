@@ -11,6 +11,8 @@ public interface AssetMapper {
 
     void upsert(@Param("account") UserAccount account);
 
+    String findBankName(@Param("bankCode") String bankCode);
+
     List<UserAccount> findAccountsByUserId(@Param("userId") String userId);
 
     void insertAccounts(@Param("accounts") List<UserAccount> accounts);
