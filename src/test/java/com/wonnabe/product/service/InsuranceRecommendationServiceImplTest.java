@@ -107,7 +107,7 @@ class InsuranceRecommendationServiceImplTest {
             } else {
                 personaRec.getProducts().forEach(product -> {
                     System.out.println("      - 상품 ID: " + product.getProductId() + ", 상품명: " + product.getProductName() + ", 보험사: " + product.getProviderName());
-                    System.out.println("        보장한도: " + product.getCoverageLimit() + ", 비고: " + product.getNote() + ", 자기부담금: " + product.getMyMoney() + ", 총 점수: " + product.getTotalScore());
+                    System.out.println("        보장한도: " + product.getCoverageLimit() + ", 비고: " + product.getNote() + ", 자기부담금: " + product.getMyMoney() + ", 총 점수: " + product.getScore());
                     System.out.println("        상품 타입: " + product.getProductType());
                 });
             }

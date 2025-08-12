@@ -89,7 +89,7 @@ class SavingsRecommendationServiceImplTest {
             } else {
                 personaRec.getProducts().forEach(product -> {
                     System.out.println("      - 상품 ID: " + product.getProductId() + ", 상품명: " + product.getProductName() + ", 은행: " + product.getBankName());
-                    System.out.println("        기본 금리: " + product.getBaseRate() + ", 최고 금리: " + product.getMaxRate() + ", 총 점수: " + product.getTotalScore());
+                    System.out.println("        기본 금리: " + product.getBaseRate() + ", 최고 금리: " + product.getMaxRate() + ", 총 점수: " + product.getScore());
                 });
             }
         });

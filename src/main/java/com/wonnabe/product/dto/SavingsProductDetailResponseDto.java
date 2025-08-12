@@ -17,7 +17,7 @@ public class SavingsProductDetailResponseDto {
         private String productId;
         private String productName;
         private String bankName;
-        private int matchScore;
+        private double score;
         private String interestRate;
         private String maxInterestRate;
         private String benefitSummary;

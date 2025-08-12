@@ -90,8 +90,8 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
             // 각 상품의 점수 계산
             List<ProductWithScore> scoredProducts = new ArrayList<>();
             for (SavingsProductVO product : productsWithScores) {
-                double totalScore = calculateScore(product, adjustedWeights);
-                scoredProducts.add(new ProductWithScore(product, totalScore));
+                double score = calculateScore(product, adjustedWeights);
+                scoredProducts.add(new ProductWithScore(product, score));
             }
 
             // 점수 순으로 정렬
@@ -113,7 +113,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                 rec.setBankName(product.getBankName());
                 rec.setBaseRate(product.getBaseRate() != null ? product.getBaseRate() : 0.0f);
                 rec.setMaxRate(product.getMaxRate() != null ? product.getMaxRate() : 0.0f);
-                rec.setTotalScore(item.score);
+                rec.setScore(item.score);
                 rec.setProductType("savings");
 
                 personaRec.getProducts().add(rec);
