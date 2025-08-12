@@ -23,17 +23,17 @@ public class CardApprovalListResponse {
             CardTransactions entity = new CardTransactions();
             entity.setUserId(userId);
 
+            // 1) userCardId 결정 (기존 로직 유지, 변수명만 명확화)
             String normalized = normalizeCardName(tx.getResCardName());
-            Long productId = assetCardMapper.findUserCardIdByKeyword(userId, normalized, institutionCode);
+            Long userCardId = assetCardMapper.findUserCardIdByKeyword(userId, normalized, institutionCode);
 
-            // productId가 null이면 card_number 기반으로 조회
-            if (productId == null) {
-                productId = assetCardMapper.findUserCardIdByTwoCardNumbers(userId, tx.getResCardNo(), tx.getResCardNo1());
-                if (productId == null) {
-                    productId = 9999L;
+            if (userCardId == null) {
+                userCardId = assetCardMapper.findUserCardIdByTwoCardNumbers(userId, tx.getResCardNo(), tx.getResCardNo1());
+                if (userCardId == null) {
+                    userCardId = 9999L; // 미매핑 표식
                 }
             }
-            entity.setCardId(productId);
+            entity.setCardId(userCardId);
 
             // 거래일/시간 변환
             if (tx.getResUsedDate() != null && !tx.getResUsedDate().isBlank()) {
@@ -57,10 +57,40 @@ public class CardApprovalListResponse {
             entity.setMerchantStoreNo(tx.getResMemberStoreNo());
             entity.setAmount(new BigDecimal(tx.getResUsedAmount()).negate());
 
+            // 5) card_name 보강 로직
+            if (entity.getCardName() == null || entity.getCardName().isBlank()) {
+                String resolvedName = null;
+
+                // 5-1. userCardId로 조회 (정확도 가장 높음)
+                if (userCardId != null && !userCardId.equals(9999L)) {
+                    resolvedName = assetCardMapper.findCardNameByUserCardId(userCardId);
+                }
+
+                // 5-2. 카드번호 뒤4자리로 조회 (fallback)
+                if ((resolvedName == null || resolvedName.isBlank()) && entity.getCardNumber() != null) {
+                    String last4 = extractLast4Digits(entity.getCardNumber());
+                    if (last4 != null) {
+                        resolvedName = assetCardMapper.findCardNameByLast4(userId, last4);
+                    }
+                }
+
+                if (resolvedName != null && !resolvedName.isBlank()) {
+                    entity.setCardName(resolvedName);
+                }
+            }
+
             list.add(entity);
         }
 
         return list;
+    }
+
+    private static String extractLast4Digits(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        // 숫자만 남기고 뒤 4자리 추출 (마스킹/띄어쓰기/하이픈 대응)
+        String digits = raw.replaceAll("[^0-9]", "");
+        if (digits.length() < 4) return null;
+        return digits.substring(digits.length() - 4);
     }
 
     private String normalizeCardName(String rawCardName) {

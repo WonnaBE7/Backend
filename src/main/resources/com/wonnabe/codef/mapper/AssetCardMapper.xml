@@ -114,4 +114,24 @@
         LIMIT 1
     </select>
 
+    <!-- userCardId로 Card_product.card_name 조회 -->
+    <select id="findCardNameByUserCardId" parameterType="long" resultType="string">
+        SELECT cp.card_name
+        FROM User_card uc
+                 JOIN Card_product cp ON cp.product_id = uc.product_id
+        WHERE uc.id = #{userCardId}
+        LIMIT 1
+    </select>
+
+    <!-- userId + 카드번호 뒤4자리로 Card_product.card_name 조회 -->
+    <select id="findCardNameByLast4" parameterType="map" resultType="string">
+        SELECT cp.card_name
+        FROM User_card uc
+                 JOIN Card_product cp ON cp.product_id = uc.product_id
+        WHERE uc.user_id = #{userId}
+          AND RIGHT(REGEXP_REPLACE(COALESCE(uc.card_number, ''), '[^0-9]', ''), 4) = #{last4}
+        ORDER BY uc.product_id IS NULL, uc.id DESC
+        LIMIT 1
+    </select>
+
 </mapper>

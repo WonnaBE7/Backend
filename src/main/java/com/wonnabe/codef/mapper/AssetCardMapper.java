@@ -49,4 +49,10 @@ public interface AssetCardMapper {
             @Param("cardNumber2") String cardNumber2
     );
 
+    // 추가: userCardId로 카드명 조회 (User_card → Card_product)
+    String findCardNameByUserCardId(@Param("userCardId") Long userCardId);
+
+    // 추가: 카드번호 뒤4자리로 카드명 조회
+    String findCardNameByLast4(@Param("userId") String userId,
+                               @Param("last4") String last4);
 }
