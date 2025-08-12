@@ -149,7 +149,9 @@ public class WishListServiceImpl implements WishListService {
 
 				// 상품 정보
 				SavingsProductVO savingProduct = savingsMapper.findById(id);
-
+				if (savingProduct == null) {
+					continue;
+				}
 				// 점수 계산
 				double score = calculateScoreSaving(savingProduct, adjustedWeights);
 
@@ -167,7 +169,9 @@ public class WishListServiceImpl implements WishListService {
 				savings.add(saving);
 			} else if (id >= 2000 && id < 3000) {
 				CardProductVO cardProduct = cardMapper.findById(id);
-
+				if (cardProduct == null) {
+					continue;
+				}
 				double[] baseWeights = CARD_PERSONA_WEIGHTS.get(basicUserInfo.getNowMeId()).clone();
 				double[] adjustedWeights =  adjustWeightsByIncomeCard(baseWeights,
 						basicUserInfo.getIncomeAnnualAmount());
@@ -203,6 +207,10 @@ public class WishListServiceImpl implements WishListService {
 				);
 
 				InsuranceProductVO insuranceProduct = insuranceMapper.findById(id);
+				if (insuranceProduct == null) {
+					continue;
+				}
+
 				double score = calculateInsuranceScore(insuranceProduct, adjustedWeights);
 
 				Insurance insurance = Insurance.builder()
