@@ -72,8 +72,8 @@ public class AssetOverviewService {
     private String mapToKey(String category) {
         return switch (category) {
             case "입출금" -> "checking";
-            case "예적금", "저축" -> "savings";
-            case "투자", "증권" -> "investment";
+            case "예적금"-> "savings";
+            case "투자" -> "investment";
             case "보험" -> "insurance";
             case "연금" -> "pension";
             case "기타" -> "other";
@@ -145,13 +145,42 @@ public class AssetOverviewService {
     private String mapToDbCategory(String input) {
         return switch (input) {
             case "checking" -> "입출금";
-            case "savings" -> "저축";
+            case "savings" -> "예적금";
             case "investment" -> "투자";
             case "insurance" -> "보험";
             case "pension" -> "연금";
             case "other" -> "기타";
             default -> throw new IllegalArgumentException("유효하지 않은 자산 카테고리입니다: " + input);
         };
+    }
+
+    // 총자산 상세페이지 -카테고리별 보유계좌 거래 내역
+    public Map<String, Object> getAccountTransactions(String userId, String accountNum) {
+        // 1) 계좌 헤더(소유자 검증 포함)
+        Map<String, Object> header = assetOverviewMapper.getAccountHeaderByNumber(userId, accountNum);
+        if (header == null || header.isEmpty()) {
+            throw new IllegalArgumentException("해당 계좌가 없거나 권한이 없습니다: " + accountNum);
+        }
+
+        // 2) 거래내역 조회
+        List<Map<String, Object>> rows = assetOverviewMapper.getTransactionsByAccountNumber(userId, accountNum);
+
+        // 3) 응답 포맷 변환
+        List<Map<String, Object>> transactions = rows.stream().map(r -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("transactionName", r.get("transactionName"));
+            m.put("transactionDate", r.get("transactionDate"));
+            m.put("transactionTime", r.get("transactionTime"));
+            m.put("amount", r.get("amount"));
+            return m;
+        }).collect(Collectors.toList());
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("bankName", header.get("bankName"));
+        data.put("accountName", header.get("accountName"));
+        data.put("accountNumber", header.get("accountNumber")); // 그대로 전달
+        data.put("transactions", transactions);
+        return data;
     }
 
 

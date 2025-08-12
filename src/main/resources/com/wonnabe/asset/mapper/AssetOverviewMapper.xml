@@ -35,13 +35,47 @@
 
     <select id="getAccountsByCategory" resultType="map">
         SELECT
-            LEFT(account_name, LOCATE(' ', account_name) - 1) AS bankName,
+            bank_name AS bankName,
             account_name AS accountName,
             account_number AS accountNumber,
             balance
         FROM user_accounts
         WHERE user_id = #{userId}
           AND category = #{category}
+    </select>
+
+
+
+    <!--    총자산 상세페이지 -카테고리별 보유계좌 거래 내역-->
+    <!-- 계좌 헤더: user_id + account_number -->
+    <select id="getAccountHeaderByNumber" resultType="map">
+        SELECT
+            ua.bank_name      AS bankName,
+            ua.account_name   AS accountName,
+            ua.account_number AS accountNumber
+        FROM user_accounts ua
+        WHERE ua.user_id = #{userId}
+          AND ua.account_number = #{accountNum}
+            LIMIT 1
+    </select>
+
+    <!-- 거래내역: user_transactions ⟷ user_accounts(id=account_id) -->
+    <select id="getTransactionsByAccountNumber" resultType="map">
+        SELECT
+            IFNULL(ut.description3, '') AS transactionName,  -- ← 여기만 변경
+            DATE_FORMAT(ut.transaction_date, '%Y-%m-%d') AS transactionDate,
+            CASE
+                WHEN ut.transaction_time IS NULL THEN NULL
+                WHEN SECOND(ut.transaction_time) = 0 THEN DATE_FORMAT(ut.transaction_time, '%H:%i')
+          ELSE DATE_FORMAT(ut.transaction_time, '%H:%i:%s')
+        END AS transactionTime,
+        ut.amount AS amount
+    FROM user_transactions ut
+    JOIN user_accounts ua
+      ON ua.id = ut.account_id
+    WHERE ua.user_id = #{userId}
+        AND ua.account_number = #{accountNum}
+        ORDER BY ut.transaction_date DESC, ut.transaction_time DESC
     </select>
 
 

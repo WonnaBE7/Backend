@@ -54,5 +54,22 @@ public class AssetOverviewController {
     private boolean isValidAssetCategory(String category) {
         return List.of("checking", "savings", "investment", "insurance", "pension", "other").contains(category);
     }
+
+    // 총자산 상세페이지 -카테고리별 보유계좌 거래 내역
+    @GetMapping("/detail/accountNum")
+    public ResponseEntity<Object> getAccountTransactions(@AuthenticationPrincipal CustomUser customUser,
+                                                         @RequestParam("accountNum") String accountNum) {
+        String userId = customUser.getUser().getUserId();
+
+        // 간단 유효성 검사 (공백/길이 등)
+        if (accountNum == null || accountNum.isBlank()) {
+            return JsonResponse.error(HttpStatus.BAD_REQUEST, "accountNum이 비어있습니다.");
+        }
+
+        return JsonResponse.ok(
+                "카테고리별 보유계좌 거래 내역 조회 성공",
+                assetOverviewService.getAccountTransactions(userId, accountNum)
+        );
+    }
 }
 

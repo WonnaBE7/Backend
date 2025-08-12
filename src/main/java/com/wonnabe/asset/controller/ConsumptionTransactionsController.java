@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/assets/consumption")
@@ -21,9 +22,8 @@ public class ConsumptionTransactionsController {
     @Autowired
     private ConsumptionTransactionsService transactionsService;
 
-    private static final List<String> VALID_CATEGORIES = List.of(
-            "food", "transport", "shopping", "financial", "culture", "life",
-            "medical", "communication", "housing", "education", "etc"
+    private static final Set<String> VALID_CATEGORIES = Set.of(
+            "food", "transport", "shopping", "financial", "other"
     );
 
     //소비분석 페이지 - 월별 거래내역
