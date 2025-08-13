@@ -59,6 +59,8 @@ public class ConsumptionTransactionsController {
         }
     }
 
+
+
     //소비분석 페이지 - 오늘의 거래내역
     @GetMapping("/transactions/today")
     public ResponseEntity<Object> getTodayTransactions(@AuthenticationPrincipal CustomUser customUser) {
