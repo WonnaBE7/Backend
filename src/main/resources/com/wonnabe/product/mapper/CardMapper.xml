@@ -62,29 +62,49 @@
 
     <!--  사용자가 보유한 카드 상세 정보 조회  -->
     <select id="findUserCardDetailById" resultMap="userCardWithConsumptionsMap">
-        SELECT uc.id,
-               uc.user_id,
-               uc.product_id,
-               uc.monthly_usage,
-               uc.issue_date,
-               uc.expiry_date,
-               uc.performance_condition,
-               uc.card_number,
-               cp.card_name,
-               cp.card_company,
-               DATE_FORMAT(ct.transaction_date, '%Y-%m') AS month,
-               ABS(SUM(ct.amount))                            AS amount
+        WITH RECURSIVE months AS (
+        SELECT DATE_FORMAT(DATE_FORMAT(CURDATE(), '%Y-%m-01'), '%Y-%m') AS ym, 1 AS n
+        UNION ALL
+        SELECT DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL n MONTH), '%Y-%m'), n + 1
+        FROM months
+        WHERE n &lt; 5
+        ),
+        txn AS (
+        SELECT
+        uc.id AS uc_id,
+        DATE_FORMAT(ct.transaction_date, '%Y-%m') AS ym,
+        ABS(SUM(ct.amount)) AS amount
         FROM user_card uc
-                 JOIN card_product cp ON uc.product_id = cp.product_id
-                 LEFT JOIN card_transactions ct
-                     ON uc.id = ct.card_id
-                     AND ct.amount &lt; 0
-        WHERE uc.product_id = #{productId}
-          AND uc.user_id = #{userId}
-          AND ct.transaction_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 5 MONTH), '%Y-%m-01')
-        GROUP BY uc.id, month
-        ORDER BY month DESC
+        LEFT JOIN card_transactions ct
+        ON ct.card_id = uc.id
+        AND ct.amount &lt; 0
+        AND ct.transaction_date >= DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL 4 MONTH), '%Y-%m-01')
+        WHERE uc.user_id = #{userId}
+        AND uc.product_id = #{productId}
+        GROUP BY uc.id, DATE_FORMAT(ct.transaction_date, '%Y-%m')
+        )
+        SELECT
+        uc.id,
+        uc.user_id,
+        uc.product_id,
+        uc.monthly_usage,
+        uc.issue_date,
+        uc.expiry_date,
+        uc.performance_condition,
+        uc.card_number,
+        cp.card_name,
+        cp.card_company,
+        m.ym AS month,
+        IFNULL(t.amount, 0) AS amount
+        FROM user_card uc
+        JOIN card_product cp ON uc.product_id = cp.product_id
+        CROSS JOIN months m
+        LEFT JOIN txn t ON t.uc_id = uc.id AND t.ym = m.ym
+        WHERE uc.user_id = #{userId}
+        AND uc.product_id = #{productId}
+        ORDER BY m.ym DESC
     </select>
+
 
     <select id="getAccountId" resultType="java.lang.Long">
         SELECT id FROM User_Accounts
