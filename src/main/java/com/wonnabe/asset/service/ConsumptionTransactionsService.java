@@ -1,10 +1,12 @@
 package com.wonnabe.asset.service;
 
+import com.wonnabe.asset.domain.ConsumptionCategory;
 import com.wonnabe.asset.dto.TransactionDTO;
 import com.wonnabe.asset.mapper.ConsumptionTransactionsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -21,9 +23,12 @@ public class ConsumptionTransactionsService {
     }
 
     //카테고리 상세 거래 내역
-    public List<TransactionDTO> getTransactionsByCategory(String userId, String category) {
-        return transactionsMapper.getTransactionsByCategory(userId, category);
+    public List<TransactionDTO> getTransactionsByCategory(String userId, String category, String yearMonth) {
+        return transactionsMapper.getTransactionsByCategory(userId, category, yearMonth);
     }
+
+
+
 
     // 오늘의 거래 내역
     public List<TransactionDTO> getTodayTransactions(String userId, String today) {
@@ -31,7 +36,7 @@ public class ConsumptionTransactionsService {
     }
 
     //오늘 소비 카테고리별 상세 거래 내역 조회
-    public List<TransactionDTO> getTodayTransactionsByCategory(String userId, String today, String category) {
+    public List<TransactionDTO> getTodayTransactionsByCategory(String userId, String today, ConsumptionCategory category) {
         return transactionsMapper.getTodayTransactionsByCategory(userId, today, category);
     }
 

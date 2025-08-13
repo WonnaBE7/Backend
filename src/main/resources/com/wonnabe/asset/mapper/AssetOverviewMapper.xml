@@ -19,6 +19,7 @@
         AND category IN ('입출금', '예적금', '투자', '연금', '기타')
     </select>
 
+    <!--  총자산페이지 - 총자산 카테고리 비율(입출금, 저축, 투자, 보험, 기타)-->
     <select id="getAssetCategoryBalances" resultType="map">
         SELECT category, SUM(balance) AS balance
         FROM user_accounts
@@ -26,6 +27,7 @@
         GROUP BY category
     </select>
 
+    <!-- 총자산페이지 - 자산 상세 내역-->
     <select id="getAssetCategoryDetails" resultType="map">
         SELECT category, COUNT(*) AS accountsCount, SUM(balance) AS amount
         FROM user_accounts
@@ -33,8 +35,10 @@
         GROUP BY category
     </select>
 
+    <!--  총자산 상세페이지 - 카테고리별 계좌-->
     <select id="getAccountsByCategory" resultType="map">
         SELECT
+            id AS accountId,
             bank_name AS bankName,
             account_name AS accountName,
             account_number AS accountNumber,
@@ -42,6 +46,36 @@
         FROM user_accounts
         WHERE user_id = #{userId}
           AND category = #{category}
+    </select>
+
+
+
+    <!--    총자산 상세페이지 -카테고리별 보유계좌 거래 내역-->
+    <!-- 계좌 헤더: user_id + account_number -->
+    <select id="getAccountHeaderById" resultType="map">
+        SELECT
+            ua.id             AS accountId,
+            ua.bank_name      AS bankName,
+            ua.account_name   AS accountName,
+            ua.account_number AS accountNumber
+        FROM user_accounts ua
+        WHERE ua.user_id = #{userId}
+          AND ua.id      = #{accountId}
+            LIMIT 1
+    </select>
+
+    <!-- 거래내역: user_transactions ⟷ user_accounts(id=account_id) -->
+    <select id="getTransactionsByAccountId" resultType="TransactionDTO">
+        SELECT
+            COALESCE(NULLIF(ut.description3, ''), ut.description1, ut.description2) AS transactionName,
+            DATE_FORMAT(ut.transaction_date, '%Y-%m-%d') AS transactionDate,
+            DATE_FORMAT(ut.transaction_time, '%H:%i:%s') AS transactionTime,  -- 항상 HH:mm:ss
+            CAST(ut.amount AS SIGNED) AS amount                                 -- 정수로
+        FROM user_transactions ut
+        JOIN user_accounts ua ON ua.id = ut.account_id
+        WHERE ua.user_id    = #{userId}
+          AND ut.account_id = #{accountId}
+        ORDER BY ut.transaction_date DESC, ut.transaction_time DESC
     </select>
 
 </mapper>
