@@ -1,5 +1,6 @@
 package com.wonnabe.asset.service;
 
+import com.wonnabe.asset.dto.TransactionDTO;
 import com.wonnabe.asset.mapper.AssetOverviewMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class AssetOverviewService {
 
     private final AssetOverviewMapper assetOverviewMapper;
 
+    //메인페이지 - 총자산 현황
     public Map<String, Object> getAssetOverview(String userId) {
         Long totalBalance = assetOverviewMapper.getCurrentTotalBalance(userId);
         Long lastMonthBalance = assetOverviewMapper.getLastMonthBalance(userId);
@@ -37,6 +39,7 @@ public class AssetOverviewService {
         return result;
     }
 
+    //총자산페이지 - 총자산 카테고리 비율(입출금, 저축, 투자, 보험, 기타)
     public Map<String, Object> getAssetCategoryRatio(String userId) {
         List<Map<String, Object>> raw = assetOverviewMapper.getAssetCategoryBalances(userId);
 
@@ -81,6 +84,7 @@ public class AssetOverviewService {
         };
     }
 
+    //총자산페이지 - 자산 상세 내역
     public Map<String, Object> getAssetCategoryDetails(String userId) {
         List<Map<String, Object>> raw = assetOverviewMapper.getAssetCategoryDetails(userId);
 
@@ -114,6 +118,7 @@ public class AssetOverviewService {
         return Map.of("categories", categories);
     }
 
+    //총자산 상세페이지 - 카테고리별 계좌
     public Map<String, Object> getAccountDetailByCategory(String userId, String inputCategory) {
         String dbCategory = mapToDbCategory(inputCategory);
 
@@ -122,6 +127,7 @@ public class AssetOverviewService {
         List<Map<String, Object>> accounts = rawAccounts.stream()
                 .map(account -> {
                     Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("accountId", account.get("accountId"));
                     m.put("bankName", account.get("bankName"));
                     m.put("accountName", account.get("accountName"));
                     m.put("accountNumber", account.get("accountNumber"));
@@ -155,32 +161,60 @@ public class AssetOverviewService {
     }
 
     // 총자산 상세페이지 -카테고리별 보유계좌 거래 내역
-    public Map<String, Object> getAccountTransactions(String userId, String accountNum) {
-        // 1) 계좌 헤더(소유자 검증 포함)
-        Map<String, Object> header = assetOverviewMapper.getAccountHeaderByNumber(userId, accountNum);
+    // 총자산 상세페이지 - 카테고리별 보유계좌 거래 내역
+    public Map<String, Object> getAccountTransactionsById(String userId, Long accountId) {
+        // 1) 헤더
+        Map<String, Object> header = assetOverviewMapper.getAccountHeaderById(userId, accountId);
         if (header == null || header.isEmpty()) {
-            throw new IllegalArgumentException("해당 계좌가 없거나 권한이 없습니다: " + accountNum);
+            throw new IllegalArgumentException("해당 계좌가 없거나 권한이 없습니다: " + accountId);
         }
 
-        // 2) 거래내역 조회
-        List<Map<String, Object>> rows = assetOverviewMapper.getTransactionsByAccountNumber(userId, accountNum);
+        // 2) 거래내역 (DTO로 받기)
+        List<TransactionDTO> transactions = assetOverviewMapper.getTransactionsByAccountId(userId, accountId);
+        if (transactions == null) transactions = java.util.Collections.emptyList();
 
-        // 3) 응답 포맷 변환
-        List<Map<String, Object>> transactions = rows.stream().map(r -> {
-            Map<String, Object> m = new LinkedHashMap<>();
-            m.put("transactionName", r.get("transactionName"));
-            m.put("transactionDate", r.get("transactionDate"));
-            m.put("transactionTime", r.get("transactionTime"));
-            m.put("amount", r.get("amount"));
-            return m;
-        }).collect(Collectors.toList());
+        // accountName 제외한 응답용 뷰
+        List<Map<String, Object>> txView = transactions.stream()
+                .map(t -> {
+                    Map<String, Object> m = new LinkedHashMap<>();
+                    m.put("transactionName", t.getTransactionName());
+                    m.put("transactionDate", t.getTransactionDate());
+                    m.put("transactionTime", t.getTransactionTime());
+                    m.put("amount", t.getAmount());
+                    return m;
+                })
+                .collect(Collectors.toList());
 
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("bankName", header.get("bankName"));
-        data.put("accountName", header.get("accountName"));
-        data.put("accountNumber", header.get("accountNumber")); // 그대로 전달
-        data.put("transactions", transactions);
-        return data;
+        // 3) 계좌번호 마스킹(하이픈/공백 유지)
+        String masked = maskAccountNumberKeepHyphen((String) header.get("accountNumber"));
+
+        // 4) 최종 응답 (변수명 result 권장)
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("bankName", header.get("bankName"));
+        result.put("accountNumber", masked);
+        result.put("transactions", txView);
+        return result;
+    }
+
+    private String maskAccountNumberKeepHyphen(String s) {
+        if (s == null) return null;
+        int totalDigits = 0;
+        for (int i = 0; i < s.length(); i++) if (Character.isDigit(s.charAt(i))) totalDigits++;
+
+        int seen = 0;
+        StringBuilder out = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (Character.isDigit(c)) {
+                seen++;
+                // 앞 4자리와 끝 2자리는 노출, 그 사이 숫자만 마스크
+                if (seen > 4 && seen <= totalDigits - 2) out.append('*');
+                else out.append(c);
+            } else {
+                out.append(c); // 하이픈/공백 등 비숫자는 그대로 유지
+            }
+        }
+        return out.toString();
     }
 
 

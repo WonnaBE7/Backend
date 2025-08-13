@@ -1,5 +1,6 @@
 package com.wonnabe.asset.mapper;
 
+import com.wonnabe.asset.dto.TransactionDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -22,9 +23,10 @@ public interface AssetOverviewMapper {
                                                     @Param("category") String category);
 
     // 총자산 상세페이지 -카테고리별 보유계좌 거래 내역
-    Map<String, Object> getAccountHeaderByNumber(@Param("userId") String userId,
-                                                 @Param("accountNum") String accountNum);
+    Map<String, Object> getAccountHeaderById(@Param("userId") String userId,
+                                                 @Param("accountId") Long accountId);
 
-    List<Map<String, Object>> getTransactionsByAccountNumber(@Param("userId") String userId,
-                                                             @Param("accountNum") String accountNum);
+    List<TransactionDTO> getTransactionsByAccountId(@Param("userId") String userId,
+                                                    @Param("accountId") Long accountId);
+
 }

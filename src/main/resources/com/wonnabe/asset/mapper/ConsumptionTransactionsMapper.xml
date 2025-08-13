@@ -19,7 +19,7 @@
         ORDER BY transaction_date DESC, transaction_time DESC
     </select>
 
-    <!-- 카테고리별 상세 거래 내역 -->
+    <!-- 월별 카테고리 상세 거래 내역 -->
     <select id="getTransactionsByCategory" resultType="TransactionDTO">
         SELECT
             merchant_name AS transactionName,
@@ -30,8 +30,12 @@
         FROM Card_Transactions
         WHERE user_id = #{userId}
           AND merchant_category = #{category}
+          AND DATE_FORMAT(transaction_date, '%Y-%m') = #{yearMonth}
         ORDER BY transaction_date DESC, transaction_time DESC
     </select>
+
+
+
 
     <!-- 오늘의 거래 내역 -->
     <select id="getTodayTransactions" resultType="TransactionDTO">
@@ -48,17 +52,17 @@
     </select>
 
     <!-- 오늘 소비 카테고리별 상세 거래 내역 조회 -->
-    <select id="getTodayTransactionsByCategory" resultType="TransactionDTO">
+    <select id="getTodayTransactionsByCategory" resultType="com.wonnabe.asset.dto.TransactionDTO">
         SELECT
             merchant_name AS transactionName,
             transaction_date AS transactionDate,
-            transaction_time AS transactionTime,
+            DATE_FORMAT(transaction_time, '%H:%i') AS transactionTime,
             card_name AS accountName,
             amount
         FROM Card_Transactions
         WHERE user_id = #{userId}
           AND transaction_date = #{today}
-          AND merchant_category = #{category}
+          AND merchant_category = #{category.value}
         ORDER BY transaction_time DESC
     </select>
 

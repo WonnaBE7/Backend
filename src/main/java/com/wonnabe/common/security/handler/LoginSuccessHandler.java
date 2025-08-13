@@ -63,7 +63,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         String userId = user.getUser().getUserId();
 
         // 외부 연동 분리
-        syncExternalData(userId);
+//        syncExternalData(userId);
 
         // 토큰 생성
         String accessToken = jwtProcessor.generateAccessToken(userId);

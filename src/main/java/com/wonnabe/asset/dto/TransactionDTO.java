@@ -1,11 +1,17 @@
 package com.wonnabe.asset.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
+@JsonPropertyOrder({"transactionName","transactionDate","transactionTime","amount"})
 public class TransactionDTO {
     private String transactionName;
     private String transactionDate;
     private String transactionTime;
+
     private String accountName;
-    private int amount;
+
+    private Long amount;
 
     public String getTransactionName() {
         return transactionName;
@@ -35,10 +41,10 @@ public class TransactionDTO {
         this.accountName = accountName;
     }
 
-    public int getAmount() {
+    public Long getAmount() {
         return amount;
     }
-    public void setAmount(int amount) {
+    public void setAmount(Long amount) {
         this.amount = amount;
     }
 }
