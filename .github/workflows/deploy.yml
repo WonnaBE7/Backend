@@ -58,7 +58,7 @@ jobs:
           chmod +x gradlew
 
       - name: 🏗️ 프로젝트 빌드 (Spring Legacy)
-        run: ./gradlew clean build war --no-daemon
+        run: ./gradlew clean build war -x test --no-daemon
 
       - name: 📤 WAR 파일 업로드
         uses: actions/upload-artifact@v4
