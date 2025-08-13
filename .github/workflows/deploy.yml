@@ -37,8 +37,8 @@ jobs:
       - name: 🔧 Gradle 권한 설정
         run: chmod +x ./gradlew
 
-      - name: 🏗️ 프로젝트 빌드
-        run: ./gradlew clean build --no-daemon
+      - name: 🏗️ 프로젝트 빌드 (Spring Legacy)
+        run: ./gradlew clean build war --no-daemon
 
       - name: 📤 WAR 파일 업로드
         uses: actions/upload-artifact@v4
