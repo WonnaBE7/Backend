@@ -89,13 +89,19 @@
 
     <!-- 내가 작성한 게시글 수 -->
     <select id="countUserBoards" resultType="int">
-        SELECT COUNT(*) FROM board WHERE user_id = #{userId} AND is_deleted = 0
+        SELECT COUNT(*)
+        FROM board
+        WHERE user_id = #{userId} AND is_deleted = 0
     </select>
 
     <!-- 내가 스크랩한 글 수 -->
     <select id="countUserScraps" resultType="int">
-        SELECT COUNT(*) FROM board_scrap
-        WHERE user_id = #{userId} AND is_deleted = 0
+        SELECT COUNT(*)
+        FROM board_scrap bs
+                 JOIN board b ON bs.board_id = b.id
+        WHERE bs.user_id = #{userId}
+          AND bs.is_deleted = 0
+          AND b.is_deleted = 0
     </select>
 
     <!-- 사용자가 스크랩한 게시글 조회 -->

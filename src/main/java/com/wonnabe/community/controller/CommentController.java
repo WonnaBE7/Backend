@@ -31,9 +31,6 @@ public class CommentController {
             String userId = customUser.getUser().getUserId(); // 현재 로그인 유저 ID 추출
             List<CommentDTO> comments = commentService.getCommentsByBoardId(communityId, boardId, userId);
 
-            if (comments.isEmpty()) {
-                return JsonResponse.error(HttpStatus.NOT_FOUND, "해당 게시글에 댓글이 존재하지 않습니다.");
-            }
 
             return JsonResponse.ok("댓글 조회에 성공하였습니다.", Map.of("comments", comments));
 
