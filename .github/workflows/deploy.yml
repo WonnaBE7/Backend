@@ -1,0 +1,129 @@
+name: Spring Legacy CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  JAVA_VERSION: '17'
+  WAR_NAME: 'wonnabe'  # 프로젝트명으로 변경
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 소스코드 체크아웃
+        uses: actions/checkout@v4
+
+      - name: ☕ JDK 17 설치
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+
+      - name: 📦 Gradle 캐시 설정
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: 🔧 Gradle 권한 설정
+        run: chmod +x ./gradlew
+
+      - name: 🏗️ 프로젝트 빌드
+        run: ./gradlew clean build --no-daemon
+
+      - name: 📤 WAR 파일 업로드
+        uses: actions/upload-artifact@v3
+        with:
+          name: war-file
+          path: build/libs/*.war
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: 📥 WAR 파일 다운로드
+        uses: actions/download-artifact@v3
+        with:
+          name: war-file
+          path: ./
+
+      - name: 🔧 서버 준비 및 백업
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🚀 배포 시작: $(date)"
+            
+            # 백업 디렉토리 생성
+            sudo mkdir -p ${{ secrets.TOMCAT_PATH }}/backup
+            
+            # 기존 WAR 파일 백업
+            if [ -f "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war" ]; then
+              sudo cp "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war" \
+                     "${{ secrets.TOMCAT_PATH }}/backup/${{ env.WAR_NAME }}-$(date +%Y%m%d_%H%M%S).war"
+              echo "✅ 백업 완료"
+            fi
+            
+            # Tomcat 중지
+            echo "🛑 Tomcat 중지..."
+            sudo systemctl stop tomcat
+            
+            # 기존 파일 제거
+            sudo rm -f "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war"
+            sudo rm -rf "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}/"
+            
+            # 임시 폴더 생성
+            mkdir -p ~/deploy
+
+      - name: 📤 WAR 파일 서버 전송
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "*.war"
+          target: "/home/${{ secrets.EC2_USERNAME }}/deploy/"
+
+      - name: ✅ 배포 완료
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # WAR 파일 이동
+            sudo mv "/home/${{ secrets.EC2_USERNAME }}/deploy/"*.war \
+                   "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war"
+            
+            # 권한 설정
+            sudo chown tomcat:tomcat "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war"
+            
+            # Tomcat 시작
+            echo "🚀 Tomcat 시작..."
+            sudo systemctl start tomcat
+            
+            # 시작 확인 (30초 대기)
+            sleep 30
+            if sudo systemctl is-active --quiet tomcat; then
+              echo "✅ 배포 성공!"
+            else
+              echo "❌ Tomcat 시작 실패"
+              exit 1
+            fi
+            
+            # 정리
+            rm -rf "/home/${{ secrets.EC2_USERNAME }}/deploy"
+            echo "🎉 배포 완료: $(date)"
