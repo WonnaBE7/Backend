@@ -79,7 +79,6 @@ class UserServiceTest {
         assertDoesNotThrow(() -> userService.getNowmeHistory("user123"));
     }
 
-    // 🔧 새로운 테스트 추가
     @Test
     void getUserDetail() {
         CustomUser mockUser = createFakeUser();

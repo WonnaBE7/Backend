@@ -49,7 +49,6 @@ class UserMapperTest {
 
         @Override
         public UserDetailResponse.UserDetailData selectUserDetail(String userId) {
-            // 🔧 새로운 생성자 매개변수에 맞게 수정 (incomeAnnualAmount 제거됨)
             return UserDetailResponse.UserDetailData.builder()
                     .userId("test-user")
                     .lifestyleSmoking(0)

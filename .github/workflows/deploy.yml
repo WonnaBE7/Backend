@@ -2,7 +2,7 @@ name: Spring Legacy CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, feature/github-actions ]
   pull_request:
     branches: [ main ]
 

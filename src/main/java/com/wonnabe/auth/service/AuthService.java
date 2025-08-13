@@ -77,7 +77,6 @@ public class AuthService {
         if (dto.getName() == null || dto.getName().trim().isEmpty()) {
             throw new IllegalArgumentException("이름은 필수 입력 항목입니다.");
         }
-
         if (!isValidEmail(dto.getEmail())) {
             throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다.");
         }

@@ -61,7 +61,6 @@ class UserControllerTest {
     void createUserDetail() {
         assertDoesNotThrow(() -> {
             var mockUser = mock(com.wonnabe.common.security.account.domain.CustomUser.class);
-            // 🔧 실제 UserDetailRequest 객체 생성 (Integer 타입으로 변경됨)
             UserDetailRequest req = UserDetailRequest.builder()
                     .lifestyleSmoking(0)
                     .lifestyleFamilyMedical(1)
@@ -81,7 +80,6 @@ class UserControllerTest {
     void updateUserDetail() {
         assertDoesNotThrow(() -> {
             var mockUser = mock(com.wonnabe.common.security.account.domain.CustomUser.class);
-            // 🔧 실제 UserDetailRequest 객체 생성
             UserDetailRequest req = UserDetailRequest.builder()
                     .lifestyleSmoking(1)
                     .householdSize(3)
