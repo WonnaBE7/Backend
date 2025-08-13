@@ -51,7 +51,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
         SavingsProductVO product = productDetailMapper.findSavingProductById(productId);
 
         double[] weights = savingsRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
-        int matchScore = (int) savingsRecommendationService.calculateScore(product, weights);
+        double matchScore = savingsRecommendationService.calculateScore(product, weights);
 
         List<Long> favoriteProductIds = Collections.emptyList();
         try {
@@ -68,7 +68,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                 .productId(String.valueOf(product.getProductId()))
                 .productName(product.getProductName())
                 .bankName(product.getBankName())
-                .matchScore(matchScore)
+                .score(Math.round(matchScore * 10.0) / 10.0)
                 .interestRate("연 " + product.getBaseRate() + "%")
                 .maxInterestRate("연 " + product.getMaxRate() + "%")
                 .benefitSummary(product.getPrefer())
@@ -115,7 +115,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
 
         // matchScore 계산
         double[] weights = insuranceRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
-        int matchScore = (int) insuranceRecommendationService.calculateScore(product, weights);
+        double matchScore = insuranceRecommendationService.calculateScore(product, weights);
 
         // averagePremium 계산
         BigDecimal femalePremium = product.getFemalePremium() != null ? product.getFemalePremium() : BigDecimal.ZERO;
@@ -137,7 +137,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                 .productId(String.valueOf(product.getProductId()))
                 .productName(product.getProductName())
                 .providerName(product.getProviderName())
-                .matchScore(matchScore)
+                .score(Math.round(matchScore * 10.0) / 10.0)
                 .coverageType(product.getCoverageType())
                 .coverageLimit(product.getCoverageLimit())
                 .deductible(String.valueOf(product.getScoreDeductibleLevel()))

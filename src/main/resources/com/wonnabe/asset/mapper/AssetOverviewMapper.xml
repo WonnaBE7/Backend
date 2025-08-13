@@ -78,6 +78,4 @@
         ORDER BY ut.transaction_date DESC, ut.transaction_time DESC
     </select>
 
-
-
 </mapper>

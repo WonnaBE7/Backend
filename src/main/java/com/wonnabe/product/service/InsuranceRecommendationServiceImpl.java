@@ -105,8 +105,8 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
             List<ProductWithScore<InsuranceProductVO>> scoredProducts = new ArrayList<>();
             double[] weightsArray = convertWeightsMapToArray(adjustedWeights);
             for (InsuranceProductVO product : allInsuranceProducts) {
-                double totalScore = calculateScore(product, weightsArray);
-                scoredProducts.add(new ProductWithScore<>(product, totalScore));
+                double score = calculateScore(product, weightsArray);
+                scoredProducts.add(new ProductWithScore<>(product, score));
             }
 
             // 점수 순으로 정렬
@@ -132,7 +132,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
                 rec.setNote(product.getNote());
                 rec.setMyMoney(product.getMyMoney());
 
-                rec.setTotalScore(item.score);
+                rec.setScore(item.score);
 
                 personaRec.getProducts().add(rec);
             }

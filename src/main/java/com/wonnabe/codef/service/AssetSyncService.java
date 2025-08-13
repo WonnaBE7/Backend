@@ -1,12 +1,9 @@
 package com.wonnabe.codef.service;
 
-import com.wonnabe.codef.domain.UserCard;
-import com.wonnabe.codef.domain.UserSaving;
-import com.wonnabe.codef.domain.UserTransactions;
+import com.wonnabe.codef.domain.*;
 import com.wonnabe.codef.dto.*;
 import com.wonnabe.codef.mapper.*;
 import com.wonnabe.codef.client.CodefApiClient;
-import com.wonnabe.codef.domain.UserAccount;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,9 +21,7 @@ import java.util.List;
 public class AssetSyncService {
 
     private final CodefApiClient codefApiClient;
-
     private final CodefMapper codefMapper;
-
     private final AssetMapper assetMapper;
     private final CodefSavingsMapper savingsMapper;
     private final AssetCardMapper assetCardMapper;
@@ -49,28 +44,61 @@ public class AssetSyncService {
                 List<UserAccount> allAccounts = new ArrayList<>();
                 List<UserCard> allCards = new ArrayList<>();
                 List<UserTransactions> allTransactions = new ArrayList<>();
+                List<CardTransactions> allCardTransactions = new ArrayList<>();
 
                 if (response instanceof AccountListResponse wrapper) {
+                    // 보유 계좌 리스트 조회
                     allAccounts.addAll(wrapper.toUserAccountsFromDeposit(userId, param.getInstitutionCode()));
-//                    allAccounts.addAll(wrapper.toUserAccountsFromInsurance(userId, param.getInstitutionCode()));
-                } else if (response instanceof CardListWrapper cardResponse) {
-
-                    allCards.addAll(cardResponse.toUserCards(userId));
                 }
-                else if (response instanceof CodefTransactionResponse txWrapper) {
-                    TransactionListResponse txResponse = txWrapper.getData();
+                else if (response instanceof AccountTransactionListWrapper atlWrapper) {
+                    // 입출금 계좌 거래내역 리스트 조회
+                    AccountTransactionListResponse txResponse = atlWrapper.getData();
                     allTransactions.addAll(txResponse.toUserTransactions(userId, param.getInstitutionCode(), accountMapper));
-                } else if (response instanceof SavingTransactionResponse savingTxWrapper) {
+                }
+                else if (response instanceof SavingTransactionListResponse savingTxWrapper) {
+                    // 적금 계좌 거래내역 리스트 조회
                     List<UserTransactions> savingTxs = savingTxWrapper.toUserTransactions(userId, param.getInstitutionCode(), accountMapper, savingsMapper);
                     allTransactions.addAll(savingTxs);
-                } else {
+                }
+                else if (response instanceof CardListWrapper cardResponse) {
+                    // 보유 카드 리스트 조회
+                    allCards.addAll(cardResponse.toUserCards(userId));
+                }
+                else if (response instanceof CardTransactionListWrapper crlWrapper) {
+                    // 카드 거래내역 리스트 조회
+                    List<CardTransactionData> cardTransactionDataList = crlWrapper.getData();
+                    CardApprovalListResponse cardApprovalListResponse = new CardApprovalListResponse();
+                    cardApprovalListResponse.setData(cardTransactionDataList); // 데이터를 세팅
+
+                    allCardTransactions.addAll(
+                            cardApprovalListResponse.toCardTransactions(userId, param.getInstitutionCode(), assetCardMapper)
+                    );
+                }
+                else if (response instanceof InvestAccountListWrapper investWrapper) {
+                    allAccounts.addAll(
+                            investWrapper.toUserAccountsFromSecurities(userId, param.getInstitutionCode())
+                    );
+                }
+                else {
                     log.warn("⚠️ 알 수 없는 응답 형식: {}, 기관: {}", response.getClass().getSimpleName(), param.getInstitutionCode());
                     continue;
                 }
 
                 // ✅ 1. 일반 계좌 처리 (입출금/예적금/보험)
                 for (UserAccount account : allAccounts) {
+
+                    // 카테고리 선셋팅(증권)은 존중
+                    if (account.getCategory() != null && !account.getCategory().isBlank()) {
+                        String bankName = assetMapper.findBankName(account.getInstitutionCode());
+                        account.setBankName(bankName);
+                        assetMapper.upsert(account);
+                        continue;
+                    }
+
+                    // 은행 분류는 기존 deposit code 로직 유지
                     String depositCode = account.getAccountDeposit();
+                    String bankName = assetMapper.findBankName(account.getInstitutionCode());
+                    account.setBankName(bankName);
 
                     switch (depositCode) {
                         case "11": // 수시입출
@@ -85,10 +113,6 @@ public class AssetSyncService {
                             UserSaving savings = convertToUserSavings(account);
                             if (savings.getProductId() != null) savingsMapper.upsert(savings);
                             break;
-                        case "50": // 보험
-//                            UserInsurance insurance = convertToUserInsurance(account);
-//                            insuranceMapper.upsert(insurance);
-//                            break;
                         default:
                             account.setCategory("기타");
                             assetMapper.upsert(account); // 기본은 입출금
@@ -103,10 +127,16 @@ public class AssetSyncService {
                     assetCardMapper.upsert(card);
                 }
 
-                // 계좌 수시입출/적금 거래내역 처리
+                // ✅ 거래내역 처리 (입출금/적금)
                 if (!allTransactions.isEmpty()) {
                     userTransactionsMapper.upsertBatch(allTransactions);
                 }
+
+                // ✅ 카드 거래내역
+                if (!allCardTransactions.isEmpty()) {
+                    assetCardMapper.upsertBatch(allCardTransactions);
+                }
+
                 log.info("✅ 자산 동기화 성공 - userId: {}, 기관: {}", userId, param.getInstitutionCode());
 
             } catch (Exception e) {
@@ -183,11 +213,10 @@ public class AssetSyncService {
         if (rawCardName == null) return "";
 
         return rawCardName
-//                .toLowerCase()                 // 소문자 통일
                 .replaceAll("\\s+", "")        // 공백 제거
-                .replaceAll("[\\s\\-()\\[\\]{}]", "")   // 공백, 괄호류, 하이픈 제거
-//                .replaceAll("[^가-힣a-zA-Z0-9]", "") // 괄호, 특수기호 제거
-                .replace("nori", "노리");       // 수동 매핑 예시
+                .replaceAll("[\\s()\\[\\]{}]", "")  // 공백, 괄호류 제거
+                .replace("nori", "노리")
+                .replace("VIVAePlatinum", "하나");
     }
 
 }

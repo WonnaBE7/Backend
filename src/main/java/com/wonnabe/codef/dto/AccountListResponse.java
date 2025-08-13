@@ -22,10 +22,6 @@ public class AccountListResponse {
         return parseAccounts(data.getResDepositTrust(), userId, institutionCode);
     }
 
-    public List<UserAccount> toUserAccountsFromInsurance(String userId, String institutionCode) {
-        return parseAccounts(data.getResInsurance(), userId, institutionCode);
-    }
-
     private List<UserAccount> parseAccounts(List<Map<String, Object>> list, String userId, String institutionCode) {
         List<UserAccount> accounts = new ArrayList<>();
         if (list == null) return accounts;
@@ -48,7 +44,6 @@ public class AccountListResponse {
 
             accounts.add(account);
         }
-
         return accounts;
     }
 

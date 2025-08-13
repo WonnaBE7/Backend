@@ -8,13 +8,12 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static com.fasterxml.jackson.core.io.NumberInput.parseBigDecimal;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class TransactionListResponse {
+public class AccountTransactionListResponse {
 
     @JsonProperty("resAccountBalance")
     private String accountBalance;

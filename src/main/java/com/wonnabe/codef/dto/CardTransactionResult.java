@@ -1,13 +1,11 @@
 package com.wonnabe.codef.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
-public class Result {
+@Data
+public class CardTransactionResult {
     private String code;
-    private String message;
     private String extraMessage;
+    private String message;
     private String transactionId;
 }

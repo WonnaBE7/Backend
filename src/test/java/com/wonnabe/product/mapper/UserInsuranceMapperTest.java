@@ -14,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.wonnabe.product.dto.TransactionSummaryDto;
+import com.wonnabe.product.dto.MonthlyInsuranceReceiptDto;
 
 import java.sql.Date;
 import java.time.LocalDate;
@@ -112,5 +113,85 @@ class UserInsuranceMapperTest {
         ));
         System.out.println("==========================");
 
+    }
+
+    @Test
+    @DisplayName("상품 ID로 보험 상품 상세 정보를 정상적으로 조회해야 한다.")
+    void findInsuranceProductById_should_return_product_detail() {
+        // given: 테스트 DB에 존재하는 상품 ID
+        Long productId = 3002L; // 예시: 실제 테스트 환경에 맞는 유효한 productId 사용
+
+        // when: Mapper 메소드 호출
+        InsuranceProductVO product = userInsuranceMapper.findInsuranceProductById(productId);
+
+        // then: 반환된 결과 검증
+        assertNotNull(product, "상품 정보는 null이 아니어야 합니다.");
+        assertEquals(productId, product.getProductId(), "조회된 productId가 일치해야 합니다.");
+        assertNotNull(product.getProductName(), "상품명 정보가 있어야 합니다.");
+        assertNotNull(product.getProviderName(), "제공자 이름 정보가 있어야 합니다.");
+    }
+
+    @Test
+    @DisplayName("사용자 ID와 상품 ID로 총 수령액(입금)을 정상적으로 조회해야 한다.")
+    void findTotalReceiptAmount_should_return_correct_sum() {
+        // given: 테스트 DB에 존재하는 사용자 ID와 상품 ID
+        String userId = testUserId;
+        Long productId = 3002L; // 이 상품에 대한 입금 거래가 있다고 가정
+
+        // when: Mapper 메소드 호출
+        Long totalReceipt = userInsuranceMapper.findTotalReceiptAmount(userId, productId);
+
+        // then: 반환된 결과 검증 (예상 값은 테스트 DB 데이터에 따라 달라짐)
+        assertNotNull(totalReceipt, "총 수령액은 null이 아니어야 합니다.");
+        // 실제 테스트 데이터에 따라 예상 값을 설정하세요.
+        // 예: assertEquals(100000L, totalReceipt, "총 수령액이 일치해야 합니다.");
+        System.out.println("Total Receipt Amount for userId: " + userId + ", productId: " + productId + " = " + totalReceipt);
+    }
+
+    @Test
+    @DisplayName("사용자 ID와 상품 ID로 총 납입액(출금)을 정상적으로 조회해야 한다.")
+    void findTotalPaymentAmount_should_return_correct_sum() {
+        // given: 테스트 DB에 존재하는 사용자 ID와 상품 ID
+        String userId = testUserId;
+        Long productId = 3002L; // 이 상품에 대한 출금 거래가 있다고 가정
+
+        // when: Mapper 메소드 호출
+        Long totalPayment = userInsuranceMapper.findTotalPaymentAmount(userId, productId);
+
+        // then: 반환된 결과 검증 (예상 값은 테스트 DB 데이터에 따라 달라짐)
+        assertNotNull(totalPayment, "총 납입액은 null이 아니어야 합니다.");
+        // 실제 테스트 데이터에 따라 예상 값을 설정하세요.
+        // 예: assertEquals(50000L, totalPayment, "총 납입액이 일치해야 합니다.");
+        System.out.println("Total Payment Amount for userId: " + userId + ", productId: " + productId + " = " + totalPayment);
+    }
+
+    @Test
+    @DisplayName("월별 보험 수령액(입금) 내역을 정상적으로 조회해야 한다.")
+    void findMonthlyInsuranceReceipts_should_return_correct_receipts() {
+        // given: 테스트 DB에 존재하는 사용자 ID와 시작 날짜
+        String userId = testUserId;
+        Long productId = 3001L; // 이 상품에 대한 월별 입금 거래가 있다고 가정
+        LocalDate startDate = LocalDate.of(2025, 6, 25);
+
+        // when: Mapper 메소드 호출
+        List<com.wonnabe.product.dto.MonthlyInsuranceReceiptDto> monthlyReceipts = userInsuranceMapper.findMonthlyInsuranceReceipts(userId, productId, Date.valueOf(startDate));
+
+        // then: 반환된 결과 검증 (예상 값은 테스트 DB 데이터에 따라 달라짐)
+        assertNotNull(monthlyReceipts, "월별 수령액 목록은 null이 아니어야 합니다.");
+        assertFalse(monthlyReceipts.isEmpty(), "월별 수령액 목록은 비어있지 않아야 합니다.");
+
+        // 예시: 1월 데이터 검증 (실제 테스트 데이터에 따라 조정 필요)
+        com.wonnabe.product.dto.MonthlyInsuranceReceiptDto janReceipt = monthlyReceipts.stream()
+                .filter(r -> r.getMonth().equals("2025-06"))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(janReceipt, "6월 수령액 요약이 존재해야 합니다.");
+        // 예: assertEquals(10000L, janReceipt.getAmount(), "1월 수령액이 일치해야 합니다.");
+        System.out.println("===== 월별 보험 수령액 ======");
+        monthlyReceipts.forEach(r -> System.out.printf(
+                "월: %s | 금액: %d%n",
+                r.getMonth(), r.getAmount()
+        ));
+        System.out.println("===========================");
     }
 }
