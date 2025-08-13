@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/users/insurance")
+@RequestMapping("/api/users/insurances")
 @Log4j2
 @RequiredArgsConstructor
 public class InsuranceApplyController {

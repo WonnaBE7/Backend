@@ -86,7 +86,7 @@ class InsuranceApplyControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(dto);
 
         // when & then: API를 호출하고, 정상적으로 처리되는지(HTTP 200 OK) 확인
-        mockMvc.perform(post("/api/users/insurance/apply")
+        mockMvc.perform(post("/api/users/insurances/apply")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonRequest))
                 .andExpect(status().isOk());

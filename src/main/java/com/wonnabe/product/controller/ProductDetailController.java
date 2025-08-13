@@ -24,7 +24,7 @@ public class ProductDetailController {
         return JsonResponse.ok("예적금 상품 상세 조회 성공", productDetailService.getSavingProductDetail(productId));
     }
 
-    @GetMapping("/insurance/{productId}")
+    @GetMapping("/insurances/{productId}")
     public ResponseEntity<Object> getInsuranceProductDetail(
             @PathVariable String productId,
             @AuthenticationPrincipal CustomUser customUser
