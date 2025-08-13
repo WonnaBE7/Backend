@@ -34,8 +34,21 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 🔧 Gradle 권한 설정
-        run: chmod +x ./gradlew
+      - name: 🔧 Gradle 설치 및 Wrapper 재생성
+        run: |
+          # Gradle 설치
+          sudo apt-get update
+          sudo apt-get install -y gradle
+          
+          # 기존 wrapper 삭제
+          rm -rf gradle/wrapper/
+          rm -f gradlew gradlew.bat
+          
+          # 새로운 wrapper 생성
+          gradle wrapper --gradle-version 8.5
+          
+          # 권한 설정
+          chmod +x gradlew
 
       - name: 🏗️ 프로젝트 빌드 (Spring Legacy)
         run: ./gradlew clean build war --no-daemon
