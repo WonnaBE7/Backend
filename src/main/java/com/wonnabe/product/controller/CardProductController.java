@@ -6,6 +6,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
@@ -14,6 +15,7 @@ import com.wonnabe.product.dto.CardProductDetailResponseDTO;
 import com.wonnabe.product.dto.UserCardDetailDTO;
 import com.wonnabe.product.service.CardService;
 
+import io.swagger.models.auth.In;
 import lombok.extern.log4j.Log4j2;
 
 @RestController
@@ -31,16 +33,17 @@ public class CardProductController {
 	 * @param customuser 사용자 아이디
 	 * @return 카드 상품 상세 정보
 	 */
-	@GetMapping("/{cardId}")
+	@GetMapping
 	public ResponseEntity<Object> getUserCardDetail(
-		@PathVariable("cardId") int cardId, // url 경로를 파라미터로 매핑할때
+		@RequestParam("cardId") int cardId, // url 경로를 파라미터로 매핑할때
+		@RequestParam(value = "wannabeId", required = false) Integer wannabeId, // 워너비 아이디
 		@AuthenticationPrincipal CustomUser customuser // 인증된 사용자 정보
 	) {
 		// 아이디를 가져옴
 		String userId = customuser.getUser().getUserId();
 
 		// 서비스에서 만든 함수로 dto를 가져옴
-		CardProductDetailResponseDTO cardDetail = cardService.findProductDetail(cardId, userId);
+		CardProductDetailResponseDTO cardDetail = cardService.findProductDetail(cardId, userId, wannabeId);
 		// 반환
 		return JsonResponse.ok("카드 상품 상세 조회 성공", cardDetail);
 	}
