@@ -34,20 +34,27 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 🔧 Gradle 설치 및 Wrapper 재생성
+      - name: 🔧 Gradle Wrapper 직접 다운로드
         run: |
-          # Gradle 설치
-          sudo apt-get update
-          sudo apt-get install -y gradle
+          mkdir -p gradle/wrapper
           
-          # 기존 wrapper 삭제
-          rm -rf gradle/wrapper/
-          rm -f gradlew gradlew.bat
+          # gradle-wrapper.jar 다운로드 (정상 파일)
+          curl -L https://github.com/gradle/gradle/raw/v8.5.0/gradle/wrapper/gradle-wrapper.jar \
+               -o gradle/wrapper/gradle-wrapper.jar
           
-          # 새로운 wrapper 생성
-          gradle wrapper --gradle-version 8.5
+          # gradle-wrapper.properties 생성
+          cat > gradle/wrapper/gradle-wrapper.properties << EOF
+          distributionBase=GRADLE_USER_HOME
+          distributionPath=wrapper/dists
+          distributionUrl=https\://services.gradle.org/distributions/gradle-8.5-bin.zip
+          zipStoreBase=GRADLE_USER_HOME
+          zipStorePath=wrapper/dists
+          EOF
           
-          # 권한 설정
+          # gradlew 스크립트 다운로드
+          curl -L https://github.com/gradle/gradle/raw/v8.5.0/gradlew -o gradlew
+          curl -L https://github.com/gradle/gradle/raw/v8.5.0/gradlew.bat -o gradlew.bat
+          
           chmod +x gradlew
 
       - name: 🏗️ 프로젝트 빌드 (Spring Legacy)
