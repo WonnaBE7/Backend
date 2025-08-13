@@ -25,6 +25,8 @@ public class UserSavingsDetailResponseDto {
 
     private String bankName;
 
+    private Float baseRate; // 기본 금리
+
     /** 상품 유형 ("예금" 또는 "적금") */
     private String productType;
 
@@ -75,6 +77,7 @@ public class UserSavingsDetailResponseDto {
                 .productId(String.valueOf(product.getProductId()))
                 .productName(product.getProductName())
                 .bankName(product.getBankName())
+                .baseRate(product.getBaseRate()) // 기본 금리 추가
                 .productType(productType)
                 .startDate(dateFormat.format(userSavings.getStartDate()))
                 .maturityDate(dateFormat.format(userSavings.getMaturityDate()))
