@@ -66,7 +66,8 @@ public class UserSavingsService {
             return (totalExpectedPrincipal == 0) ? 100 : (int) (((double) currentPrincipal / totalExpectedPrincipal) * 100);
         } else {
             // 예금: (현재 총 납입 원금 / 최초 계약 원금) * 100
-            long initialPrincipal = userSavings.getPrincipalAmount();
+            Long initialPrincipalObj = userSavings.getPrincipalAmount();
+            long initialPrincipal = (initialPrincipalObj == null) ? 1000000L : initialPrincipalObj;
             return (initialPrincipal == 0) ? 100 : (int) (((double) currentPrincipal / initialPrincipal) * 100);
         }
     }
