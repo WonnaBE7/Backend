@@ -63,6 +63,8 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     public InsuranceRecommendationResponseDTO recommendInsurance(String userId, int topN) {
         // 1. 사용자 정보 조회
         UserIncomeInfoVO userIncomeInfo = recommendationMapper.getUserHealthInfo(userId);
+        log.info("### [DEBUG] Fetched userIncomeInfo for insurance recommend: {}", userIncomeInfo);
+
         if (userIncomeInfo == null || userIncomeInfo.getPersonaIds() == null || userIncomeInfo.getPersonaIds().isEmpty()) {
             log.warn("사용자 건강 정보 또는 페르소나 ID가 없어 보험 추천을 진행할 수 없습니다. userId: {}", userId);
             return new InsuranceRecommendationResponseDTO(userId, new ArrayList<>());

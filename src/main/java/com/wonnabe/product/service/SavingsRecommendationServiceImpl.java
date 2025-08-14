@@ -58,6 +58,8 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     public SavingsRecommendationResponseDTO recommendSavings(String userId, int topN) {
         // 1. 사용자 정보 조회
         UserIncomeInfoVO userInfo = recommendationMapper.getUserIncomeInfo(userId);
+        log.info("### [DEBUG] Fetched userInfo for savings recommend: {}", userInfo);
+
         if (userInfo == null || userInfo.getPersonaIds() == null || userInfo.getPersonaIds().isEmpty()) {
             log.warn("사용자 정보 또는 페르소나 ID가 없어 적금 추천을 진행할 수 없습니다. userId: {}", userId);
             return new SavingsRecommendationResponseDTO(userId, new ArrayList<>());

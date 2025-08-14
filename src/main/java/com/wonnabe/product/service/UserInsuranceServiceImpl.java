@@ -56,12 +56,14 @@ public class UserInsuranceServiceImpl implements UserInsuranceService {
         Long totalPaymentAmount = userInsuranceMapper.findTotalPaymentAmount(userId, productId);
 
         // 달성률(achievementRate) 계산
-        String achievementRate;
-        if (totalPaymentAmount != null && totalPaymentAmount > 0) {
-            BigDecimal rate = BigDecimal.valueOf(totalReceiptAmount).divide(BigDecimal.valueOf(totalPaymentAmount), 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100));
-            achievementRate = String.format("%.2f%%", rate);
+        Integer achievementRate;
+        if (totalPaymentAmount != null && totalPaymentAmount > 0 && totalReceiptAmount != null) {
+            BigDecimal rate = BigDecimal.valueOf(totalReceiptAmount)
+                                        .multiply(BigDecimal.valueOf(100))
+                                        .divide(BigDecimal.valueOf(totalPaymentAmount), 0, BigDecimal.ROUND_HALF_UP);
+            achievementRate = rate.intValue();
         } else {
-            achievementRate = "0.00%"; // 납입액이 없거나 0인 경우
+            achievementRate = 0;
         }
 
         // 월별 보험 거래 내역 조회 (최근 5개월)

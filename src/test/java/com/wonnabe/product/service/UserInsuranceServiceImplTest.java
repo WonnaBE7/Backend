@@ -88,7 +88,7 @@ class UserInsuranceServiceImplTest {
         assertEquals("테스트보험사", responseDTO.getInsuranceCompany(), "보험 회사명이 일치해야 합니다.");
 
         // Verify calculated fields
-        assertEquals("80.00%", responseDTO.getAchievementRate(), "달성률이 올바르게 계산되어야 합니다."); // (400000 / 500000) * 100 = 80%
+                assertEquals(80, responseDTO.getAchievementRate(), "달성률이 올바르게 계산되어야 합니다."); // (400000 / 500000) * 100 = 80
         assertEquals("400000", responseDTO.getGetAmount(), "총 수령액이 일치해야 합니다.");
         assertEquals("500000", responseDTO.getCurrentAmount(), "총 납입액이 일치해야 합니다.");
 
