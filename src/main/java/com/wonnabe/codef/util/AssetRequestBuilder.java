@@ -1,6 +1,6 @@
 package com.wonnabe.codef.util;
 
-import com.wonnabe.codef.dto.CodefAuthParam;
+import com.wonnabe.codef.dto.auth.CodefAuthParam;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

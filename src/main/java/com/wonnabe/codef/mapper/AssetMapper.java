@@ -13,12 +13,12 @@ public interface AssetMapper {
 
     String findBankName(@Param("bankCode") String bankCode);
 
-    List<UserAccount> findAccountsByUserId(@Param("userId") String userId);
-
-    void insertAccounts(@Param("accounts") List<UserAccount> accounts);
-
-    void updateAccount(@Param("account") UserAccount account);
-
-    void saveOrUpdate(@Param("userId") String userId, @Param("accounts") List<UserAccount> accounts);
+//    List<UserAccount> findAccountsByUserId(@Param("userId") String userId);
+//
+//    void insertAccounts(@Param("accounts") List<UserAccount> accounts);
+//
+//    void updateAccount(@Param("account") UserAccount account);
+//
+//    void saveOrUpdate(@Param("userId") String userId, @Param("accounts") List<UserAccount> accounts);
 
 }

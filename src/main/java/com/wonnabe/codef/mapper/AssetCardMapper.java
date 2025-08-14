@@ -1,6 +1,6 @@
 package com.wonnabe.codef.mapper;
 
-import com.wonnabe.codef.domain.CardTransactions;
+import com.wonnabe.codef.domain.CardTransaction;
 import com.wonnabe.codef.domain.UserCard;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -38,10 +38,10 @@ public interface AssetCardMapper {
     /**
      * 카드 거래내역을 배치로 Upsert합니다 (기존 데이터가 있으면 update, 없으면 insert).
      *
-     * @param cardTransactionsList 카드 거래내역 리스트
+     * @param cardTransactionList 카드 거래내역 리스트
      * @return 영향받은 행 수
      */
-    int upsertBatch(List<CardTransactions> cardTransactionsList);
+    int upsertBatch(List<CardTransaction> cardTransactionList);
 
     Long findUserCardIdByTwoCardNumbers(
             @Param("userId") String userId,
@@ -49,10 +49,8 @@ public interface AssetCardMapper {
             @Param("cardNumber2") String cardNumber2
     );
 
-    // 추가: userCardId로 카드명 조회 (User_card → Card_product)
     String findCardNameByUserCardId(@Param("userCardId") Long userCardId);
 
-    // 추가: 카드번호 뒤4자리로 카드명 조회
     String findCardNameByLast4(@Param("userId") String userId,
                                @Param("last4") String last4);
 }

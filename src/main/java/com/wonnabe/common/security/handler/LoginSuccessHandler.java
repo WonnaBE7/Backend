@@ -1,8 +1,7 @@
 package com.wonnabe.common.security.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wonnabe.codef.service.AssetSyncService;
-import com.wonnabe.codef.service.CodefAuthService;
+import com.wonnabe.codef.service.AssetSyncOrchestrator;
 import com.wonnabe.auth.repository.RefreshTokenRedisRepository;
 import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.common.security.account.dto.AuthResultDTO;
@@ -10,6 +9,7 @@ import com.wonnabe.common.security.account.dto.UserInfoDTO;
 import com.wonnabe.common.security.util.JwtProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -18,7 +18,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.HashMap;
+import java.time.Duration;
 import java.util.Map;
 
 @Log4j2
@@ -27,21 +27,12 @@ import java.util.Map;
 public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtProcessor jwtProcessor;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final RefreshTokenRedisRepository refreshTokenRedisRepository;
-    private final CodefAuthService codefAuthService;
-    private final AssetSyncService assetSyncService;
+    private final AssetSyncOrchestrator assetSyncOrchestrator;
 
-    /**
-     * 사용자 정보와 AccessToken을 포함하는 AuthResultDTO 객체를 생성합니다.
-     *
-     * @param user        CustomUser 객체
-     * @param accessToken 발급된 AccessToken
-     * @return AuthResultDTO 객체
-     */
-    private AuthResultDTO makeAuthResult(CustomUser user, String accessToken) {
-        return new AuthResultDTO(accessToken, UserInfoDTO.of(user.getUser()));
-    }
+    private static final Duration SOFT_SYNC_TIMEOUT = Duration.ofSeconds(5);
+    private final long softTimeoutMs = SOFT_SYNC_TIMEOUT.toMillis();
 
     /**
      * 로그인 성공 시 실행되는 메서드입니다.
@@ -62,21 +53,21 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         CustomUser user = (CustomUser) authentication.getPrincipal();
         String userId = user.getUser().getUserId();
 
-        // 외부 연동 분리
-//        syncExternalData(userId);
+        boolean syncedNow = false;
+        try {
+            syncedNow = assetSyncOrchestrator.syncWithSoftTimeout(userId, Duration.ofMillis(softTimeoutMs));
+        } catch (Exception e) {
+            log.warn("asset sync short attempt failed, proceed login - userId={}, err={}", userId, e.toString());
+        }
 
-        // 토큰 생성
         String accessToken = jwtProcessor.generateAccessToken(userId);
         String refreshToken = jwtProcessor.generateRefreshToken(userId);
-
-        // Redis 저장
         try {
             refreshTokenRedisRepository.save(userId, refreshToken, 60 * 60 * 24 * 7);
         } catch (Exception e) {
             log.error("Redis 저장 실패 - userId: {}, error: {}", userId, e.getMessage());
         }
 
-        // Refresh Token → Secure HttpOnly 쿠키로 전송
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
         refreshCookie.setHttpOnly(true);
         refreshCookie.setSecure(true);
@@ -84,28 +75,14 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         refreshCookie.setMaxAge(60 * 60 * 24 * 7);
         response.addCookie(refreshCookie);
 
-        // 응답 데이터 구성
-        AuthResultDTO result = makeAuthResult(user, accessToken);
-        Map<String, Object> body = new HashMap<>();
-        body.put("code", 200);
-        body.put("message", "로그인 성공");
-        body.put("data", result);
-
-        // JSON 직렬화 및 응답 전송
-        response.setContentType("application/json;charset=UTF-8");
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
         response.setStatus(HttpServletResponse.SC_OK);
-        objectMapper.writeValue(response.getWriter(), body);
-
-        log.info("로그인 성공 - userId: {}", userId);
+        objectMapper.writeValue(response.getWriter(), Map.of(
+                "code", 200,
+                "message", "로그인 성공",
+                "data", new AuthResultDTO(accessToken, UserInfoDTO.of(user.getUser())),
+                "assetSyncInProgress", !syncedNow
+        ));
+        log.info("✅ 로그인 성공 - userId={}, assetSyncInProgress={}", userId, !syncedNow);
     }
-
-    private void syncExternalData(String userId) {
-        try {
-            codefAuthService.syncUserCodef(userId);
-            assetSyncService.syncAllAssets(userId);
-        } catch (Exception e) {
-            log.warn("외부 연동 실패 - userId: {}, error: {}", userId, e.getMessage());
-        }
-    }
-
 }
