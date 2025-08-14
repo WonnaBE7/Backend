@@ -77,4 +77,22 @@ public class JsonResponse {
             e.printStackTrace(); // 혹은 log 처리
         }
     }
+
+    /** 202 Accepted (메시지만) */
+    public static ResponseEntity<Object> accepted(String message) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("code", HttpStatus.ACCEPTED.value());
+        body.put("message", message);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(body);
+    }
+
+    /** 202 Accepted (메시지 + 데이터) */
+    public static ResponseEntity<Object> accepted(String message, Object data) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("code", HttpStatus.ACCEPTED.value());
+        body.put("message", message);
+        body.put("data", data);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(body);
+    }
+
 }

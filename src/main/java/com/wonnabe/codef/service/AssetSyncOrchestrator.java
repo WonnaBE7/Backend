@@ -1,6 +1,7 @@
 // package: com.wonnabe.codef.service
 package com.wonnabe.codef.service;
 
+//import com.wonnabe.asset.sync.AssetSyncNotifier;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.ObjectProvider;
@@ -65,7 +66,7 @@ public class AssetSyncOrchestrator {
         }
         try {
             codefAuthService.syncUserCodef(userId);
-            assetSyncService.syncAllAssets(userId); // 내부에서 join()
+            assetSyncService.syncAllAssets(userId);
             markLastSuccess(userId);
         } finally {
             releaseLock(userId);
@@ -96,23 +97,18 @@ public class AssetSyncOrchestrator {
                                        Duration freshness) {
         CompletableFuture<Boolean> future = CompletableFuture.supplyAsync(() -> {
             try {
-                // 이 호출은 내부에서 끝날 때까지 블로킹(AssetSyncService가 join() 보장)
                 syncNow(userId, hardTimeout, freshness);
                 return true;
             } catch (Exception e) {
                 log.warn("asset sync failed (non-blocking login) - userId={}, err={}", userId, e.toString());
                 return false;
             }
-        }); // 별도 executor 미지정 시 common pool 사용(필요시 오케스트레이터용 풀 주입해 사용)
-
+        });
         try {
             return future.get(softTimeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (Exception timeoutOrOther) {
-            // ⏱️ 소프트 타임아웃 초과: 로그인은 진행, 작업은 백그라운드에서 계속
             log.info("asset sync soft-timeout → continue in background - userId={}", userId);
             return false;
         }
     }
-
-
 }
