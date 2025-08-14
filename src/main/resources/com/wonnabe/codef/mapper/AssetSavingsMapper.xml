@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.wonnabe.codef.mapper.AssetSavingsMapper">
+
+    <insert id="upsert" parameterType="com.wonnabe.codef.domain.UserSaving">
+        INSERT INTO User_Savings (
+        id, user_id, product_id, principal_amount, start_date, maturity_date, monthly_payment, account_number
+        )
+        VALUES (
+        #{id}, #{userId}, #{productId}, #{principalAmount}, #{startDate}, #{maturityDate}, #{monthlyPayment}, #{accountNumber}
+        )
+        ON DUPLICATE KEY UPDATE
+        principal_amount = #{principalAmount},
+        start_date = #{startDate},
+        maturity_date = #{maturityDate},
+        monthly_payment = #{monthlyPayment}
+    </insert>
+
+    <select id="findProductIdByKeyword" resultType="long">
+        SELECT product_id
+        FROM Savings_Product
+        WHERE product_name LIKE CONCAT('%', #{keyword}, '%')
+        LIMIT 1
+    </select>
+
+    <select id="findSavingIdByUserIdAndProductId" resultType="long">
+        SELECT id
+        FROM User_Savings
+        WHERE account_number = #{resAccount}
+    </select>
+
+    <select id="findProductIdByAccountId" resultType="int">
+        SELECT product_id
+        FROM User_Savings
+        WHERE id = #{accountId}
+    </select>
+
+</mapper>

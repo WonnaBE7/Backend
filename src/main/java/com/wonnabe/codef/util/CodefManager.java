@@ -1,6 +1,6 @@
 package com.wonnabe.codef.util;
 
-import com.wonnabe.codef.domain.CodefAuthEntity;
+import com.wonnabe.codef.domain.CodefAuth;
 import com.wonnabe.codef.mapper.CodefMapper;
 import com.wonnabe.codef.service.ConnectedIdService;
 import com.wonnabe.codef.service.AccessTokenService;
@@ -24,10 +24,10 @@ public class CodefManager {
      * @param userId 사용자 UUID
      */
     public void refreshCodefIfExpired(String userId) {
-        List<CodefAuthEntity> authList = assetMapper.findByUserId(userId);
+        List<CodefAuth> authList = assetMapper.findByUserId(userId);
         LocalDateTime now = LocalDateTime.now();
 
-        for (CodefAuthEntity auth : authList) {
+        for (CodefAuth auth : authList) {
             try {
                 if (auth.getTokenExpiresAt() == null || auth.getTokenExpiresAt().isBefore(now)) {
 

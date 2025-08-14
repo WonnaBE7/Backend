@@ -19,5 +19,4 @@ public interface AccountMapper {
 
     String findCategoryByAccountId(@Param("accountId") Long accountId);
 
-    void upsert(@Param("account") UserAccount account);
 }

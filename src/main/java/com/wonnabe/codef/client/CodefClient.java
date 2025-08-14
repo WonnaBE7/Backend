@@ -1,8 +1,8 @@
 package com.wonnabe.codef.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wonnabe.codef.dto.ConnectedIdResponseDto;
-import com.wonnabe.codef.dto.AccessTokenResponseDto;
+import com.wonnabe.codef.dto.auth.ConnectedIdResponse;
+import com.wonnabe.codef.dto.auth.AccessTokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -37,8 +37,7 @@ public class CodefClient {
 
     private final RestTemplate restTemplate;
 
-    public AccessTokenResponseDto requestAccessToken() {
-        // 1. clientId, clientSecret 인코딩
+    public AccessTokenResponse requestAccessToken() {
         String auth = Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes());
 
         HttpHeaders headers = new HttpHeaders();
@@ -51,11 +50,11 @@ public class CodefClient {
 
         HttpEntity<?> request = new HttpEntity<>(body, headers);
 
-        ResponseEntity<AccessTokenResponseDto> response = restTemplate.exchange(
+        ResponseEntity<AccessTokenResponse> response = restTemplate.exchange(
                 "https://oauth.codef.io/oauth/token",
                 HttpMethod.POST,
                 request,
-                AccessTokenResponseDto.class
+                AccessTokenResponse.class
         );
 
         return response.getBody();
@@ -80,7 +79,7 @@ public class CodefClient {
         }
     }
 
-    public ConnectedIdResponseDto requestConnectedId(String accessToken, Map<String, Object> accountMap) {
+    public ConnectedIdResponse requestConnectedId(String accessToken, Map<String, Object> accountMap) {
         try {
             Map<String, Object> body = new HashMap<>();
             body.put("accountList", Collections.singletonList(accountMap));
@@ -100,13 +99,11 @@ public class CodefClient {
 
             String raw = URLDecoder.decode(response.getBody(), StandardCharsets.UTF_8.name());
             ObjectMapper mapper = new ObjectMapper();
-            return mapper.readValue(raw, ConnectedIdResponseDto.class);
+            return mapper.readValue(raw, ConnectedIdResponse.class);
 
         } catch (Exception e) {
             throw new RuntimeException("Connected ID 발급 실패 (Map 기반)", e);
         }
     }
-
-    // + API 호출 실패 시 재시도 / 예외처리 등 유틸 함수 포함
 }
 
