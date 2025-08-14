@@ -98,8 +98,8 @@ jobs:
   deploy:
     needs: [test, build-and-deploy]
     runs-on: ubuntu-latest
-    # main 브랜치일 때만 배포 (테스트 실패해도 배포)
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    # feature 브랜치에서도 배포 테스트 (임시)
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/github-actions') && github.event_name == 'push'
 
     steps:
       - name: 📥 WAR 파일 다운로드
