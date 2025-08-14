@@ -3,7 +3,6 @@ package com.wonnabe.product.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wonnabe.common.security.account.domain.CustomUser;
 import com.wonnabe.product.domain.InsuranceProductVO;
 import com.wonnabe.product.domain.SavingsProductVO;
 import com.wonnabe.product.domain.UserInsuranceVO;
@@ -16,8 +15,6 @@ import com.wonnabe.product.mapper.UserInsuranceMapper;
 import com.wonnabe.product.mapper.UserSavingsMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -40,29 +37,44 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     private final ObjectMapper objectMapper;
 
     @Override
-    public SavingsProductDetailResponseDto getSavingProductDetail(String productId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        // UserDetails를 CustomUser로 형 변환합니다.
-        CustomUser customUser = (CustomUser) authentication.getPrincipal();
-        // CustomUser가 가지고 있는 UserVO 객체에서 직접 userId(UUID)를 가져옵니다.
-        String userId = customUser.getUser().getUserId();
-
-        BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+    public SavingsProductDetailResponseDto getSavingProductDetail(String productId, String userId, Integer wannabeId) {
         SavingsProductVO product = productDetailMapper.findSavingProductById(productId);
+        double matchScore = 0.0;
+        boolean isWished = false;
+        List<SavingsProductDetailResponseDto.ComparisonChart> comparisonChart = Collections.emptyList();
 
-        double[] weights = savingsRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
-        double matchScore = savingsRecommendationService.calculateScore(product, weights);
+        if (userId != null) {
+            BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+            if (basicUserInfo != null) {
+                Integer personaId = (wannabeId != null) ? wannabeId : basicUserInfo.getNowMeId();
+                if (personaId != null) {
+                    double[] weights = savingsRecommendationService.getPersonaWeights().get(personaId);
+                    if (weights != null) {
+                        matchScore = savingsRecommendationService.calculateScore(product, weights);
+                    }
+                }
 
-        List<Long> favoriteProductIds = Collections.emptyList();
-        try {
-            if (basicUserInfo.getFavoriteProductsByType() != null && !basicUserInfo.getFavoriteProductsByType().isEmpty()) {
-                favoriteProductIds = objectMapper.readValue(basicUserInfo.getFavoriteProductsByType(), new TypeReference<List<Long>>() {});
+                List<Long> favoriteProductIds = Collections.emptyList();
+                try {
+                    if (basicUserInfo.getFavoriteProductsByType() != null && !basicUserInfo.getFavoriteProductsByType().isEmpty()) {
+                        favoriteProductIds = objectMapper.readValue(basicUserInfo.getFavoriteProductsByType(), new TypeReference<List<Long>>() {});
+                    }
+                } catch (JsonProcessingException e) {
+                    log.error("Error parsing favoriteProductsByType JSON: {}", basicUserInfo.getFavoriteProductsByType(), e);
+                }
+                isWished = favoriteProductIds.contains(Long.valueOf(productId));
+
+                List<UserSavingsVO> userSavings = userSavingsMapper.findAllByUserId(userId);
+                comparisonChart = userSavings.stream().map(saving -> {
+                    SavingsProductVO savingProduct = productDetailMapper.findSavingProductById(String.valueOf(saving.getProductId()));
+                    return SavingsProductDetailResponseDto.ComparisonChart.builder()
+                            .compareId(saving.getId())
+                            .compareName(savingProduct.getProductName())
+                            .recommendedProductData(Arrays.asList(savingProduct.getScoreInterestRate(), savingProduct.getScoreInterestType(), savingProduct.getScorePreferentialCondition(), savingProduct.getScoreCancelBenefit(), savingProduct.getScoreMaxAmount()))
+                            .build();
+                }).collect(Collectors.toList());
             }
-        } catch (JsonProcessingException e) {
-            log.error("Error parsing favoriteProductsByType JSON: {}", basicUserInfo.getFavoriteProductsByType(), e);
-            // 예외 발생 시 찜 목록을 비어있는 리스트로 처리하거나 다른 적절한 방식으로 처리
         }
-        boolean isWished = favoriteProductIds.contains(Long.valueOf(productId));
 
         SavingsProductDetailResponseDto.ProductInfo productInfo = SavingsProductDetailResponseDto.ProductInfo.builder()
                 .productId(String.valueOf(product.getProductId()))
@@ -76,17 +88,6 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                 .labels(Arrays.asList("금리", "단/복리", "우대조건", "중도해지 페널티", "최대한도"))
                 .currentUserData(Arrays.asList(product.getScoreInterestRate(), product.getScoreInterestType(), product.getScorePreferentialCondition(), product.getScoreCancelBenefit(), product.getScoreMaxAmount()))
                 .build();
-
-        List<UserSavingsVO> userSavings = userSavingsMapper.findAllByUserId(userId);
-
-        List<SavingsProductDetailResponseDto.ComparisonChart> comparisonChart = userSavings.stream().map(saving -> {
-            SavingsProductVO savingProduct = productDetailMapper.findSavingProductById(String.valueOf(saving.getProductId()));
-            return SavingsProductDetailResponseDto.ComparisonChart.builder()
-                    .compareId(saving.getId())
-                    .compareName(savingProduct.getProductName())
-                    .recommendedProductData(Arrays.asList(savingProduct.getScoreInterestRate(), savingProduct.getScoreInterestType(), savingProduct.getScorePreferentialCondition(), savingProduct.getScoreCancelBenefit(), savingProduct.getScoreMaxAmount()))
-                    .build();
-        }).collect(Collectors.toList());
 
         List<String> maturityContent = (product.getMtrtInt() != null && !product.getMtrtInt().isEmpty()) ?
                 Arrays.asList(product.getMtrtInt().split(",")) : Collections.emptyList();
@@ -105,33 +106,54 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     }
 
     @Override
-    public InsuranceProductDetailResponseDTO getInsuranceProductDetail(String productId) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUser customUser = (CustomUser) authentication.getPrincipal();
-        String userId = customUser.getUser().getUserId();
-
-        BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+    public InsuranceProductDetailResponseDTO getInsuranceProductDetail(String productId, String userId, Integer wannabeId) {
         InsuranceProductVO product = productDetailMapper.findInsuranceProductById(productId);
+        double matchScore = 0.0;
+        boolean isWished = false;
+        List<InsuranceProductDetailResponseDTO.ComparisonChart> comparisonChart = Collections.emptyList();
 
-        // matchScore 계산
-        double[] weights = insuranceRecommendationService.getPersonaWeights().get(basicUserInfo.getNowMeId());
-        double matchScore = insuranceRecommendationService.calculateScore(product, weights);
+        if (userId != null) {
+            BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
+            if (basicUserInfo != null) {
+                Integer personaId = (wannabeId != null) ? wannabeId : basicUserInfo.getNowMeId();
+                if (personaId != null) {
+                    double[] weights = insuranceRecommendationService.getPersonaWeights().get(personaId);
+                    if (weights != null) {
+                        matchScore = insuranceRecommendationService.calculateScore(product, weights);
+                    }
+                }
 
-        // averagePremium 계산
+                List<Long> favoriteProductIds = Collections.emptyList();
+                try {
+                    if (basicUserInfo.getFavoriteProductsByType() != null && !basicUserInfo.getFavoriteProductsByType().isEmpty()) {
+                        favoriteProductIds = objectMapper.readValue(basicUserInfo.getFavoriteProductsByType(), new TypeReference<List<Long>>() {});
+                    }
+                } catch (JsonProcessingException e) {
+                    log.error("Error parsing favoriteProductsByType JSON for insurance: {}", basicUserInfo.getFavoriteProductsByType(), e);
+                }
+                isWished = favoriteProductIds.contains(Long.valueOf(productId));
+
+                List<UserInsuranceVO> userInsurances = userInsuranceMapper.findAllByUserId(userId);
+                comparisonChart = userInsurances.stream().map(insurance -> {
+                    InsuranceProductVO insuranceProduct = productDetailMapper.findInsuranceProductById(String.valueOf(insurance.getProductId()));
+                    return InsuranceProductDetailResponseDTO.ComparisonChart.builder()
+                            .compareId(insurance.getId())
+                            .compareName(insuranceProduct.getProductName())
+                            .recommendedProductData(Arrays.asList(
+                                    insuranceProduct.getScorePriceCompetitiveness(),
+                                    insuranceProduct.getScoreCoverageLimit(),
+                                    insuranceProduct.getScoreCoverageScope(),
+                                    insuranceProduct.getScoreDeductibleLevel(),
+                                    insuranceProduct.getScoreRefundScope()
+                            ))
+                            .build();
+                }).collect(Collectors.toList());
+            }
+        }
+
         BigDecimal femalePremium = product.getFemalePremium() != null ? product.getFemalePremium() : BigDecimal.ZERO;
         BigDecimal malePremium = product.getMalePremium() != null ? product.getMalePremium() : BigDecimal.ZERO;
-        BigDecimal averagePremium = femalePremium.add(malePremium).divide(BigDecimal.valueOf(2), 0, RoundingMode.HALF_UP); // 소수점 첫째자리에서 반올림
-
-        // isWished 확인
-        List<Long> favoriteProductIds = Collections.emptyList();
-        try {
-            if (basicUserInfo.getFavoriteProductsByType() != null && !basicUserInfo.getFavoriteProductsByType().isEmpty()) {
-                favoriteProductIds = objectMapper.readValue(basicUserInfo.getFavoriteProductsByType(), new TypeReference<List<Long>>() {});
-            }
-        } catch (JsonProcessingException e) {
-            log.error("Error parsing favoriteProductsByType JSON for insurance: {}", basicUserInfo.getFavoriteProductsByType(), e);
-        }
-        boolean isWished = favoriteProductIds.contains(Long.valueOf(productId));
+        BigDecimal averagePremium = femalePremium.add(malePremium).divide(BigDecimal.valueOf(2), 0, RoundingMode.HALF_UP);
 
         InsuranceProductDetailResponseDTO.ProductInfo productInfo = InsuranceProductDetailResponseDTO.ProductInfo.builder()
                 .productId(String.valueOf(product.getProductId()))
@@ -150,26 +172,8 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                         product.getScoreCoverageScope(),
                         product.getScoreDeductibleLevel(),
                         product.getScoreRefundScope()
-
                 ))
                 .build();
-
-        List<UserInsuranceVO> userInsurances = userInsuranceMapper.findAllByUserId(userId);
-
-        List<InsuranceProductDetailResponseDTO.ComparisonChart> comparisonChart = userInsurances.stream().map(insurance -> {
-            InsuranceProductVO insuranceProduct = productDetailMapper.findInsuranceProductById(String.valueOf(insurance.getProductId()));
-            return InsuranceProductDetailResponseDTO.ComparisonChart.builder()
-                    .compareId(insurance.getId())
-                    .compareName(insuranceProduct.getProductName())
-                    .recommendedProductData(Arrays.asList(
-                            insuranceProduct.getScorePriceCompetitiveness(),
-                            insuranceProduct.getScoreCoverageLimit(),
-                            insuranceProduct.getScoreCoverageScope(),
-                            insuranceProduct.getScoreDeductibleLevel(),
-                            insuranceProduct.getScoreRefundScope()
-                    ))
-                    .build();
-        }).collect(Collectors.toList());
 
         InsuranceProductDetailResponseDTO.MaturityInfo maturityInfo = InsuranceProductDetailResponseDTO.MaturityInfo.builder()
                 .coverageDesc(product.getCoverageDesc())
