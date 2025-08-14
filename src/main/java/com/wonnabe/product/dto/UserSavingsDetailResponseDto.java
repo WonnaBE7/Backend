@@ -22,10 +22,7 @@ public class UserSavingsDetailResponseDto {
     /** 상품의 고유 ID */
     private String productId;
     private String productName;
-
     private String bankName;
-
-    private Float baseRate; // 기본 금리
 
     /** 상품 유형 ("예금" 또는 "적금") */
     private String productType;
@@ -33,6 +30,8 @@ public class UserSavingsDetailResponseDto {
     private String startDate;
     private String maturityDate;
     private String term;
+
+    private Float baseRate; // 기본 금리
 
     /** 현재까지의 총 잔액 */
     private Long currentAmount;
