@@ -1,5 +1,6 @@
 package com.wonnabe.asset.mapper;
 
+import com.wonnabe.asset.domain.ConsumptionCategory;
 import com.wonnabe.asset.dto.TransactionDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -20,8 +21,11 @@ public interface ConsumptionTransactionsMapper {
     // 카테고리별 상세 거래 내역
     List<TransactionDTO> getTransactionsByCategory(
             @Param("userId") String userId,
-            @Param("category") String category
+            @Param("category") String category,
+            @Param("yearMonth") String yearMonth
     );
+
+
 
     //오늘의 거래 내역
     List<TransactionDTO> getTodayTransactions(
@@ -33,8 +37,7 @@ public interface ConsumptionTransactionsMapper {
     List<TransactionDTO> getTodayTransactionsByCategory(
             @Param("userId") String userId,
             @Param("today") String today,
-            @Param("category") String category
+            @Param("category") ConsumptionCategory category
     );
-
 
 }

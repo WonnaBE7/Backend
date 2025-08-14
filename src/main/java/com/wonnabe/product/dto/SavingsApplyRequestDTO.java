@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SavingsApplyRequestDTO {
     private Long productId;         // 상품 ID
-    private Long principalAmount;   // 가입 원금 (초기 납입금)
+    private Long principalAmount;   // 목표금액 !!!!!
     private Long monthlyPayment;    // 월 납입액 (적금)
     private Integer joinPeriod;     // 가입 기간 (개월)
 }

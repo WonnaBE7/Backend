@@ -101,7 +101,7 @@ class CardServiceImplTest {
     @Test
     @DisplayName("[성공] 추천 카드 정보 상세 조회")
     void getRecommendCardsDetail() {
-        CardProductDetailResponseDTO cardDetail = cardService.findProductDetail(2300, userId);
+        CardProductDetailResponseDTO cardDetail = cardService.findProductDetail(2300, userId, 12);
         assertNotNull(cardDetail);
         assertNotNull(cardDetail.getCardInfo());
         assertNotNull(cardDetail.getNote());

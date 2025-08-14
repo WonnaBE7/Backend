@@ -153,7 +153,7 @@ class RecommendInsuranceControllerTest {
             // when & then - API 호출 및 응답 검증
             log.info("--- [recommendInsurance_success] API 호출 시작 ---");
             // /api/recommendations/insurance 엔드포인트로 GET 요청을 보냅니다.
-            var result = mockMvc.perform(get("/api/recommendations/insurance"))
+            var result = mockMvc.perform(get("/api/recommendations/insurances"))
                     .andDo(print()) // MockMvc 요청/응답 전체 내용을 콘솔에 출력합니다.
                     .andExpect(status().isOk()) // HTTP 상태 코드가 200 OK인지 검증합니다.
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8)) // 응답 Content-Type이 application/json;charset=UTF-8인지 검증합니다.
@@ -218,7 +218,7 @@ class RecommendInsuranceControllerTest {
             // when & then - API 호출 및 응답 검증
             log.info("--- [recommendInsurance_success_withTopN] API 호출 시작 ---");
             // /api/recommendations/insurance 엔드포인트로 GET 요청을 보내고 topN 파라미터를 포함합니다.
-            var result = mockMvc.perform(get("/api/recommendations/insurance")
+            var result = mockMvc.perform(get("/api/recommendations/insurances")
                             .param("topN", String.valueOf(topN))) // "topN" 파라미터에 topN 값을 문자열로 전달합니다.
                     .andDo(print()) // MockMvc 요청/응답 전체 내용을 콘솔에 출력합니다.
                     .andExpect(status().isOk()) // HTTP 상태 코드가 200 OK인지 검증합니다.
@@ -268,7 +268,7 @@ class RecommendInsuranceControllerTest {
 
         try {
             // when & then
-            mockMvc.perform(get("/api/recommendations/insurance"))
+            mockMvc.perform(get("/api/recommendations/insurances"))
                     .andDo(print())
                     .andExpect(status().isInternalServerError()); // 500 에러 예상
 
@@ -295,7 +295,7 @@ class RecommendInsuranceControllerTest {
 
         try {
             // when & then
-            mockMvc.perform(get("/api/recommendations/insurance"))
+            mockMvc.perform(get("/api/recommendations/insurances"))
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))

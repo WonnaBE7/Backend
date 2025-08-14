@@ -10,11 +10,16 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/assets")
 public class AssetOverviewController {
+
+    private static final Set<String> VALID_ASSET_CATEGORIES =
+            Set.of("checking", "savings", "investment", "insurance", "pension", "other");
 
     private final AssetOverviewService assetOverviewService;
 
@@ -45,14 +50,30 @@ public class AssetOverviewController {
                                                     @RequestParam("assetCategory") String assetCategory) {
         String userId = customUser.getUser().getUserId();
 
-        return isValidAssetCategory(assetCategory)
-                ? JsonResponse.ok("자산 카테고리 상세 조회 성공",
-                assetOverviewService.getAccountDetailByCategory(userId, assetCategory))
-                : JsonResponse.error(HttpStatus.BAD_REQUEST, "잘못된 자산 카테고리입니다: " + assetCategory);
+        if (assetCategory == null || assetCategory.isBlank()) {
+            throw new IllegalArgumentException("assetCategory는 필수입니다.");
+        }
+        if (!VALID_ASSET_CATEGORIES.contains(assetCategory)) {
+            throw new IllegalArgumentException("유효하지 않은 자산 카테고리입니다: " + assetCategory);
+        }
+
+        Map<String, Object> result = assetOverviewService.getAccountDetailByCategory(userId, assetCategory);
+        return JsonResponse.ok("자산 카테고리 상세 조회 성공", result);
     }
 
-    private boolean isValidAssetCategory(String category) {
-        return List.of("checking", "savings", "investment", "insurance", "pension", "other").contains(category);
+    // 총자산 상세페이지 -카테고리별 보유계좌 거래 내역
+    @GetMapping("/detail/accountId")
+    public ResponseEntity<Object> getAccountTransactions(@AuthenticationPrincipal CustomUser customUser,
+                                                         @RequestParam("accountId") Long accountId) {
+        String userId = customUser.getUser().getUserId();
+
+        if (accountId == null || accountId <= 0) {
+            throw new IllegalArgumentException("유효하지 않은 accountId 입니다.");
+        }
+
+        Map<String, Object> result = assetOverviewService.getAccountTransactionsById(userId, accountId);
+        return JsonResponse.ok("카테고리별 보유계좌 거래 내역 조회 성공", result);
     }
+
 }
 

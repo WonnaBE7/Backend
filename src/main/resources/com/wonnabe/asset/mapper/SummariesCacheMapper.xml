@@ -59,7 +59,7 @@
           AND user_id = #{userId}
     </select>
 
-    <!-- 오늘의 소비 카테고리별 비율 -->
+    <!-- 소비분석 페이지 - 오늘의 소비 카테고리별 비율 -->
     <select id="getDailyCategorySummary" parameterType="map" resultType="CategorySummaryDTO">
         SELECT
             consumption_category AS consumptionCategory,

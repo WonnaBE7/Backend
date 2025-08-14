@@ -4,6 +4,8 @@ import com.wonnabe.common.security.account.domain.UserVO;
 import com.wonnabe.product.domain.UserInsuranceVO;
 import com.wonnabe.product.domain.UserSavingsVO;
 import com.wonnabe.product.dto.TransactionSummaryDto;
+import com.wonnabe.product.domain.InsuranceProductVO;
+import com.wonnabe.product.dto.MonthlyInsuranceReceiptDto;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -37,4 +39,37 @@ public interface UserInsuranceMapper {
                                                            @Param("startDate") Date startDate);
 
     List<UserInsuranceVO> findAllByUserId(String userId);
+
+    /**
+     * 특정 상품 ID로 보험 상품 상세 정보를 조회합니다.
+     * @param productId 조회할 상품의 고유 ID
+     * @return {@link InsuranceProductVO} 객체
+     */
+    InsuranceProductVO findInsuranceProductById(@Param("productId") Long productId);
+
+    /**
+     * 특정 사용자의 특정 보험 상품에 대한 총 수령액(입금)을 조회합니다.
+     * User_Transactions 테이블에서 asset_category='보험', transaction_type='입금'인 거래의 합계.
+     * @param userId 사용자의 고유 ID
+     * @param productId 보험 상품 ID
+     * @return 총 수령액
+     */
+    Long findTotalReceiptAmount(@Param("userId") String userId, @Param("productId") Long productId);
+
+    /**
+     * 특정 사용자의 특정 보험 상품에 대한 총 납입액(출금)을 조회합니다.
+     * User_Transactions 테이블에서 asset_category='보험', transaction_type='출금'인 거래의 합계.
+     * @param userId 사용자의 고유 ID
+     * @param productId 보험 상품 ID
+     * @return 총 납입액
+     */
+    Long findTotalPaymentAmount(@Param("userId") String userId, @Param("productId") Long productId);
+
+    /**
+     * 특정 사용자의 특정 보험 상품에 대한 월별 수령액(입금)을 조회합니다.
+     * @param userId 사용자의 고유 ID
+     * @param startDate 조회 시작 날짜
+     * @return 월별 수령액 목록
+     */
+    List<MonthlyInsuranceReceiptDto> findMonthlyInsuranceReceipts(@Param("userId") String userId, @Param("productId") Long productId, @Param("startDate") Date startDate);
 }

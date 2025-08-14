@@ -1,6 +1,7 @@
 package com.wonnabe.product.controller;
 
 import com.wonnabe.common.security.account.domain.CustomUser;
+import com.wonnabe.common.util.JsonResponse;
 import com.wonnabe.product.dto.SavingsRecommendationResponseDTO;
 import com.wonnabe.product.service.CardService;
 import com.wonnabe.product.service.SavingsRecommendationService;
@@ -26,7 +27,7 @@ public class RecommendSavingsController{
 
 
     @GetMapping
-    public ResponseEntity<SavingsRecommendationResponseDTO> recommendSavings(
+    public ResponseEntity<Object> recommendSavings(
             @RequestParam(defaultValue = "5") int topN,
             @AuthenticationPrincipal CustomUser customUser) {
 
@@ -34,6 +35,7 @@ public class RecommendSavingsController{
 
         SavingsRecommendationResponseDTO recommendations = savingsRecommendationService.recommendSavings(userId, topN);
 
-        return ResponseEntity.ok(recommendations);
+        // jsonResponse 수정
+        return JsonResponse.ok("성공적으로 추천 예적금상품을 반환하였습니다.",recommendations);
     }
 }

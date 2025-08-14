@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 월별 자산 추이 차트의 한 단위를 나타내는 DTO입니다.
+ * 월별 자산 추이 차트의 한 단위를 나타내는 DTO입니다. -> 예적금
  * 프론트엔드에서 월별 성장 그래프를 그리는 데 사용됩니다.
  */
 @Data

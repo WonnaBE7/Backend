@@ -12,11 +12,11 @@
             bank_name AS bankName,
             base_rate AS baseRate,
             max_rate AS maxRate,
-            score_interest_rate AS interestRateScore,
-            score_interest_type AS compoundInterestScore,
-            score_preferential_condition AS preferentialScore,
-            score_cancel_benefit AS penaltyScore,
-            score_max_amount AS limitScore
+            score_interest_rate AS scoreInterestRate,
+            score_interest_type AS scoreInterestType,
+            score_preferential_condition AS scorePreferentialCondition,
+            score_cancel_benefit AS scoreCancelBenefit,
+            score_max_amount AS scoreMaxAmount
         FROM
             savings_product
     </select>
