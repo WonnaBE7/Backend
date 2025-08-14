@@ -270,25 +270,17 @@ public class WishListServiceImpl implements WishListService {
 	public double calculateScoreCard(CardProductVO card, double[] weights, double amount) {
 		List<Integer> score = card.getCardScores();
 		int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
-		int usageScore = calculateUsageScoreCard(performanceRate);
-		score.set(3, usageScore);
+		score.set(3, performanceRate);
 		String updatedScore = score.toString();  // 예: [2, 3, 5, 4, 5]
 		card.setCardScore(updatedScore);
-		return (weights[0] * score.get(0) +
+		return weights[0] * score.get(0) +
 				weights[1] * score.get(1) +
 				weights[2] * score.get(2) +
 				weights[3] * score.get(3) +
-				weights[4] * score.get(4)) * 20;
+				weights[4] * score.get(4);
 	}
 
-	// 카드 활용 점수 계산
-	public int calculateUsageScoreCard(int performanceRate) {
-		if (performanceRate >= 100) return 5;
-		if (performanceRate >= 80) return 4;
-		if (performanceRate >= 60) return 3;
-		if (performanceRate >= 40) return 2;
-		return 1;
-	}
+
 
 	// 점수 계산
 	private double calculateInsuranceScore(InsuranceProductVO product, Map<String, Double> weights) {

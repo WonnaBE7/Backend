@@ -169,14 +169,7 @@ public class CardServiceImpl implements CardService {
         return normalizeWeights(adjusted);
     }
 
-    // 카드 활용 점수 계산
-    public int calculateUsageScore(int performanceRate) {
-        if (performanceRate >= 100) return 5;
-        if (performanceRate >= 80) return 4;
-        if (performanceRate >= 60) return 3;
-        if (performanceRate >= 40) return 2;
-        return 1;
-    }
+
 
     // 가중치 정규화
     public double[] normalizeWeights(double[] weights) {
@@ -191,15 +184,14 @@ public class CardServiceImpl implements CardService {
     public double calculateScore(CardProductVO card, double[] weights, double amount) {
         List<Integer> score = card.getCardScores();
         int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
-        int usageScore = calculateUsageScore(performanceRate);
-        score.set(3, usageScore);
+        score.set(3, performanceRate);
         String updatedScore = score.toString();  // 예: [2, 3, 5, 4, 5]
         card.setCardScore(updatedScore);
-        return (weights[0] * score.get(0) +
+        return weights[0] * score.get(0) +
             weights[1] * score.get(1) +
             weights[2] * score.get(2) +
             weights[3] * score.get(3) +
-            weights[4] * score.get(4)) * 20;
+            weights[4] * score.get(4);
     }
 
     // 카드 계약기간을 계산함
@@ -320,7 +312,7 @@ public class CardServiceImpl implements CardService {
     }
 
     @Override
-    public CardProductDetailResponseDTO findProductDetail(long productId, String userId) {
+    public CardProductDetailResponseDTO findProductDetail(long productId, String userId, Integer wannabeId) {
         // 내가 보유 중인 카드 상품 id
         List<Long> myCardIds = cardMapper.findProductIdsByUserId(userId);
 
@@ -339,8 +331,14 @@ public class CardServiceImpl implements CardService {
             throw new NoSuchElementException("사용자의 정보를 찾을 수 없습니다.");
         }
 
+        int type = user.getNowMeId();
+
+        if (wannabeId != null) {
+            type = wannabeId;
+        }
+
         // 현재 카드 상품에 대한 점수와 가중치 계산
-        double[] baseWeights = PERSONA_WEIGHTS.get(user.getNowMeId()).clone();
+        double[] baseWeights = PERSONA_WEIGHTS.get(type).clone();
         double[] adjustedWeights = adjustWeightsByIncome(baseWeights, user.getIncomeAnnualAmount());
 
         // 카드 매칭 점수 계산
@@ -361,12 +359,10 @@ public class CardServiceImpl implements CardService {
 
         // 내 카드 점수 업데이트
         int cardPerformanceScore = calculatePerformanceRate(card.getPerformanceCondition(), user.getPreviousConsumption());
-        int cardUsageScore = calculateUsageScore(cardPerformanceScore);
 
         List<Integer> scores = card.getCardScores();
-        scores.set(3, cardUsageScore);
+        scores.set(3, cardPerformanceScore);
         String updatedScore = scores.stream()
-            .map( score -> score * 20)
             .map(String::valueOf)
             .collect(Collectors.joining(", ", "[", "]"));
         card.setCardScore(updatedScore);
@@ -403,12 +399,10 @@ public class CardServiceImpl implements CardService {
 
             // 카드 활용 점수 설정
             int myPerformanceRate = calculatePerformanceRate(myCard.getPerformanceCondition(), user.getPreviousConsumption());
-            int myCardUsageScore = calculateUsageScore(myPerformanceRate);
 
             List<Integer> myScores = myCard.getCardScores();
-            myScores.set(3, myCardUsageScore);
+            myScores.set(3, myPerformanceRate);
             String updatedMyScore = myScores.stream()
-                .map( myScore -> myScore * 20)
                 .map(String::valueOf)
                 .collect(Collectors.joining(", ", "[", "]"));
             myCard.setCardScore(updatedMyScore);

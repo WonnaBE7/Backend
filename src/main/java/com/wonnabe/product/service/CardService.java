@@ -40,5 +40,5 @@ public interface CardService {
      * @param userId 사용자 Id
      * @return
      */
-    CardProductDetailResponseDTO findProductDetail(long productId, String userId);
+    CardProductDetailResponseDTO findProductDetail(long productId, String userId, Integer wannabeId);
 }
