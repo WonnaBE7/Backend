@@ -77,7 +77,7 @@ dependencies {
 
     // 테스트
     testImplementation "org.springframework:spring-test:${springVersion}"
-    testCompileOnly"org.projectlombok:lombok:${lombokVersion}"
+    testCompileOnly "org.projectlombok:lombok:${lombokVersion}"
     testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
     // JSON
