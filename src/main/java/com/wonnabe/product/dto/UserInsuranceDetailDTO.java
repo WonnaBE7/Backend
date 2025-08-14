@@ -29,7 +29,7 @@ public class UserInsuranceDetailDTO {
 
     private String currentAmount; // 현재까지 납입한 총액
     private String getAmount; // 만기 시 예상 수령액 (또는 보장액)
-    private String achievementRate; // 달성률
+    private Integer achievementRate; // 달성률
 
     private List<MonthlyChartDto> monthlyChart;
 
@@ -46,7 +46,7 @@ public class UserInsuranceDetailDTO {
     public static UserInsuranceDetailDTO from(UserInsuranceVO userInsurance,
                                               InsuranceProductVO product,
                                               List<MonthlyChartDto> monthlyChart,
-                                              String achievementRate,
+                                              Integer achievementRate,
                                               String getAmount) {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM");
