@@ -6,6 +6,7 @@ import com.wonnabe.auth.service.KakaoService;
 import com.wonnabe.common.security.account.dto.AuthResultDTO;
 import com.wonnabe.common.util.JsonResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,6 +29,9 @@ public class AuthController {
 
     @Autowired
     private KakaoService kakaoService;
+
+    @Value("${app.frontend.origin}")
+    private String frontendOrigin;
 
     /**
      * 사용자의 회원가입 요청을 처리합니다.
@@ -96,35 +103,44 @@ public class AuthController {
     }
 
     /**
-     * 카카오 로그인 콜백 처리
+     * 카카오 로그인 콜백 처리 (프론트엔드 리다이렉트 방식)
+     * 성공/실패에 따라 프론트엔드로 리다이렉트하며 결과를 쿼리 파라미터로 전달
      */
     @GetMapping("/kakao/callback")
-    public ResponseEntity<?> kakaoCallback(@RequestParam("code") String code,
-                                           @RequestParam(value = "error", required = false) String error,
-                                           HttpServletResponse response) {
+    public void kakaoCallback(@RequestParam(required = false) String code,
+                              @RequestParam(required = false) String error,
+                              HttpServletResponse response) throws IOException {
 
-        if (error != null) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, "카카오 로그인이 취소되었습니다.");
-        }
+        String redirectBase = frontendOrigin + "/auth/kakao";
 
-        if (code == null || code.isEmpty()) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, "인증 코드가 없습니다.");
+        // 에러가 있거나 코드가 없는 경우
+        if (error != null || code == null || code.isEmpty()) {
+            String errorReason = error != null ? error : "no_code";
+            String redirectUrl = redirectBase + "?ok=0&reason=" +
+                    URLEncoder.encode(errorReason, StandardCharsets.UTF_8);
+            response.sendRedirect(redirectUrl);
+            return;
         }
 
         try {
-            // 기존 AuthService의 카카오 로그인 메서드 호출
+            // 카카오 로그인 처리 (AccessToken 생성 + RefreshToken을 HttpOnly 쿠키에 설정)
             AuthResultDTO result = authService.processKakaoLogin(code, response);
-            return JsonResponse.ok("카카오 로그인 성공", result);
 
-        } catch (IllegalArgumentException e) {
-            return JsonResponse.error(HttpStatus.BAD_REQUEST, e.getMessage());
+            // 성공 시 프론트엔드로 리다이렉트 (ok=1로 성공 표시)
+            String redirectUrl = redirectBase + "?ok=1";
+            response.sendRedirect(redirectUrl);
+
         } catch (Exception e) {
-            return JsonResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 로그인 처리 중 오류가 발생했습니다.");
+            // 서버 에러 발생 시
+            String redirectUrl = redirectBase + "?ok=0&reason=" +
+                    URLEncoder.encode("server_error", StandardCharsets.UTF_8);
+            response.sendRedirect(redirectUrl);
         }
     }
 
     /**
-     * SPA에서 직접 코드를 보내는 경우
+     * SPA에서 직접 코드를 보내는 경우 (기존 방식 유지)
+     * API 형태로 응답하는 엔드포인트
      */
     @PostMapping("/kakao/login")
     public ResponseEntity<?> kakaoLogin(@RequestBody Map<String, String> request,
