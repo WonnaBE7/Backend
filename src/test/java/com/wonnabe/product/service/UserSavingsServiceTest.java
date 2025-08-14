@@ -93,9 +93,9 @@ class UserSavingsServiceTest {
         assertNotNull(result);
         assertEquals("savings", result.getProductType());
 
-        // 1. 최종 달성률 검증 (최초 원금 100만원, 현재 총 납입액 70만원)
-        // 기대값: (700,000 / 1,000,000) * 100 = 70
-        assertEquals(70, result.getAchievementRate());
+        // 1. 최종 달성률 검증 (가입일로부터 7개월 경과, 총 계약기간 12개월)
+        // 기대값: (7 / 12) * 100 = 58
+        assertEquals(58, result.getAchievementRate());
 
         // ---- 가시적 출력(예금)  -------
         System.out.println("===== 예금 상품 테스트 결과 =====");
