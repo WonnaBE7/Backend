@@ -1,7 +1,7 @@
 package com.wonnabe.codef.service;
 
 import com.wonnabe.codef.client.CodefClient;
-import com.wonnabe.codef.dto.AccessTokenResponseDto;
+import com.wonnabe.codef.dto.auth.AccessTokenResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +12,7 @@ import static com.wonnabe.codef.util.RetryUtils.retryWithBackoff;
 public class AccessTokenService {
 
     private final CodefClient codefAuthClient;
-    private AccessTokenResponseDto cachedToken;
+    private AccessTokenResponse cachedToken;
 
     public String issueAccessToken() {
         cachedToken = retryWithBackoff(

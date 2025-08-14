@@ -4,11 +4,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.wonnabe.codef.mapper.CodefMapper">
-    <select id="findByUserId" resultType="com.wonnabe.codef.domain.CodefAuthEntity">
+
+    <!-- 특정 사용자 Codef_Auth 전체 조회 -->
+    <select id="findByUserId" resultType="com.wonnabe.codef.domain.CodefAuth">
         SELECT * FROM Codef_Auth
         WHERE user_id = #{userId}
     </select>
 
+    <!-- 사용자+기관별 access_token/connected_id/만료시간 갱신 -->
     <update id="updateAccessTokenAndConnectedId">
         UPDATE Codef_Auth
         SET access_token = #{accessToken},
@@ -19,7 +22,8 @@
           AND institution_code = #{institutionCode}
     </update>
 
-    <select id="getApiParamsByUserId" parameterType="string" resultType="com.wonnabe.codef.dto.CodefAuthParam">
+    <!-- 활성화된(Codef_API.is_active=1) 사용자 API 호출 파라미터 목록 조회(조인) -->
+    <select id="getApiParamsByUserId" parameterType="string" resultType="com.wonnabe.codef.dto.auth.CodefAuthParam">
         SELECT
             b.id,
             b.user_id,
@@ -51,7 +55,8 @@
           AND b.is_active = 1
     </select>
 
-    <select id="getAuthByUserAndInstitution" resultType="com.wonnabe.codef.dto.CodefAuthParam">
+    <!-- 사용자+기관 단일 인증정보 조회 -->
+    <select id="getAuthByUserAndInstitution" resultType="com.wonnabe.codef.dto.auth.CodefAuthParam">
         SELECT * FROM Codef_Auth
         WHERE user_id = #{userId} AND institution_code = #{institutionCode}
     </select>

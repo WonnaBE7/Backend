@@ -1,7 +1,7 @@
 package com.wonnabe.codef.util;
 
 import com.wonnabe.codef.client.CodefClient;
-import com.wonnabe.codef.domain.CodefAuthEntity;
+import com.wonnabe.codef.domain.CodefAuth;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ public class AccountRequestBuilder {
 
     private final CodefClient codefAuthClient;
 
-    public Map<String, Object> buildAccountCreateRequest(CodefAuthEntity auth) {
+    public Map<String, Object> buildAccountCreateRequest(CodefAuth auth) {
         Map<String, Object> params = new HashMap<>();
 
         // ✅ 필수 필드
