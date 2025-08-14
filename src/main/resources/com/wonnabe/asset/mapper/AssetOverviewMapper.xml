@@ -5,18 +5,23 @@
 
 <mapper namespace="com.wonnabe.asset.mapper.AssetOverviewMapper">
 
+    <!-- 현재 총자산 -->
     <select id="getCurrentTotalBalance" resultType="long">
         SELECT IFNULL(SUM(balance), 0)
         FROM user_accounts
         WHERE user_id = #{userId}
-        AND category IN ('입출금', '예적금', '투자', '연금', '기타')
+          AND category IN ('입출금', '예적금', '투자', '연금', '기타')
     </select>
 
-    <select id="getLastMonthBalance" resultType="long">
-        SELECT IFNULL(SUM(last_month_balance), 0)
-        FROM user_accounts
+    <!-- 지난달 스냅샷(가장 최신 1건) - yearMonth 입력값 없이 SQL에서 계산 -->
+    <select id="getPrevMonthAssetAuto" resultType="long">
+        SELECT IFNULL(CAST(amount AS SIGNED), 0)
+        FROM summaries_cache
         WHERE user_id = #{userId}
-        AND category IN ('입출금', '예적금', '투자', '연금', '기타')
+          AND period_type = 'asset'
+          AND yearMonth = DATE_FORMAT(CURRENT_DATE - INTERVAL 1 MONTH, '%Y-%m')
+        ORDER BY updated_at DESC, id DESC
+            LIMIT 1
     </select>
 
     <!--  총자산페이지 - 총자산 카테고리 비율(입출금, 저축, 투자, 보험, 기타)-->

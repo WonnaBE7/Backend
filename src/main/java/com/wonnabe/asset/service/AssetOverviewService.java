@@ -21,21 +21,24 @@ public class AssetOverviewService {
     //메인페이지 - 총자산 현황
     public Map<String, Object> getAssetOverview(String userId) {
         Long totalBalance = assetOverviewMapper.getCurrentTotalBalance(userId);
-        Long lastMonthBalance = assetOverviewMapper.getLastMonthBalance(userId);
+        Long prevAsset    = assetOverviewMapper.getPrevMonthAssetAuto(userId);
 
-        long current = totalBalance != null ? totalBalance : 0;
-        long previous = lastMonthBalance != null ? lastMonthBalance : 0;
+        long current  = totalBalance != null ? totalBalance : 0L;
+        long previous = prevAsset    != null ? prevAsset    : 0L;
 
         long changeAmount = current - previous;
-        double changeRate = (previous == 0) ? 0.0 :
-                BigDecimal.valueOf((double) changeAmount / previous * 100)
-                        .setScale(1, RoundingMode.HALF_UP)
-                        .doubleValue();
+        double changeRate = (previous == 0)
+                ? 0.0
+                : java.math.BigDecimal.valueOf(changeAmount)
+                .divide(java.math.BigDecimal.valueOf(previous), 4, java.math.RoundingMode.HALF_UP)
+                .multiply(java.math.BigDecimal.valueOf(100))
+                .setScale(1, java.math.RoundingMode.HALF_UP)
+                .doubleValue();
 
-        Map<String, Object> result = new LinkedHashMap<>();
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
         result.put("totalAmount", current);
-        result.put("changeRate", changeRate);
         result.put("changeAmount", changeAmount);
+        result.put("changeRate",  changeRate);
         return result;
     }
 
