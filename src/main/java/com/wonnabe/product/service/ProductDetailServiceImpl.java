@@ -3,16 +3,11 @@ package com.wonnabe.product.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wonnabe.product.domain.InsuranceProductVO;
-import com.wonnabe.product.domain.SavingsProductVO;
-import com.wonnabe.product.domain.UserInsuranceVO;
-import com.wonnabe.product.domain.UserSavingsVO;
+import com.wonnabe.product.domain.*;
 import com.wonnabe.product.dto.BasicUserInfoDTO;
 import com.wonnabe.product.dto.InsuranceProductDetailResponseDTO;
 import com.wonnabe.product.dto.SavingsProductDetailResponseDto;
-import com.wonnabe.product.mapper.ProductDetailMapper;
-import com.wonnabe.product.mapper.UserInsuranceMapper;
-import com.wonnabe.product.mapper.UserSavingsMapper;
+import com.wonnabe.product.mapper.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -21,7 +16,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,6 +32,8 @@ public class ProductDetailServiceImpl implements ProductDetailService {
     private final UserInsuranceMapper userInsuranceMapper;
     private final SavingsRecommendationService savingsRecommendationService;
     private final ObjectMapper objectMapper;
+    private final SavingsRecommendationMapper savingsRecommendationMapper; // 의존성 추가
+    private final InsuranceRecommendationMapper insuranceRecommendationMapper; // 의존성 추가
 
     @Override
     public SavingsProductDetailResponseDto getSavingProductDetail(String productId, String userId, Integer wannabeId) {
@@ -44,16 +43,27 @@ public class ProductDetailServiceImpl implements ProductDetailService {
         List<SavingsProductDetailResponseDto.ComparisonChart> comparisonChart = Collections.emptyList();
 
         if (userId != null) {
-            BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
-            if (basicUserInfo != null) {
-                Integer personaId = (wannabeId != null) ? wannabeId : basicUserInfo.getNowMeId();
-                if (personaId != null) {
-                    double[] weights = savingsRecommendationService.getPersonaWeights().get(personaId);
-                    if (weights != null) {
-                        matchScore = savingsRecommendationService.calculateScore(product, weights);
+            // 올바른 매퍼와 VO를 사용하여 사용자 정보를 조회
+            UserIncomeInfoVO userInfo = savingsRecommendationMapper.getUserIncomeInfo(userId);
+            BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId); // 찜하기, 비교 목록을 위해 기존 DTO도 유지
+
+            if (userInfo != null) {
+                Integer personaIdToUse = wannabeId;
+                if (personaIdToUse == null && userInfo.getPersonaIds() != null && !userInfo.getPersonaIds().isEmpty()) {
+                    personaIdToUse = userInfo.getPersonaIds().get(0); // getPersonaIds()의 첫번째 값을 기본값으로 사용
+                }
+                if (personaIdToUse != null) {
+                    double[] baseWeights = savingsRecommendationService.getPersonaWeights().get(personaIdToUse);
+                    if (baseWeights != null) {
+                        double[] adjustedWeights = savingsRecommendationService.adjustWeightsByIncome(baseWeights, userInfo.getIncomeSourceType(), userInfo.getIncomeEmploymentStatus());
+                        double[] normalizedWeights = savingsRecommendationService.normalizeWeights(adjustedWeights);
+                        matchScore = savingsRecommendationService.calculateScore(product, normalizedWeights);
                     }
                 }
+            }
 
+            if (basicUserInfo != null) {
+                // 찜하기 여부 확인
                 List<Long> favoriteProductIds = Collections.emptyList();
                 try {
                     if (basicUserInfo.getFavoriteProductsByType() != null && !basicUserInfo.getFavoriteProductsByType().isEmpty()) {
@@ -64,6 +74,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                 }
                 isWished = favoriteProductIds.contains(Long.valueOf(productId));
 
+                // 비교 차트 정보
                 List<UserSavingsVO> userSavings = userSavingsMapper.findAllByUserId(userId);
                 comparisonChart = userSavings.stream().map(saving -> {
                     SavingsProductVO savingProduct = productDetailMapper.findSavingProductById(String.valueOf(saving.getProductId()));
@@ -73,6 +84,11 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                             .recommendedProductData(Arrays.asList(savingProduct.getScoreInterestRate(), savingProduct.getScoreInterestType(), savingProduct.getScorePreferentialCondition(), savingProduct.getScoreCancelBenefit(), savingProduct.getScoreMaxAmount()))
                             .build();
                 }).collect(Collectors.toList());
+            }
+        } else if (wannabeId != null) {
+            double[] weights = savingsRecommendationService.getPersonaWeights().get(wannabeId);
+            if (weights != null) {
+                matchScore = savingsRecommendationService.calculateScore(product, weights);
             }
         }
 
@@ -113,16 +129,42 @@ public class ProductDetailServiceImpl implements ProductDetailService {
         List<InsuranceProductDetailResponseDTO.ComparisonChart> comparisonChart = Collections.emptyList();
 
         if (userId != null) {
-            BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId);
-            if (basicUserInfo != null) {
-                Integer personaId = (wannabeId != null) ? wannabeId : basicUserInfo.getNowMeId();
-                if (personaId != null) {
-                    double[] weights = insuranceRecommendationService.getPersonaWeights().get(personaId);
-                    if (weights != null) {
-                        matchScore = insuranceRecommendationService.calculateScore(product, weights);
+            // 올바른 매퍼와 VO를 사용하여 사용자 정보를 조회
+            UserIncomeInfoVO userInfo = insuranceRecommendationMapper.getUserHealthInfo(userId);
+            BasicUserInfoDTO basicUserInfo = productDetailMapper.findBasicUserInfoById(userId); // 찜하기, 비교 목록을 위해 기존 DTO도 유지
+
+            if (userInfo != null) {
+                Integer personaIdToUse = wannabeId;
+                if (personaIdToUse == null && userInfo.getPersonaIds() != null && !userInfo.getPersonaIds().isEmpty()) {
+                    personaIdToUse = userInfo.getPersonaIds().get(0); // getPersonaIds()의 첫번째 값을 기본값으로 사용
+                }
+                if (personaIdToUse != null) {
+                    Map<Integer, double[]> personaWeights = insuranceRecommendationService.getPersonaWeights();
+                    double[] baseWeightsArray = personaWeights.get(personaIdToUse);
+                    if (baseWeightsArray != null) {
+                        int smokingStatus = userInfo.getSmokingStatus();
+                        int familyMedicalHistory = userInfo.getFamilyMedicalHistory();
+                        int pastMedicalHistory = userInfo.getPastMedicalHistory();
+                        int exerciseFrequency = userInfo.getExerciseFrequency();
+                        int drinkingFrequency = userInfo.getDrinkingFrequency();
+
+                        Map<String, Double> baseWeightsMap = new HashMap<>();
+                        baseWeightsMap.put("가격_경쟁력", baseWeightsArray[0]);
+                        baseWeightsMap.put("보장한도", baseWeightsArray[1]);
+                        baseWeightsMap.put("보장범위", baseWeightsArray[2]);
+                        baseWeightsMap.put("자기부담금", baseWeightsArray[3]);
+                        baseWeightsMap.put("환급범위", baseWeightsArray[4]);
+
+                        Map<String, Double> adjustedWeights = insuranceRecommendationService.adjustWeightsByHealthAndLifestyle(baseWeightsMap, smokingStatus, familyMedicalHistory, pastMedicalHistory, exerciseFrequency, drinkingFrequency);
+                        Map<String, Double> normalizedWeights = insuranceRecommendationService.normalizeWeights(adjustedWeights);
+                        double[] finalWeights = insuranceRecommendationService.convertWeightsMapToArray(normalizedWeights);
+                        matchScore = insuranceRecommendationService.calculateScore(product, finalWeights);
                     }
                 }
+            }
 
+            if (basicUserInfo != null) {
+                // 찜하기 여부 확인
                 List<Long> favoriteProductIds = Collections.emptyList();
                 try {
                     if (basicUserInfo.getFavoriteProductsByType() != null && !basicUserInfo.getFavoriteProductsByType().isEmpty()) {
@@ -133,6 +175,7 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                 }
                 isWished = favoriteProductIds.contains(Long.valueOf(productId));
 
+                // 비교 차트 정보
                 List<UserInsuranceVO> userInsurances = userInsuranceMapper.findAllByUserId(userId);
                 comparisonChart = userInsurances.stream().map(insurance -> {
                     InsuranceProductVO insuranceProduct = productDetailMapper.findInsuranceProductById(String.valueOf(insurance.getProductId()));
@@ -148,6 +191,11 @@ public class ProductDetailServiceImpl implements ProductDetailService {
                             ))
                             .build();
                 }).collect(Collectors.toList());
+            }
+        } else if (wannabeId != null) {
+            double[] weights = insuranceRecommendationService.getPersonaWeights().get(wannabeId);
+            if (weights != null) {
+                matchScore = insuranceRecommendationService.calculateScore(product, weights);
             }
         }
 
