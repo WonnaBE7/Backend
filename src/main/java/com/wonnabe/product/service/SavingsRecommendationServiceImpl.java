@@ -133,7 +133,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     }
 
     // 소득/고용상태에 따른 가중치 조정
-    private double[] adjustWeightsByIncome(double[] weights, String incomeSource, String employment) {
+    public double[] adjustWeightsByIncome(double[] weights, String incomeSource, String employment) {
         double[] adjusted = weights.clone();
 
         // (‼️ 수정)
@@ -188,6 +188,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     }
 
     // 가중치 정규화
+    @Override
     public double[] normalizeWeights(double[] weights) {
         double sum = Arrays.stream(weights).sum();
         if (sum == 0) {

@@ -146,7 +146,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     }
 
     // 건강/생활습관에 따른 가중치 조정
-    private Map<String, Double> adjustWeightsByHealthAndLifestyle(
+    public Map<String, Double> adjustWeightsByHealthAndLifestyle(
             Map<String, Double> weights,
             int smokingStatus,
             int familyMedicalHistory,
@@ -239,7 +239,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     }
 
     // 가중치 정규화
-    private Map<String, Double> normalizeWeights(Map<String, Double> weights) {
+    public Map<String, Double> normalizeWeights(Map<String, Double> weights) {
         double sum = weights.values().stream().mapToDouble(Double::doubleValue).sum();
         if (sum == 0) {
             return weights;
@@ -249,7 +249,8 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     }
 
     // Map<String, Double> 형태의 가중치를 double[] 형태로 변환
-    private double[] convertWeightsMapToArray(Map<String, Double> weightsMap) {
+    @Override
+    public double[] convertWeightsMapToArray(Map<String, Double> weightsMap) {
         double[] weightsArray = new double[5]; // 가격, 보장한도, 보장범위, 자기부담금, 환급범위
         weightsArray[0] = weightsMap.getOrDefault("가격_경쟁력", 0.0);
         weightsArray[1] = weightsMap.getOrDefault("보장한도", 0.0);
