@@ -37,13 +37,6 @@ jobs:
       - name: 🔧 Gradle Wrapper 권한 설정
         run: chmod +x ./gradlew
 
-      # H2 인메모리 DB 사용 (별도 설정 불필요)
-      # - name: 🗄️ MySQL 서비스 시작
-      #   run: |
-      #     sudo systemctl start mysql.service
-      #     mysql -e "CREATE DATABASE IF NOT EXISTS wonnabe_test;" -uroot -proot
-
-      # 단계별 테스트 실행 (실패해도 계속 진행)
       - name: 🧪 단위 테스트 실행
         run: ./gradlew test --no-daemon --continue || true
         continue-on-error: true
@@ -60,7 +53,6 @@ jobs:
   build-and-deploy:
     needs: test
     runs-on: ubuntu-latest
-    # 테스트 실패해도 빌드는 진행
     if: always()
 
     steps:
@@ -96,9 +88,8 @@ jobs:
           path: build/libs/*.war
 
   deploy:
-    needs: [ test, build-and-deploy ]
+    needs: [test, build-and-deploy]
     runs-on: ubuntu-latest
-    # feature 브랜치에서도 배포 테스트 (임시)
     if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/github-actions') && github.event_name == 'push'
 
     steps:
@@ -126,7 +117,6 @@ jobs:
               sudo cp "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war" \
                      "${{ secrets.TOMCAT_PATH }}/backup/$BACKUP_NAME"
               echo "✅ 백업 완료: $BACKUP_NAME"
-              # 백업 파일명을 파일로 저장 (롤백용)
               echo "$BACKUP_NAME" > ~/last_backup.txt
             else
               echo "📝 기존 WAR 파일 없음"
@@ -269,6 +259,30 @@ jobs:
             find "${{ secrets.TOMCAT_PATH }}/backup" -name "${{ env.WAR_NAME }}-*.war" -mtime +7 -delete 2>/dev/null || true
             
             echo "🧹 정리 완료"
+
+      - name: 📧 이메일 알림 전송
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: ${{ job.status == 'success' && '✅ 배포 성공' || '🚨 배포 실패' }} - ${{ github.repository }}
+          body: |
+            🚀 CI/CD 배포 결과 알림
+            
+            📊 배포 결과: ${{ job.status }}
+            🌿 브랜치: ${{ github.ref_name }}
+            📝 커밋: ${{ github.sha }}
+            👤 배포자: ${{ github.actor }}
+            📅 시간: $(date)
+            
+            🔗 상세 로그 확인: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            ${{ job.status == 'success' && '✅ 배포가 성공적으로 완료되었습니다!' || '❌ 배포에 실패했습니다. 자동 롤백이 수행되었습니다.' }}
+          to: starr075@gmail.com
+          from: Wonnabe CI/CD Bot <noreply@wonnabe.com>
 
       - name: 🎉 배포 성공 알림
         if: success()
