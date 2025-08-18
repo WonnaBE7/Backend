@@ -20,8 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 
 /**
@@ -46,7 +45,7 @@ class UserSavingsServiceTest {
         Long productId = 1L;
         // UserSavingsMapper가 특정 값을 반환하도록 미리 정의합니다.
         given(userSavingsMapper.findSavingsDetailByIds(userId, productId)).willReturn(createMockSavingsVO(productId));
-        given(userSavingsMapper.findMonthlyTransactionSums(anyString(), any(Date.class))).willReturn(createMockTransactions(7)); // 7개월치 거래내역 생성
+        given(userSavingsMapper.findMonthlyTransactionSums(anyString(), anyLong(), any(Date.class))).willReturn(createMockTransactions(7)); // 7개월치 거래내역 생성
 
         // when: 테스트할 메서드를 실제로 호출합니다.
         UserSavingsDetailResponseDto result = userSavingsService.getSavingsDetail(userId, productId);
@@ -84,7 +83,7 @@ class UserSavingsServiceTest {
         // given
         Long productId = 2L;
         given(userSavingsMapper.findSavingsDetailByIds(userId, productId)).willReturn(createMockDepositVO(productId));
-        given(userSavingsMapper.findMonthlyTransactionSums(anyString(), any(Date.class))).willReturn(createMockTransactions(7));
+        given(userSavingsMapper.findMonthlyTransactionSums(anyString(), anyLong(), any(Date.class))).willReturn(createMockTransactions(7));
 
         // when
         UserSavingsDetailResponseDto result = userSavingsService.getSavingsDetail(userId, productId);
