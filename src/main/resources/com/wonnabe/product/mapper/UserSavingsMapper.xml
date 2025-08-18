@@ -55,6 +55,7 @@
             User_Transactions
         WHERE
             user_id = #{userId}
+          AND product_id = #{productId}
           AND asset_category = '예적금'
           AND transaction_date >= #{startDate}
         GROUP BY
