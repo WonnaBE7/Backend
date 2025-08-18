@@ -120,11 +120,17 @@ jobs:
             # 백업 디렉토리 생성
             sudo mkdir -p ${{ secrets.TOMCAT_PATH }}/backup
             
-            # 기존 WAR 파일 백업
+            # 현재 실행 중인 버전 확인 및 백업
             if [ -f "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war" ]; then
+              BACKUP_NAME="${{ env.WAR_NAME }}-$(date +%Y%m%d_%H%M%S).war"
               sudo cp "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war" \
-                     "${{ secrets.TOMCAT_PATH }}/backup/${{ env.WAR_NAME }}-$(date +%Y%m%d_%H%M%S).war"
-              echo "✅ 백업 완료"
+                     "${{ secrets.TOMCAT_PATH }}/backup/$BACKUP_NAME"
+              echo "✅ 백업 완료: $BACKUP_NAME"
+              # 백업 파일명을 파일로 저장 (롤백용)
+              echo "$BACKUP_NAME" > ~/last_backup.txt
+            else
+              echo "📝 기존 WAR 파일 없음"
+              echo "none" > ~/last_backup.txt
             fi
             
             # Tomcat 중지
@@ -147,7 +153,8 @@ jobs:
           source: "*.war"
           target: "/home/${{ secrets.EC2_USERNAME }}/deploy/"
 
-      - name: ✅ 배포 완료
+      - name: 🚀 새 버전 배포
+        id: deploy_new_version
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -166,14 +173,118 @@ jobs:
             sudo systemctl start tomcat
             
             # 시작 확인 (30초 대기)
+            echo "⏳ 30초 대기 중..."
             sleep 30
+            
             if sudo systemctl is-active --quiet tomcat; then
-              echo "✅ 배포 성공!"
+              echo "✅ Tomcat 시작 성공"
             else
               echo "❌ Tomcat 시작 실패"
               exit 1
             fi
+
+      - name: 🔍 헬스체크 (애플리케이션 정상 작동 확인)
+        id: health_check
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🔍 헬스체크 시작..."
             
-            # 정리
+            # 최대 5분 동안 헬스체크 시도
+            for i in {1..30}; do
+              echo "헬스체크 시도 $i/30..."
+            
+              # HTTP 상태 코드 확인 (8080 포트)
+              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/${{ env.WAR_NAME }}/ || echo "000")
+            
+              if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
+                echo "✅ 애플리케이션 헬스체크 성공! (HTTP $HTTP_STATUS)"
+                exit 0
+              elif [ "$HTTP_STATUS" = "404" ]; then
+                echo "📝 404 응답 - 애플리케이션이 아직 완전히 로드되지 않았을 수 있음"
+              else
+                echo "⚠️ HTTP 상태: $HTTP_STATUS"
+              fi
+            
+              sleep 10
+            done
+            
+            echo "❌ 헬스체크 실패 - 5분 내에 애플리케이션이 정상 응답하지 않음"
+            exit 1
+
+      - name: 🔄 롤백 (배포 실패 시)
+        if: failure() && (steps.deploy_new_version.outcome == 'failure' || steps.health_check.outcome == 'failure')
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🔄 롤백 시작..."
+            
+            # Tomcat 중지
+            sudo systemctl stop tomcat
+            
+            # 현재 WAR 파일 제거
+            sudo rm -f "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war"
+            sudo rm -rf "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}/"
+            
+            # 백업 파일 복원
+            BACKUP_FILE=$(cat ~/last_backup.txt)
+            if [ "$BACKUP_FILE" != "none" ] && [ -f "${{ secrets.TOMCAT_PATH }}/backup/$BACKUP_FILE" ]; then
+              sudo cp "${{ secrets.TOMCAT_PATH }}/backup/$BACKUP_FILE" \
+                     "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war"
+              sudo chown tomcat:tomcat "${{ secrets.TOMCAT_PATH }}/webapps/${{ env.WAR_NAME }}.war"
+              echo "✅ 이전 버전으로 롤백 완료: $BACKUP_FILE"
+            else
+              echo "📝 롤백할 이전 버전이 없습니다"
+            fi
+            
+            # Tomcat 재시작
+            sudo systemctl start tomcat
+            sleep 15
+            
+            if sudo systemctl is-active --quiet tomcat; then
+              echo "✅ 롤백 후 Tomcat 정상 실행"
+            else
+              echo "❌ 롤백 후에도 Tomcat 실행 실패"
+            fi
+
+      - name: 🧹 정리 작업
+        if: always()
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # 임시 파일 정리
             rm -rf "/home/${{ secrets.EC2_USERNAME }}/deploy"
-            echo "🎉 배포 완료: $(date)"
+            rm -f ~/last_backup.txt
+            
+            # 오래된 백업 파일 정리 (7일 이상된 것들)
+            find "${{ secrets.TOMCAT_PATH }}/backup" -name "${{ env.WAR_NAME }}-*.war" -mtime +7 -delete 2>/dev/null || true
+            
+            echo "🧹 정리 완료"
+
+      - name: 🎉 배포 성공 알림
+        if: success()
+        run: |
+          echo "🎉 배포 성공!"
+          echo "📅 배포 시간: $(date)"
+          echo "🌿 브랜치: ${{ github.ref_name }}"
+          echo "📝 커밋: ${{ github.sha }}"
+          echo "👤 배포자: ${{ github.actor }}"
+
+      - name: 🚨 배포 실패 알림
+        if: failure()
+        run: |
+          echo "🚨 배포 실패!"
+          echo "📅 실패 시간: $(date)"
+          echo "🌿 브랜치: ${{ github.ref_name }}"
+          echo "📝 커밋: ${{ github.sha }}"
+          echo "👤 시도자: ${{ github.actor }}"
+          echo "🔄 롤백이 자동으로 수행되었습니다."
