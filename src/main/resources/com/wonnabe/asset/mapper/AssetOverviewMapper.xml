@@ -5,15 +5,24 @@
 
 <mapper namespace="com.wonnabe.asset.mapper.AssetOverviewMapper">
 
-    <!-- 현재 총자산 -->
+    <!-- 현재 총자산: (입출금/투자/연금/기타 from user_accounts) + (예적금 from user_savings) -->
     <select id="getCurrentTotalBalance" resultType="long">
-        SELECT IFNULL(SUM(balance), 0)
-        FROM user_accounts
-        WHERE user_id = #{userId}
-          AND category IN ('입출금', '예적금', '투자', '연금', '기타')
+        SELECT
+            COALESCE((
+                         SELECT SUM(ua.balance)
+                         FROM user_accounts ua
+                         WHERE ua.user_id = #{userId}
+                           AND ua.category IN ('입출금','투자','연금','기타')
+                     ), 0)
+                +
+            COALESCE((
+                         SELECT SUM(CAST(us.principal_amount AS SIGNED))
+                         FROM user_savings us
+                         WHERE us.user_id = #{userId}
+                     ), 0) AS total_balance
     </select>
 
-    <!-- 지난달 스냅샷(가장 최신 1건) - yearMonth 입력값 없이 SQL에서 계산 -->
+    <!-- 지난달 스냅샷(가장 최신 1건) - 그대로 사용 -->
     <select id="getPrevMonthAssetAuto" resultType="long">
         SELECT IFNULL(CAST(amount AS SIGNED), 0)
         FROM summaries_cache
@@ -24,39 +33,105 @@
             LIMIT 1
     </select>
 
-    <!--  총자산페이지 - 총자산 카테고리 비율(입출금, 저축, 투자, 보험, 기타)-->
+    <!-- 총자산페이지 - 카테고리 비율 (user_accounts + user_savings[예적금]) -->
     <select id="getAssetCategoryBalances" resultType="map">
         SELECT category, SUM(balance) AS balance
-        FROM user_accounts
-        WHERE user_id = #{userId}
+        FROM (
+                 SELECT ua.category AS category,
+                        ua.balance  AS balance
+                 FROM user_accounts ua
+                 WHERE ua.user_id = #{userId}
+                   AND ua.category IN ('입출금','투자','연금','기타')
+
+                 UNION ALL
+                 SELECT '예적금' AS category,
+                        CAST(us.principal_amount AS SIGNED) AS balance
+                 FROM user_savings us
+                 WHERE us.user_id = #{userId}
+             ) t
         GROUP BY category
     </select>
 
-    <!-- 총자산페이지 - 자산 상세 내역-->
+    <!-- 총자산페이지 - 카테고리별 상세(계좌 수, 금액 합) -->
     <select id="getAssetCategoryDetails" resultType="map">
-        SELECT category, COUNT(*) AS accountsCount, SUM(balance) AS amount
-        FROM user_accounts
-        WHERE user_id = #{userId}
+        SELECT category,
+               COUNT(*) AS accountsCount,
+               SUM(amount) AS amount
+        FROM (
+                 -- 일반 계좌 (입출금/투자/연금/기타)
+                 SELECT ua.category AS category,
+                        COALESCE(ua.balance, 0) AS amount
+                 FROM user_accounts ua
+                 WHERE ua.user_id = #{userId}
+                   AND ua.category IN ('입출금','투자','연금','기타')
+
+                 UNION ALL
+                 -- 예적금 (user_savings)
+                 SELECT '예적금' AS category,
+                        CAST(COALESCE(us.principal_amount, 0) AS SIGNED) AS amount
+                 FROM user_savings us
+                 WHERE us.user_id = #{userId}
+
+                 UNION ALL
+                 -- 보험 (user_insurance) : 누적 납입액 기준
+                 SELECT '보험' AS category,
+                        CAST(COALESCE(ui.total_paid, 0) AS SIGNED) AS amount
+                 FROM user_insurance ui
+                 WHERE ui.user_id = #{userId}
+             ) t
         GROUP BY category
     </select>
 
-    <!--  총자산 상세페이지 - 카테고리별 계좌-->
+    <!-- 총자산 상세페이지 - 카테고리별 계좌 목록    -->
+    <!-- 총자산 상세페이지 - 카테고리별 계좌 -->
     <select id="getAccountsByCategory" resultType="map">
-        SELECT
-            id AS accountId,
-            bank_name AS bankName,
-            account_name AS accountName,
-            account_number AS accountNumber,
-            balance
-        FROM user_accounts
-        WHERE user_id = #{userId}
-          AND category = #{category}
+        SELECT accountId, bankName, accountName, accountNumber, balance
+        FROM (
+                 -- user_accounts (입출금/투자/연금/기타)
+                 SELECT
+                     ua.id               AS accountId,
+                     ua.bank_name        AS bankName,
+                     ua.account_name     AS accountName,
+                     ua.account_number   AS accountNumber,
+                     COALESCE(ua.balance, 0) AS balance
+                 FROM user_accounts ua
+                 WHERE ua.user_id = #{userId}
+                   AND ua.category = #{category}
+
+                 UNION ALL
+
+                 -- 예적금 (user_savings + savings_product)
+                 SELECT
+                     us.id                                 AS accountId,
+                     sp.bank_name                          AS bankName,
+                     sp.product_name                       AS accountName,
+                     us.account_number                     AS accountNumber,
+                     CAST(COALESCE(us.principal_amount,0) AS SIGNED) AS balance
+                 FROM user_savings us
+                          LEFT JOIN savings_product sp ON sp.product_id = us.product_id
+                 WHERE us.user_id = #{userId}
+                   AND #{category} = '예적금'
+
+                 UNION ALL
+
+                 -- 보험 (user_insurance + insurance_product)
+                 SELECT
+                     ui.id                                  AS accountId,
+                     ip.provider_name                       AS bankName,
+                     ip.product_name                        AS accountName,
+                     NULL                                    AS accountNumber,
+                     CAST(COALESCE(ui.total_paid,0)         AS SIGNED) AS balance
+                 FROM user_insurance ui
+                          LEFT JOIN insurance_product ip ON ip.product_id = ui.product_id
+                 WHERE ui.user_id = #{userId}
+                   AND #{category} = '보험'
+             ) x
+        ORDER BY accountName, accountNumber
     </select>
 
 
 
-    <!--    총자산 상세페이지 -카테고리별 보유계좌 거래 내역-->
-    <!-- 계좌 헤더: user_id + account_number -->
+    <!-- 계좌 헤더 (user_accounts 전용) -->
     <select id="getAccountHeaderById" resultType="map">
         SELECT
             ua.id             AS accountId,
@@ -69,18 +144,83 @@
             LIMIT 1
     </select>
 
-    <!-- 거래내역: user_transactions ⟷ user_accounts(id=account_id) -->
+    <!-- 거래내역 (user_accounts 전용) -->
     <select id="getTransactionsByAccountId" resultType="TransactionDTO">
         SELECT
             COALESCE(NULLIF(ut.description3, ''), ut.description1, ut.description2) AS transactionName,
             DATE_FORMAT(ut.transaction_date, '%Y-%m-%d') AS transactionDate,
-            DATE_FORMAT(ut.transaction_time, '%H:%i:%s') AS transactionTime,  -- 항상 HH:mm:ss
-            CAST(ut.amount AS SIGNED) AS amount                                 -- 정수로
+            DATE_FORMAT(ut.transaction_time, '%H:%i:%s') AS transactionTime,
+            CAST(ut.amount AS SIGNED) AS amount
         FROM user_transactions ut
-        JOIN user_accounts ua ON ua.id = ut.account_id
+                 JOIN user_accounts ua ON ua.id = ut.account_id
         WHERE ua.user_id    = #{userId}
           AND ut.account_id = #{accountId}
         ORDER BY ut.transaction_date DESC, ut.transaction_time DESC
     </select>
+
+    <!-- 예적금( user_savings ) 전용: 계좌 헤더 -->
+    <select id="getSavingsHeaderById" resultType="map">
+        SELECT
+            us.id               AS accountId,          -- 화면에선 savingsId로 사용
+            sp.bank_name        AS bankName,
+            sp.product_name     AS accountName,
+            us.account_number   AS accountNumber,
+            CAST(us.principal_amount AS SIGNED) AS balance
+        FROM user_savings us
+        JOIN savings_product sp ON sp.product_id = us.product_id
+        WHERE us.user_id = #{userId}
+          AND us.id      = #{savingsId}
+            LIMIT 1
+    </select>
+
+    <select id="getTransactionsBySavingsId" resultType="TransactionDTO">
+        SELECT
+            COALESCE(NULLIF(ut.description3, ''), ut.description1, ut.description2) AS transactionName,
+            DATE_FORMAT(ut.transaction_date, '%Y-%m-%d') AS transactionDate,
+            DATE_FORMAT(ut.transaction_time, '%H:%i:%s') AS transactionTime,
+            CAST(ut.amount AS SIGNED) AS amount
+        FROM user_transactions ut
+                 JOIN user_savings us
+                      ON us.user_id   = ut.user_id
+                          AND us.product_id = ut.product_id
+        WHERE us.user_id     = #{userId}
+          AND us.id          = #{savingsId}
+          AND ut.asset_category = '예적금'
+        ORDER BY ut.transaction_date DESC, ut.transaction_time DESC
+    </select>
+
+    <!-- 보험 전용: 헤더 -->
+    <select id="getInsuranceHeaderById" resultType="map">
+        SELECT
+            ui.id                AS accountId,
+            ip.provider_name     AS bankName,     -- 보험사
+            ip.product_name      AS accountName,  -- 상품명
+            NULL                 AS accountNumber,
+            CAST(COALESCE(ui.total_paid,0) AS SIGNED) AS balance
+        FROM user_insurance ui
+                 LEFT JOIN insurance_product ip ON ip.product_id = ui.product_id
+        WHERE ui.user_id = #{userId}
+          AND ui.id      = #{insuranceId}
+            LIMIT 1
+    </select>
+
+    <!-- 보험 전용: 거래내역 -->
+    <select id="getTransactionsByInsuranceId" resultType="TransactionDTO">
+        SELECT
+            COALESCE(NULLIF(ut.description3,''), ut.description1, ut.description2) AS transactionName,
+            DATE_FORMAT(ut.transaction_date, '%Y-%m-%d') AS transactionDate,
+            DATE_FORMAT(ut.transaction_time, '%H:%i:%s')  AS transactionTime,
+            CAST(ut.amount AS SIGNED) AS amount
+        FROM user_transactions ut
+                 JOIN user_insurance ui
+                      ON ui.user_id   = ut.user_id
+                          AND ui.product_id = ut.product_id
+        WHERE ui.user_id        = #{userId}
+          AND ui.id             = #{insuranceId}
+          AND ut.asset_category = '보험'
+        ORDER BY ut.transaction_date DESC, ut.transaction_time DESC
+    </select>
+
+
 
 </mapper>

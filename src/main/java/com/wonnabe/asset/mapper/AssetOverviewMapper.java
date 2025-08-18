@@ -34,4 +34,17 @@ public interface AssetOverviewMapper {
     List<TransactionDTO> getTransactionsByAccountId(@Param("userId") String userId,
                                                     @Param("accountId") Long accountId);
 
+    // 예적금 헤더/거래내역 (savings 전용)
+    Map<String, Object> getSavingsHeaderById(@Param("userId") String userId,
+                                             @Param("savingsId") Long savingsId);
+
+    List<TransactionDTO> getTransactionsBySavingsId(@Param("userId") String userId,
+                                                    @Param("savingsId") Long savingsId);
+
+    // 보험 전용 헤더/거래내역
+    Map<String, Object> getInsuranceHeaderById(@Param("userId") String userId,
+                                               @Param("insuranceId") Long insuranceId);
+    List<TransactionDTO> getTransactionsByInsuranceId(@Param("userId") String userId,
+                                                      @Param("insuranceId") Long insuranceId);
+
 }
