@@ -87,7 +87,7 @@
         uc.id,
         uc.user_id,
         uc.product_id,
-        uc.monthly_usage,
+        IFNULL(t_latest.amount, 0) AS monthly_usage,
         uc.issue_date,
         uc.expiry_date,
         uc.performance_condition,
@@ -99,7 +99,10 @@
         FROM user_card uc
         JOIN card_product cp ON uc.product_id = cp.product_id
         CROSS JOIN months m
+        CROSS JOIN (SELECT MAX(ym) AS latest_ym FROM months) lm
         LEFT JOIN txn t ON t.uc_id = uc.id AND t.ym = m.ym
+        LEFT JOIN txn t_latest
+        ON t_latest.uc_id = uc.id AND t_latest.ym = lm.latest_ym
         WHERE uc.user_id = #{userId}
         AND uc.product_id = #{productId}
         ORDER BY m.ym ASC
