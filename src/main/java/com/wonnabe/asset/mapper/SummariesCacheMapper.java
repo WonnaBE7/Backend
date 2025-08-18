@@ -28,6 +28,18 @@ public interface SummariesCacheMapper {
                                     @Param("startYm") String startYm,
                                     @Param("endYm") String endYm);
 
+    // 해당 월의 카테고리별 실제 금액
+    List<Map<String, Object>> getCategoryAmountsByMonth(
+            @Param("userId") String userId,
+            @Param("yearMonth") String yearMonth);
+
+    // 기간(시작~끝) 내 월별 카테고리 합을 만든 뒤, 카테고리별 평균 (요청월 제외 범위 전달)
+    List<Map<String, Object>> getCategoryAvgInRange(
+            @Param("userId") String userId,
+            @Param("startYm") String startYm,
+            @Param("endYm") String endYm);
+
+
     // 오늘의 소비
     Double getTodayConsumption(@Param("userId") String userId, @Param("today") String today);
 

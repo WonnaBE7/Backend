@@ -118,7 +118,7 @@ public class ConsumptionSummaryService {
         Map<String, Object> estimatedMap = new LinkedHashMap<>();
         estimatedMap.put("amount", Math.round(estimatedMonthly));
         estimatedMap.put("calculatedUntil", today.toString());
-        estimatedMap.put("diffamount", Math.round(diffAmount)); // 음수 포함 그대로 반환
+        estimatedMap.put("diffAmount", Math.round(diffAmount)); // 음수 포함 그대로 반환
 
         // 오늘 소비 맵
         Map<String, Object> todayMap = new LinkedHashMap<>();
@@ -132,6 +132,75 @@ public class ConsumptionSummaryService {
 
         return result;
     }
+
+    // 예상 카테고리별 소비 금액
+    public Map<String, Object> getEstimatedCategoryConsumption(String userId, String yearMonth) {
+        var ym  = java.time.YearMonth.parse(yearMonth);
+        var fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM");
+
+        String targetYm = ym.format(fmt);
+        String endYm    = ym.minusMonths(1).format(fmt);  // 전월
+        String startYm  = ym.minusMonths(6).format(fmt);  // 전월 기준 6개월 구간 시작
+
+        // 1) DB 조회
+        List<Map<String, Object>> curRows = cacheMapper.getCategoryAmountsByMonth(userId, targetYm);
+        List<Map<String, Object>> avgRows = cacheMapper.getCategoryAvgInRange(userId, startYm, endYm);
+
+        // 2) alias에 맞춰 안전 변환 (null 카테고리는 "other"로 치환)
+        java.util.function.Function<Object, String> catKey = v -> v == null ? "other" : v.toString();
+
+        // 현재월: SELECT consumption_category AS category, SUM(amount) AS amount
+        Map<String, Double> curMap = curRows.stream().collect(
+                java.util.stream.Collectors.toMap(
+                        r -> catKey.apply(r.get("category")),
+                        r -> ((Number) r.get("amount")).doubleValue(),
+                        (a, b) -> a,                       // 중복 방지
+                        java.util.LinkedHashMap::new
+                )
+        );
+
+        // 평균: SELECT category, AVG(month_amount) AS avgAmount
+        Map<String, Double> avgMap = avgRows.stream().collect(
+                java.util.stream.Collectors.toMap(
+                        r -> catKey.apply(r.get("category")),
+                        r -> ((Number) r.get("avgAmount")).doubleValue(),
+                        (a, b) -> a,
+                        java.util.LinkedHashMap::new
+                )
+        );
+
+        // 3) 고정 출력 순서
+        java.util.List<String> order = java.util.List.of("food", "transport", "shopping", "culture", "other");
+
+        // 4) 결과 구성 (고정 순서대로 생성)
+        java.util.List<Map<String, Object>> categories = new java.util.ArrayList<>();
+        for (String c : order) {
+            double amount = curMap.getOrDefault(c, 0.0);
+            double est    = avgMap.getOrDefault(c, 0.0);
+
+            double percentage;
+            if (est > 0) {
+                percentage = amount * 100.0 / est;
+            } else {
+                percentage = (amount > 0) ? 100.0 : 0.0;
+            }
+
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("consumptionCategory", c);
+            m.put("estimatedAmount", Math.round(est));                        // 정수 반올림
+            m.put("amount", Math.round(amount));
+            m.put("percentage", Math.round(percentage * 10.0) / 10.0);        // 소수 1자리
+            m.put("diffFromEstimate", Math.round(amount - est));
+            categories.add(m);
+        }
+
+        // 5) 최종 반환
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("yearMonth", targetYm);
+        result.put("categories", categories);
+        return result;
+    }
+
 
 
 
