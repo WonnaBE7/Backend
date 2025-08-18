@@ -58,6 +58,8 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     public SavingsRecommendationResponseDTO recommendSavings(String userId, int topN) {
         // 1. 사용자 정보 조회
         UserIncomeInfoVO userInfo = recommendationMapper.getUserIncomeInfo(userId);
+        log.info("### [DEBUG] Fetched userInfo for savings recommend: {}", userInfo);
+
         if (userInfo == null || userInfo.getPersonaIds() == null || userInfo.getPersonaIds().isEmpty()) {
             log.warn("사용자 정보 또는 페르소나 ID가 없어 적금 추천을 진행할 수 없습니다. userId: {}", userId);
             return new SavingsRecommendationResponseDTO(userId, new ArrayList<>());
@@ -113,7 +115,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                 rec.setBankName(product.getBankName());
                 rec.setBaseRate(product.getBaseRate() != null ? product.getBaseRate() : 0.0f);
                 rec.setMaxRate(product.getMaxRate() != null ? product.getMaxRate() : 0.0f);
-                rec.setScore(item.score);
+                rec.setScore(Math.round(item.score * 100.0) / 100.0);
                 rec.setProductType("savings");
 
                 personaRec.getProducts().add(rec);
@@ -131,7 +133,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     }
 
     // 소득/고용상태에 따른 가중치 조정
-    private double[] adjustWeightsByIncome(double[] weights, String incomeSource, String employment) {
+    public double[] adjustWeightsByIncome(double[] weights, String incomeSource, String employment) {
         double[] adjusted = weights.clone();
 
         // (‼️ 수정)
@@ -186,6 +188,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
     }
 
     // 가중치 정규화
+    @Override
     public double[] normalizeWeights(double[] weights) {
         double sum = Arrays.stream(weights).sum();
         if (sum == 0) {

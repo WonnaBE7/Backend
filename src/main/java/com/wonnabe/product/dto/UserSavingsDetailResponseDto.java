@@ -60,7 +60,7 @@ public class UserSavingsDetailResponseDto {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         // 1. 상품 타입 판별: 월 납입액(monthlyPayment) 존재 여부로 적금과 예금을 구분합니다.
-        String productType = (userSavings.getMonthlyPayment() != null && userSavings.getMonthlyPayment() > 0) ? "적금" : "예금";
+        String productType = "savings";
 
         // 2. 가입 기간 계산: 가입일과 만기일의 차이를 계산하여 "N개월" 형태의 문자열로 만듭니다.
         String term = "";

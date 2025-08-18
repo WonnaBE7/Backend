@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -54,22 +54,28 @@ public class UserSavingsService {
      * 상품 유형에 따라 최종 달성률(%)을 계산합니다.
      */
     private Integer calculateFinalAchievementRate(UserSavingsVO userSavings) {
-        boolean isSavingsProduct = userSavings.getMonthlyPayment() != null && userSavings.getMonthlyPayment() > 0;
-        long currentPrincipal = userSavings.getCurrentBalance(); // 현재까지 납입한 총 원금
+        LocalDate startDate = toLocalDate(userSavings.getStartDate());
+        LocalDate maturityDate = toLocalDate(userSavings.getMaturityDate());
+        LocalDate today = LocalDate.now();
 
-        if (isSavingsProduct) {
-            // 적금: (현재 총 납입 원금 / 만기 시 총 납입해야 할 원금) * 100
-            LocalDate startDate = toLocalDate(userSavings.getStartDate());
-            LocalDate maturityDate = toLocalDate(userSavings.getMaturityDate());
-            long totalMonths = Period.between(startDate, maturityDate).toTotalMonths();
-            long totalExpectedPrincipal = userSavings.getMonthlyPayment() * totalMonths;
-            return (totalExpectedPrincipal == 0) ? 100 : (int) (((double) currentPrincipal / totalExpectedPrincipal) * 100);
-        } else {
-            // 예금: (현재 총 납입 원금 / 최초 계약 원금) * 100
-            Long initialPrincipalObj = userSavings.getPrincipalAmount();
-            long initialPrincipal = (initialPrincipalObj == null) ? 1000000L : initialPrincipalObj;
-            return (initialPrincipal == 0) ? 100 : (int) (((double) currentPrincipal / initialPrincipal) * 100);
+        if (startDate.isAfter(maturityDate)) {
+            return 0; // Or handle as an error
         }
+        if (today.isAfter(maturityDate)) {
+            return 100;
+        }
+        if (today.isBefore(startDate)) {
+            return 0;
+        }
+
+        long totalDays = java.time.temporal.ChronoUnit.DAYS.between(startDate, maturityDate);
+        long elapsedDays = java.time.temporal.ChronoUnit.DAYS.between(startDate, today);
+
+        if (totalDays == 0) {
+            return 100;
+        }
+
+        return (int) (((double) elapsedDays / totalDays) * 100);
     }
 
     /**

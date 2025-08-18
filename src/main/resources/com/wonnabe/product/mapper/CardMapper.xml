@@ -102,7 +102,7 @@
         LEFT JOIN txn t ON t.uc_id = uc.id AND t.ym = m.ym
         WHERE uc.user_id = #{userId}
         AND uc.product_id = #{productId}
-        ORDER BY m.ym DESC
+        ORDER BY m.ym ASC
     </select>
 
 

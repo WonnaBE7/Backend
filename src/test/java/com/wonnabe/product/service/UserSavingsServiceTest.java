@@ -53,7 +53,7 @@ class UserSavingsServiceTest {
 
         // then: 반환된 결과가 우리의 기대와 일치하는지 검증합니다.
         assertNotNull(result);
-        assertEquals("적금", result.getProductType());
+        assertEquals("savings", result.getProductType());
 
         // 1. 최종 달성률 검증 (만기 12개월, 월 10만원 -> 총 120만원 목표. 현재 7개월치 70만원 납입)
         // 기대값: (700,000 / 1,200,000) * 100 = 58
@@ -91,11 +91,11 @@ class UserSavingsServiceTest {
 
         // then
         assertNotNull(result);
-        assertEquals("예금", result.getProductType());
+        assertEquals("savings", result.getProductType());
 
-        // 1. 최종 달성률 검증 (최초 원금 100만원, 현재 총 납입액 70만원)
-        // 기대값: (700,000 / 1,000,000) * 100 = 70
-        assertEquals(70, result.getAchievementRate());
+        // 1. 최종 달성률 검증 (가입일로부터 7개월 경과, 총 계약기간 12개월)
+        // 기대값: (7 / 12) * 100 = 58
+        assertEquals(58, result.getAchievementRate());
 
         // ---- 가시적 출력(예금)  -------
         System.out.println("===== 예금 상품 테스트 결과 =====");

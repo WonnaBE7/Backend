@@ -21,21 +21,24 @@ public class AssetOverviewService {
     //메인페이지 - 총자산 현황
     public Map<String, Object> getAssetOverview(String userId) {
         Long totalBalance = assetOverviewMapper.getCurrentTotalBalance(userId);
-        Long lastMonthBalance = assetOverviewMapper.getLastMonthBalance(userId);
+        Long prevAsset    = assetOverviewMapper.getPrevMonthAssetAuto(userId);
 
-        long current = totalBalance != null ? totalBalance : 0;
-        long previous = lastMonthBalance != null ? lastMonthBalance : 0;
+        long current  = totalBalance != null ? totalBalance : 0L;
+        long previous = prevAsset    != null ? prevAsset    : 0L;
 
         long changeAmount = current - previous;
-        double changeRate = (previous == 0) ? 0.0 :
-                BigDecimal.valueOf((double) changeAmount / previous * 100)
-                        .setScale(1, RoundingMode.HALF_UP)
-                        .doubleValue();
+        double changeRate = (previous == 0)
+                ? 0.0
+                : java.math.BigDecimal.valueOf(changeAmount)
+                .divide(java.math.BigDecimal.valueOf(previous), 4, java.math.RoundingMode.HALF_UP)
+                .multiply(java.math.BigDecimal.valueOf(100))
+                .setScale(1, java.math.RoundingMode.HALF_UP)
+                .doubleValue();
 
-        Map<String, Object> result = new LinkedHashMap<>();
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
         result.put("totalAmount", current);
-        result.put("changeRate", changeRate);
         result.put("changeAmount", changeAmount);
+        result.put("changeRate",  changeRate);
         return result;
     }
 
@@ -160,42 +163,52 @@ public class AssetOverviewService {
         };
     }
 
-    // 총자산 상세페이지 -카테고리별 보유계좌 거래 내역
     // 총자산 상세페이지 - 카테고리별 보유계좌 거래 내역
     public Map<String, Object> getAccountTransactionsById(String userId, Long accountId) {
-        // 1) 헤더
         Map<String, Object> header = assetOverviewMapper.getAccountHeaderById(userId, accountId);
-        if (header == null || header.isEmpty()) {
-            throw new IllegalArgumentException("해당 계좌가 없거나 권한이 없습니다: " + accountId);
+        List<TransactionDTO> transactions;
+
+        if (header != null && !header.isEmpty()) {
+            // 일반 계좌
+            transactions = assetOverviewMapper.getTransactionsByAccountId(userId, accountId);
+        } else {
+            header = assetOverviewMapper.getSavingsHeaderById(userId, accountId);
+            if (header != null && !header.isEmpty()) {
+                // 예적금
+                transactions = assetOverviewMapper.getTransactionsBySavingsId(userId, accountId);
+            } else {
+                // 보험
+                header = assetOverviewMapper.getInsuranceHeaderById(userId, accountId);
+                if (header == null || header.isEmpty()) {
+                    throw new IllegalArgumentException("해당 계좌/예적금/보험이 없거나 권한이 없습니다: " + accountId);
+                }
+                transactions = assetOverviewMapper.getTransactionsByInsuranceId(userId, accountId);
+            }
         }
 
-        // 2) 거래내역 (DTO로 받기)
-        List<TransactionDTO> transactions = assetOverviewMapper.getTransactionsByAccountId(userId, accountId);
         if (transactions == null) transactions = java.util.Collections.emptyList();
 
-        // accountName 제외한 응답용 뷰
-        List<Map<String, Object>> txView = transactions.stream()
-                .map(t -> {
-                    Map<String, Object> m = new LinkedHashMap<>();
-                    m.put("transactionName", t.getTransactionName());
-                    m.put("transactionDate", t.getTransactionDate());
-                    m.put("transactionTime", t.getTransactionTime());
-                    m.put("amount", t.getAmount());
-                    return m;
-                })
-                .collect(Collectors.toList());
+        List<Map<String, Object>> txView = transactions.stream().map(t -> {
+            Map<String, Object> m = new LinkedHashMap<>();
+            m.put("transactionName", t.getTransactionName());
+            m.put("transactionDate", t.getTransactionDate());
+            m.put("transactionTime", t.getTransactionTime());
+            m.put("amount", t.getAmount());
+            return m;
+        }).collect(Collectors.toList());
 
-        // 3) 계좌번호 마스킹(하이픈/공백 유지)
-        String masked = maskAccountNumberKeepHyphen((String) header.get("accountNumber"));
+        String accountNumber = (String) header.get("accountNumber");
+        String masked = (accountNumber == null) ? null : maskAccountNumberKeepHyphen(accountNumber);
 
-        // 4) 최종 응답 (변수명 result 권장)
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("bankName", header.get("bankName"));
-        result.put("accountNumber", masked);
+        result.put("accountNumber", masked);   // 보험은 null
         result.put("transactions", txView);
         return result;
     }
 
+
+    //계좌번호 *** 처리
     private String maskAccountNumberKeepHyphen(String s) {
         if (s == null) return null;
         int totalDigits = 0;

@@ -63,6 +63,8 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     public InsuranceRecommendationResponseDTO recommendInsurance(String userId, int topN) {
         // 1. 사용자 정보 조회
         UserIncomeInfoVO userIncomeInfo = recommendationMapper.getUserHealthInfo(userId);
+        log.info("### [DEBUG] Fetched userIncomeInfo for insurance recommend: {}", userIncomeInfo);
+
         if (userIncomeInfo == null || userIncomeInfo.getPersonaIds() == null || userIncomeInfo.getPersonaIds().isEmpty()) {
             log.warn("사용자 건강 정보 또는 페르소나 ID가 없어 보험 추천을 진행할 수 없습니다. userId: {}", userId);
             return new InsuranceRecommendationResponseDTO(userId, new ArrayList<>());
@@ -132,7 +134,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
                 rec.setNote(product.getNote());
                 rec.setMyMoney(product.getMyMoney());
 
-                rec.setScore(item.score);
+                rec.setScore(Math.round(item.score * 100.0) / 100.0);
 
                 personaRec.getProducts().add(rec);
             }
@@ -144,7 +146,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     }
 
     // 건강/생활습관에 따른 가중치 조정
-    private Map<String, Double> adjustWeightsByHealthAndLifestyle(
+    public Map<String, Double> adjustWeightsByHealthAndLifestyle(
             Map<String, Double> weights,
             int smokingStatus,
             int familyMedicalHistory,
@@ -237,7 +239,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     }
 
     // 가중치 정규화
-    private Map<String, Double> normalizeWeights(Map<String, Double> weights) {
+    public Map<String, Double> normalizeWeights(Map<String, Double> weights) {
         double sum = weights.values().stream().mapToDouble(Double::doubleValue).sum();
         if (sum == 0) {
             return weights;
@@ -247,7 +249,8 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
     }
 
     // Map<String, Double> 형태의 가중치를 double[] 형태로 변환
-    private double[] convertWeightsMapToArray(Map<String, Double> weightsMap) {
+    @Override
+    public double[] convertWeightsMapToArray(Map<String, Double> weightsMap) {
         double[] weightsArray = new double[5]; // 가격, 보장한도, 보장범위, 자기부담금, 환급범위
         weightsArray[0] = weightsMap.getOrDefault("가격_경쟁력", 0.0);
         weightsArray[1] = weightsMap.getOrDefault("보장한도", 0.0);

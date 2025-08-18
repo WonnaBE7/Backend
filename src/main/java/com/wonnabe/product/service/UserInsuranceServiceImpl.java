@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -56,12 +57,26 @@ public class UserInsuranceServiceImpl implements UserInsuranceService {
         Long totalPaymentAmount = userInsuranceMapper.findTotalPaymentAmount(userId, productId);
 
         // 달성률(achievementRate) 계산
-        String achievementRate;
-        if (totalPaymentAmount != null && totalPaymentAmount > 0) {
-            BigDecimal rate = BigDecimal.valueOf(totalReceiptAmount).divide(BigDecimal.valueOf(totalPaymentAmount), 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100));
-            achievementRate = String.format("%.2f%%", rate);
+        Integer achievementRate;
+        LocalDate startDate = toLocalDate(userInsuranceVO.getStartDate());
+        LocalDate endDate = toLocalDate(userInsuranceVO.getEndDate());
+        LocalDate today = LocalDate.now();
+
+        if (startDate == null || endDate == null || startDate.isAfter(endDate)) {
+            achievementRate = 0; // Or handle as an error
+        } else if (today.isAfter(endDate)) {
+            achievementRate = 100;
+        } else if (today.isBefore(startDate)) {
+            achievementRate = 0;
         } else {
-            achievementRate = "0.00%"; // 납입액이 없거나 0인 경우
+            long totalDays = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
+            long elapsedDays = java.time.temporal.ChronoUnit.DAYS.between(startDate, today);
+
+            if (totalDays == 0) {
+                achievementRate = 100;
+            } else {
+                achievementRate = (int) (((double) elapsedDays / totalDays) * 100);
+            }
         }
 
         // 월별 보험 거래 내역 조회 (최근 5개월)
@@ -107,5 +122,12 @@ public class UserInsuranceServiceImpl implements UserInsuranceService {
         }
 
         return fullChartData;
+    }
+
+    private LocalDate toLocalDate(java.sql.Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toLocalDate();
     }
 }
