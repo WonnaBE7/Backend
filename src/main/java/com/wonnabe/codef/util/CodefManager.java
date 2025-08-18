@@ -45,10 +45,8 @@ public class CodefManager {
                     );
                 }
             } catch (Exception e) {
-                // 💥 예외 발생 시 로그만 남기고 다음 기관으로 진행
                 System.err.printf("[CODEF 갱신 오류] userId=%s, institution=%s, message=%s%n",
                         auth.getUserId(), auth.getInstitutionCode(), e.getMessage());
-                // 선택적으로 로깅 라이브러리 사용 권장: log.warn(...) or log.error(...)
             }
         }
     }

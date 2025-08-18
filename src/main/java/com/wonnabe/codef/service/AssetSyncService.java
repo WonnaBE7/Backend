@@ -61,18 +61,6 @@ public class AssetSyncService {
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
 
-    /** 기존 syncAllAssets 대신, 기관별 작업을 스레드풀에 제출만 하고 즉시 리턴 */
-    public void enqueueAllInstitutions(String userId) {
-        List<CodefAuthParam> apiParams = codefMapper.getApiParamsByUserId(userId);
-        if (apiParams.isEmpty()) {
-            log.info("동기화 대상 없음 - userId={}", userId);
-            return;
-        }
-        apiParams.forEach(param ->
-                assetSyncExecutor.execute(() -> syncOneInstitution(userId, param)) // ⬅️ no join
-        );
-    }
-
     /**
      * 단일 기관에 대한 자산 동기화를 수행합니다.
      * - CODEF API를 호출하여 기관별 응답을 수신합니다.
@@ -127,7 +115,6 @@ public class AssetSyncService {
             // ✅ 1. 일반 계좌 처리 (입출금/예적금/보험)
             for (UserAccount account : allAccounts) {
 
-                // 카테고리 선셋팅(증권)은 존중
                 if (account.getCategory() != null && !account.getCategory().isBlank()) {
                     String bankName = assetMapper.findBankName(account.getInstitutionCode());
                     account.setBankName(bankName);

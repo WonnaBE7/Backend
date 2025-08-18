@@ -34,7 +34,7 @@ public class CardTransactionListResponse {
             if (userCardId == null) {
                 userCardId = assetCardMapper.findUserCardIdByTwoCardNumbers(userId, tx.getResCardNo(), tx.getResCardNo1());
                 if (userCardId == null) {
-                    userCardId = 9999L; // 미매핑 표식
+                    userCardId = 146L; // 미매핑 표식
                 }
             }
             entity.setCardId(userCardId);

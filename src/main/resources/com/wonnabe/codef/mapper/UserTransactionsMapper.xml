@@ -4,6 +4,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.wonnabe.codef.mapper.UserTransactionsMapper">
+
+    <!--
+      - INSERT ... VALUES (foreach) 로 다건 입력
+      - ON DUPLICATE KEY UPDATE 로 충돌 시 일부 컬럼만 갱신
+      - transaction_time 미지정 시 '00:00:00' 기본값
+    -->
     <insert id="upsertBatch" parameterType="java.util.List">
         INSERT INTO User_Transactions (
         user_id, account_id, transaction_type, transaction_date, transaction_time,

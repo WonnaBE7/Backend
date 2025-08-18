@@ -78,15 +78,27 @@ public class JsonResponse {
         }
     }
 
-    /** 202 Accepted (메시지만) */
-    public static ResponseEntity<Object> accepted(String message) {
+    /**
+     * 202 Accepted 응답(메시지만)을 생성합니다.
+     * 비동기 처리(예: 백그라운드 작업 큐 등록)처럼 즉시 완료되지 않는 작업에 사용합니다.
+     *
+     * @param message 클라이언트에 전달할 설명 메시지
+     * @return HTTP 202 상태와 {"code":202, "message":...} 바디를 담은 ResponseEntity
+     */    public static ResponseEntity<Object> accepted(String message) {
         Map<String, Object> body = new HashMap<>();
         body.put("code", HttpStatus.ACCEPTED.value());
         body.put("message", message);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(body);
     }
 
-    /** 202 Accepted (메시지 + 데이터) */
+    /**
+     * 202 Accepted 응답(메시지 + 데이터)을 생성합니다.
+     * 비동기 처리 상황에서 부가 정보(예: queued, force 등)를 함께 내려줄 때 사용합니다.
+     *
+     * @param message 클라이언트에 전달할 설명 메시지
+     * @param data    부가 데이터(맵/DTO 등 직렬화 가능한 객체)
+     * @return HTTP 202 상태와 {"code":202, "message":..., "data":...} 바디를 담은 ResponseEntity
+     */
     public static ResponseEntity<Object> accepted(String message, Object data) {
         Map<String, Object> body = new HashMap<>();
         body.put("code", HttpStatus.ACCEPTED.value());

@@ -26,6 +26,12 @@ public class InvestAccountListResponse {
         if (data == null) return list;
 
         for (InvestAccountItem src : data) {
+            // 평가금액 파싱 (콤마/공백 허용), 0원이면 스킵
+            Double valuation = toDoubleOrNull(src.getValuationAmount());
+            if (valuation == null || Double.compare(valuation, 0.0) == 0) {
+                continue; // 0원 계좌는 insert 대상에서 제외
+            }
+
             UserAccount ua = new UserAccount();
             ua.setUserId(userId);
             ua.setInstitutionCode(institutionCode);
@@ -36,10 +42,7 @@ public class InvestAccountListResponse {
             ua.setAccountName(src.getAccountName());       // "개인종합자산관리(중개형)..." 등
 
             // 증권은 잔액 대신 평가금액을 주는 경우가 많음
-            Double valuation = parseDouble(src.getValuationAmount());
-            if (valuation != null) {
-                ua.setAccountBalance(valuation);
-            }
+            ua.setAccountBalance(valuation);
 
             // 손익, 매수원가 등도 원하면 보조 컬럼으로 저장 가능
             // ua.setLastMonthBalance(...), ua.setNote(...)
@@ -56,5 +59,16 @@ public class InvestAccountListResponse {
             list.add(ua);
         }
         return list;
+    }
+
+    private static Double toDoubleOrNull(String raw) {
+        if (raw == null) return null;
+        String t = raw.replace(",", "").trim();
+        if (t.isEmpty()) return null;
+        try {
+            return Double.valueOf(t);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

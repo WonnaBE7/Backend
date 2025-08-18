@@ -11,16 +11,23 @@ import java.util.Map;
 @Slf4j
 public class AssetRequestBuilder {
 
+    /**
+     * CODEF 자산 조회/생성 계열 API에 전달할 요청 바디를 생성합니다.
+     * 공통 필수 필드(userId, endpoint, organization, connectedId)를 포함하고,
+     * 선택 필드(account, startDate, endDate, orderBy, inquiryType, memberStoreInfoType)는
+     * 값이 존재할 때만 바디에 추가합니다.
+     *
+     * @param param CODEF 호출 파라미터(사용자/기관/계좌/조회기간/정렬/조회유형 등)
+     * @return CODEF 자산 API에 전달할 요청 바디 맵
+     */
     public Map<String, Object> buildAssetCreateRequest(CodefAuthParam param) {
         Map<String, Object> body = new HashMap<>();
 
-        // ✅ 공통 필수 필드
         body.put("userId", param.getUserId());
         body.put("endpoint", param.getEndpoint());
         body.put("organization", param.getInstitutionCode());
         body.put("connectedId", param.getConnectedId());
 
-        // ✅ 옵션 필드
         if (param.getAccount() != null && !param.getAccount().isBlank()) {
             body.put("account", param.getAccount());
         }

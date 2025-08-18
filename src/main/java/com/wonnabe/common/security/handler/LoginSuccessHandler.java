@@ -32,18 +32,16 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final AssetSyncOrchestrator assetSyncOrchestrator;
 
     private static final Duration SOFT_SYNC_TIMEOUT = Duration.ofSeconds(5);
-    private final long softTimeoutMs = SOFT_SYNC_TIMEOUT.toMillis();
 
     /**
-     * 로그인 성공 시 실행되는 메서드입니다.
-     * - AccessToken, RefreshToken 발급
-     * - RefreshToken Redis 저장 및 쿠키로 전송
-     * - 사용자 정보와 함께 JSON 응답 반환
+     * 로그인 성공 시 호출되는 메서드입니다.
+     * AccessToken/RefreshToken을 발급하고, RefreshToken을 Redis에 저장한 뒤 HttpOnly·Secure 쿠키로 설정합니다.
+     * 또한 자산 동기화를 소프트 타임아웃 내에서 시도하며, 지연/실패와 무관하게 로그인 흐름은 계속 진행됩니다.
      *
-     * @param request        HTTP 요청 객체
-     * @param response       HTTP 응답 객체
-     * @param authentication 인증 정보 객체
-     * @throws IOException JSON 응답 처리 중 오류 발생 시
+     * @param request  클라이언트 요청 객체
+     * @param response 서버 응답 객체
+     * @param authentication 인증 성공 시의 사용자 인증 정보
+     * @throws IOException JSON 직렬화 또는 응답 작성 중 예외 발생 시
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -53,9 +51,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         CustomUser user = (CustomUser) authentication.getPrincipal();
         String userId = user.getUser().getUserId();
 
-        boolean syncedNow = false;
         try {
-            syncedNow = assetSyncOrchestrator.syncWithSoftTimeout(userId, Duration.ofMillis(softTimeoutMs));
+            assetSyncOrchestrator.syncWithSoftTimeout(userId, SOFT_SYNC_TIMEOUT);
         } catch (Exception e) {
             log.warn("asset sync short attempt failed, proceed login - userId={}, err={}", userId, e.toString());
         }
@@ -80,9 +77,8 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
         objectMapper.writeValue(response.getWriter(), Map.of(
                 "code", 200,
                 "message", "로그인 성공",
-                "data", new AuthResultDTO(accessToken, UserInfoDTO.of(user.getUser())),
-                "assetSyncInProgress", !syncedNow
+                "data", new AuthResultDTO(accessToken, UserInfoDTO.of(user.getUser()))
         ));
-        log.info("✅ 로그인 성공 - userId={}, assetSyncInProgress={}", userId, !syncedNow);
+        log.info("✅ 로그인 성공 - userId={}", userId);
     }
 }
