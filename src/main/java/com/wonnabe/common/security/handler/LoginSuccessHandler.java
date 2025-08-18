@@ -57,13 +57,28 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             log.warn("asset sync short attempt failed, proceed login - userId={}, err={}", userId, e.toString());
         }
 
-        String accessToken = jwtProcessor.generateAccessToken(userId);
         String refreshToken = jwtProcessor.generateRefreshToken(userId);
+        boolean rtSaved = false;
+
         try {
             refreshTokenRedisRepository.save(userId, refreshToken, 60 * 60 * 24 * 7);
+            rtSaved = true;
         } catch (Exception e) {
             log.error("Redis 저장 실패 - userId: {}, error: {}", userId, e.getMessage());
         }
+
+        if (!rtSaved) {
+            // 엄격 모드: RT 보관 실패 == 로그인 실패
+            response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE); // 503
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
+            objectMapper.writeValue(response.getWriter(), Map.of(
+                    "code", 503,
+                    "message", "로그인 실패: 세션 저장 오류(잠시 후 다시 시도해주세요)"
+            ));
+            return;
+        }
+
+        String accessToken = jwtProcessor.generateAccessToken(userId);
 
         Cookie refreshCookie = new Cookie("refresh_token", refreshToken);
         refreshCookie.setHttpOnly(true);
