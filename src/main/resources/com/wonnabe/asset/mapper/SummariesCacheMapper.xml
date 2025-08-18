@@ -50,6 +50,53 @@
         GROUP BY curr.consumption_category
     </select>
 
+    <!-- 최근 N개월(시작~끝)의 월별 합계 평균 -->
+    <select id="getAvgMonthlyConsumption" resultType="double">
+        SELECT AVG(month_total) AS estimatedMonthlyConsumption
+        FROM (
+                 SELECT yearMonth, SUM(amount) AS month_total
+                 FROM summaries_cache
+                 WHERE user_id = #{userId}
+                   AND period_type = 'monthly'
+                 GROUP BY yearMonth
+                 ORDER BY yearMonth DESC
+                     LIMIT 6
+             ) t;
+
+    </select>
+
+    <!-- 해당 월의 카테고리별 실제 금액 -->
+    <select id="getCategoryAmountsByMonth" resultType="map">
+        SELECT
+            consumption_category AS category,
+            SUM(amount)          AS amount
+        FROM summaries_cache
+        WHERE user_id = #{userId}
+          AND period_type = 'monthly'
+          AND yearMonth = #{yearMonth}
+        GROUP BY consumption_category
+    </select>
+
+    <!-- 기간 내 월별 카테고리 합을 만든 뒤, 카테고리별 평균 -->
+    <select id="getCategoryAvgInRange" resultType="map">
+        SELECT
+            category,
+            AVG(month_amount) AS avgAmount
+        FROM (
+                 SELECT
+                     consumption_category AS category,
+                     yearMonth,
+                     SUM(amount) AS month_amount
+                 FROM summaries_cache
+                 WHERE user_id = #{userId}
+                   AND period_type = 'monthly'
+                   AND yearMonth BETWEEN #{startYm} AND #{endYm}
+                 GROUP BY consumption_category, yearMonth
+             ) t
+        GROUP BY category
+    </select>
+
+
     <!-- 오늘의 소비 -->
     <select id="getTodayConsumption" resultType="double">
         SELECT IFNULL(SUM(amount), 0)

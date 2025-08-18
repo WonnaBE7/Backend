@@ -57,6 +57,19 @@ public class ConsumptionSummaryController {
         return JsonResponse.ok("월 예상 소비 및 오늘의 소비 조회 성공", data);
     }
 
+    //소비분석 페이지 - 월 예상 카테고리별 소비 비율
+    @GetMapping("/estimated/categories")
+    public ResponseEntity<Object> getEstimatedCategoryConsumption(
+            @AuthenticationPrincipal CustomUser customUser,
+            @RequestParam("yearMonth") String yearMonth) {
+
+        String userId = customUser.getUser().getUserId();
+        Map<String, Object> data = summaryService.getEstimatedCategoryConsumption(userId, yearMonth); // ✅ 바꿈
+
+        return JsonResponse.ok("월별 카테고리 소비비율 조회 성공", data);
+    }
+
+
     //소비분석 페이지 - 오늘의 소비 카테고리 비율
     @GetMapping("/today/categories")
     public ResponseEntity<Object> getTodayCategoryConsumption(@AuthenticationPrincipal CustomUser customUser) {
