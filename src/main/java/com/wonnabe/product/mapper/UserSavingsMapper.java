@@ -22,6 +22,7 @@ public interface UserSavingsMapper {
 
     List<TransactionSummaryDto> findMonthlyTransactionSums(
             @Param("userId") String userId,
+            @Param("productId") Long productId,
             @Param("startDate") Date startDate
     );
 

@@ -35,7 +35,7 @@ public class UserSavingsService {
             return null;
         }
 
-        List<TransactionSummaryDto> monthlyTransactions = userSavingsMapper.findMonthlyTransactionSums(userId, userSavings.getStartDate());
+        List<TransactionSummaryDto> monthlyTransactions = userSavingsMapper.findMonthlyTransactionSums(userId, userSavings.getProductId(), userSavings.getStartDate());
 
         // 이자 계산을 제외한 순수 납입 원금의 합계를 계산합니다.
         long currentBalanceWithoutInterest = monthlyTransactions.stream().mapToLong(TransactionSummaryDto::getTotalSavings).sum();
@@ -92,7 +92,7 @@ public class UserSavingsService {
         long cumulativePrincipal = 0; // 누적 원금
         long cumulativeInterest = 0;  // 누적 이자
         double yearlyRate = userSavings.getSavingsProduct().getBaseRate() / 100.0; // 연이율
-        double monthlyRate = yearlyRate / 12.0; // 월이율
+        double monthlyRate = yearlyRate; // 월이율 = 연이율로 계산 - 1년 채우면 다음과같은 연이율 달성예정
 
         for (LocalDate date = startDate.withDayOfMonth(1); !date.isAfter(today); date = date.plusMonths(1)) {
             // 해당 월의 이자는, 이전 달까지의 누적 원금을 기준으로 계산됩니다.
