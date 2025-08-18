@@ -82,35 +82,58 @@ public class ConsumptionSummaryService {
     // 예상 월 소비 및 오늘의 소비
     public Map<String, Object> getOverviewConsumption(String userId) {
         LocalDate today = LocalDate.now();
-        String yearMonth = today.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        DateTimeFormatter ymFmt = DateTimeFormatter.ofPattern("yyyy-MM");
 
-        // 이번 달 현재까지 소비금액
-        Double monthToDate = cacheMapper.getMonthlyTotalConsumption(userId, yearMonth);
-        double totalSoFar = monthToDate != null ? monthToDate : 0;
-
-        // 하루 평균으로 예상 월 소비 계산
-        int dayOfMonth = today.getDayOfMonth();
-        int daysInMonth = today.lengthOfMonth();
-        double estimatedMonthly = dayOfMonth > 0 ? (totalSoFar / dayOfMonth) * daysInMonth : 0;
-
-        // 오늘의 소비
+        // 오늘 소비
         Double todayTotal = cacheMapper.getTodayConsumption(userId, today.toString());
-        double todayConsumption = todayTotal != null ? todayTotal : 0;
+        double todayConsumption = todayTotal != null ? todayTotal : 0.0;
 
+        // 이번 달 누적 소비
+        String thisYm = today.format(ymFmt);
+        Double monthToDate = cacheMapper.getMonthlyTotalConsumption(userId, thisYm);
+        double totalSoFar = monthToDate != null ? monthToDate : 0.0;
+
+        // 최근 12개월 평균 (현재 달 제외)
+        int months = 12;
+        String endYm   = today.minusMonths(1).format(ymFmt);
+        String startYm = today.minusMonths(months).format(ymFmt);
+        Double avgMonthly = cacheMapper.getAvgMonthlyConsumption(userId, startYm, endYm);
+
+        // 예상 월 소비
+        double estimatedMonthly;
+        if (avgMonthly != null) {
+            estimatedMonthly = avgMonthly;
+        } else {
+            int dayOfMonth = today.getDayOfMonth();
+            int daysInMonth = today.lengthOfMonth();
+            int ANCHOR = 10;
+            double denom = Math.max(ANCHOR, dayOfMonth);
+            estimatedMonthly = (denom > 0) ? (totalSoFar / denom) * daysInMonth : 0.0;
+        }
+
+        // diffAmount = 예상 - 현재까지 소비 (음수 그대로 반환)
+        double diffAmount = estimatedMonthly - totalSoFar;
+
+        // 예상 월 소비 맵
         Map<String, Object> estimatedMap = new LinkedHashMap<>();
         estimatedMap.put("amount", Math.round(estimatedMonthly));
         estimatedMap.put("calculatedUntil", today.toString());
+        estimatedMap.put("diffamount", Math.round(diffAmount)); // 음수 포함 그대로 반환
 
+        // 오늘 소비 맵
         Map<String, Object> todayMap = new LinkedHashMap<>();
         todayMap.put("amount", todayConsumption);
         todayMap.put("calculatedDate", today.toString());
 
+        // 최종 결과
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("estimatedMonthlyConsumption", estimatedMap);
         result.put("todayConsumption", todayMap);
 
         return result;
     }
+
+
 
     // 오늘의 소비 카테고리별 소비 금액 및 어제와 비교
     public Map<String, Object> getTodayCategoryConsumption(String userId) {

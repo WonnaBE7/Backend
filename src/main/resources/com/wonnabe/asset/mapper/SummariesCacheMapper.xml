@@ -50,6 +50,21 @@
         GROUP BY curr.consumption_category
     </select>
 
+    <!-- 최근 N개월(시작~끝)의 월별 합계 평균 -->
+    <select id="getAvgMonthlyConsumption" resultType="double">
+        SELECT AVG(month_total) AS estimatedMonthlyConsumption
+        FROM (
+                 SELECT yearMonth, SUM(amount) AS month_total
+                 FROM summaries_cache
+                 WHERE user_id = #{userId}
+                   AND period_type = 'monthly'
+                 GROUP BY yearMonth
+                 ORDER BY yearMonth DESC
+                     LIMIT 6
+             ) t;
+
+    </select>
+
     <!-- 오늘의 소비 -->
     <select id="getTodayConsumption" resultType="double">
         SELECT IFNULL(SUM(amount), 0)

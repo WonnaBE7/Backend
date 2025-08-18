@@ -22,6 +22,12 @@ public interface SummariesCacheMapper {
     // 카테고리별 월별 합계
     List<CategorySummaryDTO> getMonthlyCategorySummary(@Param("userId") String userId,
                                                        @Param("yearMonth") String yearMonth);
+
+    // 예상월소비 - 지난달 소비 평균
+    Double getAvgMonthlyConsumption(@Param("userId") String userId,
+                                    @Param("startYm") String startYm,
+                                    @Param("endYm") String endYm);
+
     // 오늘의 소비
     Double getTodayConsumption(@Param("userId") String userId, @Param("today") String today);
 
