@@ -65,6 +65,7 @@ public class ConsumptionSummaryController {
         return JsonResponse.ok("오늘의 소비 카테고리 비율 조회 성공", data);
     }
 
+    // 소비분석 페이지 - 월별 카테고리
     @GetMapping("/categories/view")
     public String viewCategories(@RequestParam("yearMonth") String yearMonth,
                                  @AuthenticationPrincipal CustomUser customUser,
