@@ -115,7 +115,7 @@ public class SavingsRecommendationServiceImpl implements SavingsRecommendationSe
                 rec.setBankName(product.getBankName());
                 rec.setBaseRate(product.getBaseRate() != null ? product.getBaseRate() : 0.0f);
                 rec.setMaxRate(product.getMaxRate() != null ? product.getMaxRate() : 0.0f);
-                rec.setScore(item.score);
+                rec.setScore(Math.round(item.score * 100.0) / 100.0);
                 rec.setProductType("savings");
 
                 personaRec.getProducts().add(rec);

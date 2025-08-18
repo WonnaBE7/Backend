@@ -134,7 +134,7 @@ public class InsuranceRecommendationServiceImpl implements InsuranceRecommendati
                 rec.setNote(product.getNote());
                 rec.setMyMoney(product.getMyMoney());
 
-                rec.setScore(item.score);
+                rec.setScore(Math.round(item.score * 100.0) / 100.0);
 
                 personaRec.getProducts().add(rec);
             }
