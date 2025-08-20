@@ -16,9 +16,9 @@ import lombok.NoArgsConstructor;
 public class BasicUserInfoDTO {
 	private String userId;
 	private String favoriteProductsByType;
-	private long incomeAnnualAmount;
-	private int nowMeId;
-	private double previousConsumption;
+	private Long incomeAnnualAmount;
+	private Integer nowMeId;
+	private Double previousConsumption;
 	private String incomeSourceType;
 	private String incomeEmploymentStatus;
 	private String smokingStatus;

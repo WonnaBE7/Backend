@@ -161,7 +161,7 @@ public class WishListServiceImpl implements WishListService {
 						.productId(Long.toString(savingProduct.getProductId()))
 						.productName(savingProduct.getProductName())
 						.bankName(savingProduct.getBankName())
-						.baseRate(savingProduct.getBaseRate())
+						.baseRate((double) savingProduct.getBaseRate())
 						.maxRate(Math.round(savingProduct.getMaxRate() * 100.0) / 100.0)
 						.score(Math.round(score * 10.0) / 10.0)
 						.build();
@@ -269,7 +269,11 @@ public class WishListServiceImpl implements WishListService {
 	// 점수 계산
 	public double calculateScoreCard(CardProductVO card, double[] weights, double amount) {
 		List<Integer> score = card.getCardScores();
-		int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
+		Long performanceCondition = card.getPerformanceCondition();
+		if (performanceCondition == null) {
+			throw new NoSuchElementException("카드 상품에 전월실적 점수가 누락된 것이 있습니다.");
+		}
+		int performanceRate = calculatePerformanceRate(performanceCondition, amount);
 		score.set(3, performanceRate);
 		String updatedScore = score.toString();  // 예: [2, 3, 5, 4, 5]
 		card.setCardScore(updatedScore);

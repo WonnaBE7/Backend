@@ -18,10 +18,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserInfoForCardDTO {
 	private String userId; // 사용자 id
-	private double incomeAnnualAmount; // 연소득
+	private Double incomeAnnualAmount; // 연소득
 	private String selectedWonnabeIds; // 내가 선택한 워너비 아이디
 	private String myCardIds; // 내가 보유한 카드 목록
-	private double previousConsumption; // 전월 소비량
+	private Double previousConsumption; // 전월 소비량
 
 	// 페르소나 ID 리스트로 변환
 	public List<Integer> getPersonaIds() {

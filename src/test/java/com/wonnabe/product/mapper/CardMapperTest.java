@@ -80,10 +80,10 @@ public class CardMapperTest {
         UserCardVO card = UserCardVO.builder()
                 .userId("1469a2a3-213d-427e-b29f-f79d58f51190")
                 .productId(2005L)
-                .monthlyUsage(0)
+                .monthlyUsage(0.0)
                 .issueDate(new Date())
                 .expiryDate(calendar.getTime())
-                .performanceCondition(150000)
+                .performanceCondition(150000L)
                 .cardNumber("1234-5678-0000-1111")
                 .accountId(accountId)
                 .build();

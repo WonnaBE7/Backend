@@ -104,7 +104,7 @@ public class CardServiceImpl implements CardService {
             List<ProductWithScore> scoredCards = new ArrayList<>();
             for (CardProductVO card : cardProducts) {
                 // 내가 가진 카드는 추천에서 제외
-                if (myProductId != null && myProductId.contains((Long) card.getProductId())) {
+                if (myProductId != null && myProductId.contains(card.getProductId())) {
                     continue;
                 }
 
@@ -183,7 +183,11 @@ public class CardServiceImpl implements CardService {
     // 점수 계산
     public double calculateScore(CardProductVO card, double[] weights, double amount) {
         List<Integer> score = card.getCardScores();
-        int performanceRate = calculatePerformanceRate(card.getPerformanceCondition(), amount);
+        Long performanceCondition = card.getPerformanceCondition();
+        if (performanceCondition == null) {
+            throw new NoSuchElementException("해당 카드 상품에 대한 실적 조건이 누락되어 있습니다.");
+        }
+        int performanceRate = calculatePerformanceRate(performanceCondition, amount);
         score.set(3, performanceRate);
         String updatedScore = score.toString();  // 예: [2, 3, 5, 4, 5]
         card.setCardScore(updatedScore);
@@ -260,7 +264,7 @@ public class CardServiceImpl implements CardService {
         UserCardVO card = UserCardVO.builder()
                 .userId(userId)
                 .productId(product.getProductId())
-                .monthlyUsage(0)
+                .monthlyUsage(0.0)
                 .issueDate(new Date())
                 .expiryDate(calendar.getTime())
                 .performanceCondition(product.getPerformanceCondition())

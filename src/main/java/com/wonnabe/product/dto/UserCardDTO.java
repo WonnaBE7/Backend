@@ -15,15 +15,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class UserCardDTO {
-    private long id; // 고유 ID
+    private Long id; // 고유 ID
     private String userId; // 사용자 ID
     private String cardCompany;
     private String cardName;
-    private long productId; // 카드 ID
-    private double monthlyUsage; // 월 사용 실적
+    private Long productId; // 카드 ID
+    private Double monthlyUsage; // 월 사용 실적
     private LocalDate issueDate; // 발급일
     private LocalDate expiryDate; // 만료일
-    private long performanceCondition; // 실적
+    private Long performanceCondition; // 실적
     private String cardNumber; // 카드 번호
     List<MonthlyConsumptionDTO> consumptions; // 이전 소비 내역
 }

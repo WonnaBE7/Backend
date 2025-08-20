@@ -2,6 +2,7 @@ package com.wonnabe.product.dto;
 
 import java.util.List;
 
+import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +26,7 @@ public class ProductResponseDTO {
 	public static class Savings {
 		private String productId;
 		private String productName;
-		private double interestRate;
+		private Double interestRate;
 	}
 
 
@@ -58,7 +59,7 @@ public class ProductResponseDTO {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class SavingsWithCount {
-		int count;
+		Integer count;
 		public List<Savings> products;
 	}
 
@@ -68,7 +69,7 @@ public class ProductResponseDTO {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class CardWithCount {
-		int count;
+		Integer count;
 		public List<Card> products;
 	}
 
@@ -78,7 +79,7 @@ public class ProductResponseDTO {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class InsuranceWithCount {
-		int count;
+		Integer count;
 		public List<Insurance> products;
 	}
 
