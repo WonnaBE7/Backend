@@ -25,9 +25,9 @@ public class SpendingEvaluator {
     private static final Set<String> ESSENTIAL_CATEGORIES = Set.of("food", "transport", "living", "fixcost");
 
     // 상수값 외부화
-    private static final double DIVERSITY_BASELINE = 4.0; // 8.2
-    private static final double SPENDING_RATE_BASELINE = 0.4; // 0.673
-    private static final double CONSISTENCY_BASELINE = 35000; // 67000.0
+    private static final double DIVERSITY_BASELINE = 3.0; // 8.2
+    private static final double SPENDING_RATE_BASELINE = 0.5; // 0.673
+    private static final double CONSISTENCY_BASELINE = 40000; // 67000.0
 
     /**
      * 소비 성향 정량 점수 계산 (0~1)

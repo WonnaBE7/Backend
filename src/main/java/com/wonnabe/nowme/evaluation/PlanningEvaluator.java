@@ -87,16 +87,17 @@ public class PlanningEvaluator {
             double quantScore = calculateQuantScore(userId);
             double qualScore = calculateQualScore(requestDTO);
 
-            System.out.println("[Activity] 정량: " + quantScore + ", 정성: " + qualScore);
+            int totalProducts = nowMeMapper.getSavingsProductCount(userId) +
+                    nowMeMapper.getInsuranceProductCount(userId);
+            double productBonus = Math.min(totalProducts * 0.08, 0.4); // 상품 1개당 0.08점, 최대 0.4점
 
-            double finalScore = (quantScore * 0.6) + (qualScore * 0.4);
+            double finalScore = (quantScore * 0.6) + (qualScore * 0.4) + productBonus;
+            finalScore = Math.min(finalScore, 1.0); // 1.0 초과 방지
 
-            log.info("계획방식 최종 점수 - userId: {}, 정량: {}, 정성: {}, 최종: {}",
-                    userId, roundTo3DecimalPlaces(quantScore), roundTo3DecimalPlaces(qualScore),
-                    roundTo3DecimalPlaces(finalScore));
+            log.info("계획방식 최종 점수 - userId: {}, 정량: {}, 정성: {}, 상품보정: {}, 최종: {}",
+                    userId, quantScore, qualScore, productBonus, finalScore);
 
             return roundTo3DecimalPlaces(finalScore);
-
         } catch (Exception e) {
             log.error("계획방식 최종 점수 계산 실패 - userId: {}", userId, e);
             return 0.5;

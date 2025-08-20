@@ -17,10 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * NowMe 진단 서비스
@@ -62,7 +59,7 @@ public class NowMeService {
             new PersonaVector("가족 중심형", new double[]{0.3, 0.2, 0.9, 0.1}),    // ID 8
             new PersonaVector("루틴러형", new double[]{0.2, 0.1, 0.8, 0.1}),       // ID 9
             new PersonaVector("현상 유지형", new double[]{0.0, 0.3, 0.1, 0.0}),    // ID 10
-            new PersonaVector("균형 성장형", new double[]{0.8, 0.5, 0.8, 0.7}),    // ID 11
+            new PersonaVector("균형 성장형", new double[]{0.4, 0.4, 0.4, 0.4}),    // ID 11
             new PersonaVector("대문자P형", new double[]{0.1, 0.9, 0.0, 0.2})       // ID 12
     );
 
@@ -99,7 +96,7 @@ public class NowMeService {
             log.info("사용자 벡터 계산 완료 - {}", userVector);
 
             // 2. 12개 페르소나와 유사도 계산
-            PersonaMatchResult matchResult = findBestMatchingPersona(userVector);
+            PersonaMatchResult matchResult = findBestMatchingPersona(userVector, userId);
             log.info("최적 페르소나 매칭 완료 - {} (유사도: {})", matchResult.personaName, matchResult.similarity);
             // 3. 진단 결과 저장
             saveDiagnosisHistory(userId, userVector, matchResult.personaName, matchResult.similarity);
@@ -142,25 +139,22 @@ public class NowMeService {
     /**
      * 최적 페르소나 찾기 (유사도 기반)
      */
-    private PersonaMatchResult findBestMatchingPersona(UserVector userVector) {
+    private PersonaMatchResult findBestMatchingPersona(UserVector userVector, String userId) {
         String bestPersona = null;
         double maxSimilarity = -1.0;
-
         double[] userArray = userVector.toArray();
 
-        for (PersonaVector persona : PERSONA_VECTORS) {
-            double[] personaArray = persona.toArray();
+        Set<String> excludePersonas = getExcludePersonasByAssets(userId);
 
-            // 코사인 유사도와 유클리드 유사도 평균으로 최종 유사도 계산
+        for (PersonaVector persona : PERSONA_VECTORS) {
+            if (excludePersonas.contains(persona.getPersonaName())) {
+                continue;
+            }
+
+            double[] personaArray = persona.toArray();
             double cosineSim = SimilarityCalculator.cosineSimilarity(userArray, personaArray);
             double euclideanSim = SimilarityCalculator.euclideanSimilarity(userArray, personaArray);
             double finalSimilarity = (cosineSim * 0.6) + (euclideanSim * 0.4);
-
-            log.debug("{} - 코사인: {}, 유클리드: {}, 최종: {}",
-                    persona.getPersonaName(),
-                    roundTo3Decimals(cosineSim),
-                    roundTo3Decimals(euclideanSim),
-                    roundTo3Decimals(finalSimilarity));
 
             if (finalSimilarity > maxSimilarity) {
                 maxSimilarity = finalSimilarity;
@@ -168,8 +162,25 @@ public class NowMeService {
             }
         }
 
-        log.info("최고 유사도: {} ({})", roundTo3Decimals(maxSimilarity), bestPersona);
         return new PersonaMatchResult(bestPersona, maxSimilarity);
+    }
+
+    private Set<String> getExcludePersonasByAssets(String userId) {
+        Set<String> excludePersonas = new HashSet<>();
+
+        try {
+            double totalBalance = nowMeMapper.getTotalBalance(userId);
+            double annualIncome = nowMeMapper.getAnnualIncome(userId);
+
+            if (totalBalance >= 100000000 || annualIncome >= 60000000) {
+                excludePersonas.addAll(Arrays.asList("소확행형", "YOLO형", "대문자P형"));
+                log.info("고자산자 필터링 적용 - 자산: {}, 소득: {}", totalBalance, annualIncome);
+            }
+        } catch (Exception e) {
+            log.warn("자산 구간 필터링 실패", e);
+        }
+
+        return excludePersonas;
     }
 
     /**
