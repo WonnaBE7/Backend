@@ -1,6 +1,7 @@
 package com.wonnabe.product.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,8 +25,8 @@ public class UserCardDetailDTO {
     @JsonFormat(pattern = "yyyy-MM")
     private LocalDate expiryDate; // 카드 만료일
     private String term; // 카드 유지 기간
-    private double currentAmount; // 올해 카드 사용량
-    private int performanceRate; // 카드 활용도
+    private Double currentAmount; // 올해 카드 사용량
+    private Integer performanceRate; // 카드 활용도
     List<MonthlyConsumptionDTO> monthlyConsumptions; // 월별 사용량
 
     // UsercardDto와 term, performanceRate를 받아 해당 클래스의 인스턴스를 생성하는 함수

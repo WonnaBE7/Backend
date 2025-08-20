@@ -40,7 +40,7 @@ public class CardRecommendationResponseDTO {
 		private String cardName;
 		private String cardCompany;
 		private String cardType;
-		private double score;
+		private Double score;
 		private String mainBenefit;
 		private String annualFeeDomestic;
 		private String annualFeeOverSeas;

@@ -27,15 +27,15 @@ public class CardProductDetailResponseDTO {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class CardInfo {
-		private long cardId;
+		private Long cardId;
 		private String cardName;
 		private String cardCompany;
-		private double score;
+		private Double score;
 		private String mainBenefit;
 		private String cardType;
 		private String benefitSummary;
 		@JsonProperty("isWished")
-		private boolean isWished;
+		private Boolean isWished;
 		private List<String> labels;
 		private List<Integer> currentUserData;
 	}
@@ -46,7 +46,7 @@ public class CardProductDetailResponseDTO {
 	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class ComparisonChart {
-		private long compareId;
+		private Long compareId;
 		private String compareName;
 		private List<Integer> recommendedProductData;
 	}

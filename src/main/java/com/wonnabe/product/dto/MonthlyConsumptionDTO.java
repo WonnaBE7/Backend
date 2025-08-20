@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @Builder
 public class MonthlyConsumptionDTO {
     private String month; // 월
-    private int amount; // 양
+    private Integer amount; // 양
 }
