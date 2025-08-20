@@ -127,9 +127,19 @@ jobs:
             echo "🛑 Tomcat 중지..."
             sudo systemctl stop tomcat
             
+            # Tomcat 완전 중지 확인
+            while sudo systemctl is-active --quiet tomcat; do
+              echo "⏳ Tomcat 중지 대기 중..."
+              sleep 2
+            done
+            echo "✅ Tomcat 완전 중지됨"
+            
             # 기존 파일 제거 (ROOT 애플리케이션)
             sudo rm -f "${{ secrets.TOMCAT_PATH }}/webapps/ROOT.war"
             sudo rm -rf "${{ secrets.TOMCAT_PATH }}/webapps/ROOT/"
+            
+            # work 디렉토리도 정리 (캐시된 클래스 파일 제거)
+            sudo rm -rf "${{ secrets.TOMCAT_PATH }}/work/Catalina/localhost/ROOT/"
             
             # 임시 폴더 생성
             mkdir -p ~/deploy
@@ -162,18 +172,25 @@ jobs:
             echo "🚀 Tomcat 시작..."
             sudo systemctl start tomcat
             
-            # 시작 확인 (30초 대기)
-            echo "⏳ 30초 대기 중..."
-            sleep 30
+            # 시작 확인 및 로그 모니터링
+            echo "⏳ Tomcat 시작 확인 중..."
+            sleep 5
             
             if sudo systemctl is-active --quiet tomcat; then
-              echo "✅ Tomcat 시작 성공"
+              echo "✅ Tomcat 프로세스 시작됨"
+            
+              # 로그에서 시작 완료 확인
+              echo "📋 최근 Tomcat 로그:"
+              sudo tail -20 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
+            
             else
               echo "❌ Tomcat 시작 실패"
+              echo "📋 에러 로그:"
+              sudo tail -50 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
               exit 1
             fi
 
-      - name: 🔍 헬스체크 (애플리케이션 정상 작동 확인)
+      - name: 🔍 향상된 헬스체크
         id: health_check
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -183,26 +200,66 @@ jobs:
           script: |
             echo "🔍 헬스체크 시작..."
             
-            # 최대 5분 동안 헬스체크 시도
-            for i in {1..30}; do
-              echo "헬스체크 시도 $i/30..."
+            # WAR 파일 배포 확인
+            if [ ! -f "${{ secrets.TOMCAT_PATH }}/webapps/ROOT.war" ]; then
+              echo "❌ ROOT.war 파일이 존재하지 않음"
+              exit 1
+            fi
             
-              # HTTP 상태 코드 확인 (8080 포트) - ROOT 경로로 확인
-              HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/ || echo "000")
+            # 애플리케이션 압축 해제 대기
+            echo "⏳ 애플리케이션 압축 해제 대기 중..."
+            for i in {1..60}; do
+              if [ -d "${{ secrets.TOMCAT_PATH }}/webapps/ROOT/" ]; then
+                echo "✅ 애플리케이션 압축 해제 완료"
+                break
+              fi
+              if [ $i -eq 60 ]; then
+                echo "❌ 애플리케이션 압축 해제 시간 초과"
+                sudo tail -30 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
+                exit 1
+              fi
+              sleep 2
+            done
             
-              if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
-                echo "✅ 애플리케이션 헬스체크 성공! (HTTP $HTTP_STATUS)"
-                exit 0
-              elif [ "$HTTP_STATUS" = "404" ]; then
-                echo "📝 404 응답 - 애플리케이션이 아직 완전히 로드되지 않았을 수 있음"
+            # Spring Legacy API 엔드포인트로 헬스체크 시도
+            ENDPOINTS=("/api/community/list" "/api/auth/kakao/login-url" "/v2/api-docs")
+            
+            # 최대 10분 동안 헬스체크 시도 (더 긴 대기시간)
+            for i in {1..60}; do
+              echo "헬스체크 시도 $i/60..."
+            
+              # 각 엔드포인트 시도
+              for endpoint in "${ENDPOINTS[@]}"; do
+                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080${endpoint}" || echo "000")
+            
+                if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
+                  echo "✅ Spring Legacy 헬스체크 성공! 엔드포인트: ${endpoint} (HTTP $HTTP_STATUS)"
+                  exit 0
+                elif [ "$HTTP_STATUS" != "404" ] && [ "$HTTP_STATUS" != "000" ]; then
+                  echo "🔄 응답 있음: ${endpoint} (HTTP $HTTP_STATUS)"
+                fi
+              done
+            
+              # 포트 8080 리스닝 확인
+              if netstat -tln | grep -q ":8080 "; then
+                echo "📡 포트 8080 리스닝 중"
               else
-                echo "⚠️ HTTP 상태: $HTTP_STATUS"
+                echo "❌ 포트 8080 리스닝하지 않음"
+              fi
+            
+              # 30초마다 상세 로그 출력
+              if [ $((i % 15)) -eq 0 ]; then
+                echo "📋 현재 Tomcat 로그 (최근 10라인):"
+                sudo tail -10 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
+                echo "---"
               fi
             
               sleep 10
             done
             
-            echo "❌ 헬스체크 실패 - 5분 내에 애플리케이션이 정상 응답하지 않음"
+            echo "❌ 헬스체크 실패 - 10분 내에 애플리케이션이 정상 응답하지 않음"
+            echo "📋 최종 에러 로그:"
+            sudo tail -50 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
             exit 1
 
       - name: 🔄 롤백 (배포 실패 시)
@@ -218,9 +275,15 @@ jobs:
             # Tomcat 중지
             sudo systemctl stop tomcat
             
+            # 완전 중지 확인
+            while sudo systemctl is-active --quiet tomcat; do
+              sleep 2
+            done
+            
             # 현재 WAR 파일 제거
             sudo rm -f "${{ secrets.TOMCAT_PATH }}/webapps/ROOT.war"
             sudo rm -rf "${{ secrets.TOMCAT_PATH }}/webapps/ROOT/"
+            sudo rm -rf "${{ secrets.TOMCAT_PATH }}/work/Catalina/localhost/ROOT/"
             
             # 백업 파일 복원
             BACKUP_FILE=$(cat ~/last_backup.txt)
