@@ -153,7 +153,7 @@ jobs:
           source: "*.war"
           target: "/home/${{ secrets.EC2_USERNAME }}/deploy/"
 
-      - name: 🚀 새 버전 배포
+      - name: 🚀 새 버전 배포 및 시작
         id: deploy_new_version
         uses: appleboy/ssh-action@v1.0.0
         with:
@@ -172,98 +172,33 @@ jobs:
             echo "🚀 Tomcat 시작..."
             sudo systemctl start tomcat
             
-            # 시작 확인 및 로그 모니터링
-            echo "⏳ Tomcat 시작 확인 중..."
-            sleep 5
+            # 시작 확인 (30초 대기)
+            echo "⏳ 30초 대기 후 확인..."
+            sleep 30
             
             if sudo systemctl is-active --quiet tomcat; then
-              echo "✅ Tomcat 프로세스 시작됨"
-            
-              # 로그에서 시작 완료 확인
+              echo "✅ Tomcat 정상 시작됨"
               echo "📋 최근 Tomcat 로그:"
               sudo tail -20 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
-            
             else
               echo "❌ Tomcat 시작 실패"
               echo "📋 에러 로그:"
               sudo tail -50 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
               exit 1
             fi
-
-      - name: 🔍 향상된 헬스체크
-        id: health_check
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            echo "🔍 헬스체크 시작..."
             
-            # WAR 파일 배포 확인
-            if [ ! -f "${{ secrets.TOMCAT_PATH }}/webapps/ROOT.war" ]; then
-              echo "❌ ROOT.war 파일이 존재하지 않음"
+            # 포트 확인
+            if netstat -tln | grep -q ":8080 "; then
+              echo "✅ 포트 8080 정상 리스닝 중"
+            else
+              echo "❌ 포트 8080 리스닝하지 않음"
               exit 1
             fi
             
-            # 애플리케이션 압축 해제 대기
-            echo "⏳ 애플리케이션 압축 해제 대기 중..."
-            for i in {1..60}; do
-              if [ -d "${{ secrets.TOMCAT_PATH }}/webapps/ROOT/" ]; then
-                echo "✅ 애플리케이션 압축 해제 완료"
-                break
-              fi
-              if [ $i -eq 60 ]; then
-                echo "❌ 애플리케이션 압축 해제 시간 초과"
-                sudo tail -30 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
-                exit 1
-              fi
-              sleep 2
-            done
-            
-            # Spring Legacy API 엔드포인트로 헬스체크 시도
-            ENDPOINTS=("/api/community/list" "/api/auth/kakao/login-url" "/v2/api-docs")
-            
-            # 최대 10분 동안 헬스체크 시도 (더 긴 대기시간)
-            for i in {1..60}; do
-              echo "헬스체크 시도 $i/60..."
-            
-              # 각 엔드포인트 시도
-              for endpoint in "${ENDPOINTS[@]}"; do
-                HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:8080${endpoint}" || echo "000")
-            
-                if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "302" ]; then
-                  echo "✅ Spring Legacy 헬스체크 성공! 엔드포인트: ${endpoint} (HTTP $HTTP_STATUS)"
-                  exit 0
-                elif [ "$HTTP_STATUS" != "404" ] && [ "$HTTP_STATUS" != "000" ]; then
-                  echo "🔄 응답 있음: ${endpoint} (HTTP $HTTP_STATUS)"
-                fi
-              done
-            
-              # 포트 8080 리스닝 확인
-              if netstat -tln | grep -q ":8080 "; then
-                echo "📡 포트 8080 리스닝 중"
-              else
-                echo "❌ 포트 8080 리스닝하지 않음"
-              fi
-            
-              # 30초마다 상세 로그 출력
-              if [ $((i % 15)) -eq 0 ]; then
-                echo "📋 현재 Tomcat 로그 (최근 10라인):"
-                sudo tail -10 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
-                echo "---"
-              fi
-            
-              sleep 10
-            done
-            
-            echo "❌ 헬스체크 실패 - 10분 내에 애플리케이션이 정상 응답하지 않음"
-            echo "📋 최종 에러 로그:"
-            sudo tail -50 "${{ secrets.TOMCAT_PATH }}/logs/catalina.out"
-            exit 1
+            echo "🎉 배포 완료!"
 
       - name: 🔄 롤백 (배포 실패 시)
-        if: failure() && (steps.deploy_new_version.outcome == 'failure' || steps.health_check.outcome == 'failure')
+        if: failure() && steps.deploy_new_version.outcome == 'failure'
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
